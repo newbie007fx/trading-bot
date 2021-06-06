@@ -7,7 +7,7 @@ import (
 
 func CreateSiteConfigTable() *gormigrate.Migration {
 	return &gormigrate.Migration{
-		ID: "202101231100",
+		ID: "202106061100",
 		Migrate: func(tx *gorm.DB) error {
 			type SiteConfig struct {
 				ID    uint   `gorm:"primaryKey"`
