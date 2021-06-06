@@ -20,4 +20,4 @@ deploy to heroku:
     - gem install dpl
     - dpl --provider=heroku --app=telebot-trading --api-key=$HEROKU_API_KEY
   only: 
-    - staging
+    - master
