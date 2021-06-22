@@ -1,9 +1,9 @@
 package commands
 
 import (
+	"strconv"
 	"telebot-trading/external/httpserver"
 	"telebot-trading/utils"
-	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -25,7 +25,8 @@ func ServeCommand() *cobra.Command {
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		port, _ := cmd.Flags().GetInt("port")
-		httpserver.Run(port)
+		server := httpserver.GetRouteService()
+		server.Start(port)
 	}
 
 	return cmd

@@ -9,7 +9,7 @@ import (
 
 var validate *validator.Validate
 
-func GetValidate() *validator.Validate {
+func getValidate() *validator.Validate {
 	if validate == nil {
 		validate = validator.New()
 		validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -22,7 +22,7 @@ func GetValidate() *validator.Validate {
 }
 
 func Validate(request interface{}) (error, map[string]interface{}) {
-	validate := GetValidate()
+	validate := getValidate()
 
 	err := validate.Struct(request)
 	if err == nil {

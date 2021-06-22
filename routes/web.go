@@ -1,8 +1,11 @@
 package routes
 
 import (
-	"errors"
-	"telebot-trading/app/http/controllers/telegram_hook"
+	"net/http"
+	"telebot-trading/app/http/controllers/api"
+	"telebot-trading/app/http/controllers/auth"
+	"telebot-trading/app/http/controllers/home"
+	"telebot-trading/app/http/middleware"
 
 	"github.com/labstack/echo/v4"
 )
@@ -10,8 +13,17 @@ import (
 func RegisterWebRoute(e *echo.Echo) {
 
 	e.Any("/", func(c echo.Context) error {
-		return errors.New("invalid request")
+		return c.Redirect(http.StatusMovedPermanently, "login")
 	})
 
-	e.POST("/tele-hook", telegram_hook.ProcessTeleWebhook)
+	e.GET("login", auth.ShowLoginFrom)
+	e.POST("login", auth.ProcessLogin)
+
+	g := e.Group("admin/", middleware.AuthSession)
+	g.GET("dashboard", home.Dashboard)
+
+	g.POST("logout", auth.Logout)
+
+	a := e.Group("api/")
+	a.POST("/tele-hook", api.ProcessTeleWebhook)
 }

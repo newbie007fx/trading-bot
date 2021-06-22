@@ -1,7 +1,5 @@
 package bootstrap
 
-import "log"
-
 var serviceList []Service
 var mainService MainService
 
@@ -19,7 +17,7 @@ func (Bootstraper) RegistServices() {
 	for _, service := range serviceList {
 		err := service.Setup()
 		if err != nil {
-			log.Println(err)
+			panic(err)
 		}
 	}
 }

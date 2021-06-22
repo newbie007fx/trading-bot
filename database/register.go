@@ -6,5 +6,6 @@ import (
 )
 
 func init() {
-	db.RegistMigration(migrations.CreateSiteConfigTable())
+	db.RegistMigration(migrations.CreateAdminTable())
+	db.RegistMigration(migrations.CreateCurrencyNotifConfigTable())
 }

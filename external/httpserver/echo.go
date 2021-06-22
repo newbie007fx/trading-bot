@@ -20,7 +20,11 @@ func (rs *RouterService) Setup() error {
 
 	rs.server.Debug = (debug == "true")
 
+	rs.server.Renderer = getTemplate()
+
 	registerRouting(rs.server)
+
+	rs.server.Static("/assets", "resources/assets")
 
 	return nil
 }
@@ -38,9 +42,4 @@ func GetRouteService() *RouterService {
 	}
 
 	return routeService
-}
-
-func Run(port int) {
-	service := GetRouteService()
-	service.Start(port)
 }

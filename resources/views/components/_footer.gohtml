@@ -1,0 +1,40 @@
+{{define "footer"}}
+</div>
+    </div>
+    <script src="/assets/vendor/jquery/jquery.min.js"></script>
+    <script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/vendor/chartsjs/Chart.min.js"></script>
+    <script src="/assets/js/dashboard-charts.js"></script>
+    <script src="/assets/js/script.js"></script>
+    <script src="/assets/js/loader.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+
+            $(".logout").click(function(ev){
+                ev.preventDefault();
+                showLoader()
+                var token = $('meta[name="csrf_token"]').attr('content');
+                $.ajax({
+                    url: '/admin/logout',
+                    method: 'post',
+                    beforeSend: function (request) {
+                        request.setRequestHeader('X-CSRF-TOKEN', token);
+                    },
+                    success: function (res) {
+                        window.location = "/login";
+                    },
+                    error: function (xhr, status, error) {
+                        alert(xhr.responseJSON.message);
+                    },
+                    complete: function(){
+                        hideLoader();
+                    },
+                });
+            })
+        });
+    </script>
+</body>
+
+</html>
+{{end}}
