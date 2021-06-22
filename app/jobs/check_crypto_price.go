@@ -59,8 +59,10 @@ func checkIsInSleepHours() bool {
 
 	now := time.Now().In(loc)
 
-	sleepTimeStart, _ := time.ParseInLocation("15:04:05", "00:00:01", loc)
-	sleepTimeEnd, _ := time.ParseInLocation("15:04:05", "00:04:30", loc)
+	date := now.Format("02-01-2006")
+
+	sleepTimeStart, _ := time.ParseInLocation("02-01-2006 15:04:05", date+" 00:00:01", loc)
+	sleepTimeEnd, _ := time.ParseInLocation("02-01-2006 15:04:05", date+" 00:04:30", loc)
 
 	return sleepTimeStart.Unix() < now.Unix() && now.Unix() < sleepTimeEnd.Unix()
 }
