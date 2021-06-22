@@ -14,6 +14,8 @@ func CheckCryptoPrice() {
 		return
 	}
 
+	log.Println("starting crypto check price worker")
+
 	clintIDString := services.GetConfigValueByKey("chat_id")
 	if clintIDString == nil {
 		log.Println("client id belum diset")
@@ -48,6 +50,8 @@ func CheckCryptoPrice() {
 			services.SendToTelegram(clientID, msg)
 		}
 	}
+
+	log.Println("crypto check price worker is done")
 }
 
 func checkIsInSleepHours() bool {

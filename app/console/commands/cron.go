@@ -18,6 +18,8 @@ func CronRunCommand() *cobra.Command {
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		service := scheduler.GetCronService()
 		service.Start()
+
+		select {}
 	}
 
 	return cmd

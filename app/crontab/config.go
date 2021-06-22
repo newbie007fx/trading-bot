@@ -7,5 +7,5 @@ import (
 )
 
 func RegisterCron(c *cron.Cron) {
-	c.AddFunc("5 * * * *", jobs.CheckCryptoPrice)
+	c.AddFunc("*/5 * * * *", jobs.CheckCryptoPrice)
 }
