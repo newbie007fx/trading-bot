@@ -25,5 +25,5 @@ func RegisterWebRoute(e *echo.Echo) {
 	g.POST("logout", auth.Logout)
 
 	a := e.Group("api/")
-	a.POST("/tele-hook", api.ProcessTeleWebhook)
+	a.POST("tele-hook", api.ProcessTeleWebhook)
 }
