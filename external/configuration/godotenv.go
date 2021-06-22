@@ -1,11 +1,19 @@
 package configuration
 
-import "github.com/joho/godotenv"
+import (
+	"fmt"
+
+	"github.com/joho/godotenv"
+)
 
 type ConfigService struct{}
 
 func (ConfigService) Setup() error {
-	return godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return nil
 }
 
 func (ConfigService) Shutdown() {}
