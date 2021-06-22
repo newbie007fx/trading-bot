@@ -23,12 +23,12 @@ func ProcessTeleWebhook(c echo.Context) error {
 		services.SaveConfig("chat_id", strconv.FormatInt(req.Message.Chat.ID, 10))
 		err := services.SendToTelegram(req.Message.Chat.ID, "oke sukses lur")
 		if err != nil {
-			log.Panic(err)
+			log.Println(err)
 		}
 	} else {
 		err := services.SendToTelegram(req.Message.Chat.ID, "command gak valid lur")
 		if err != nil {
-			log.Panic(err)
+			log.Println(err)
 		}
 	}
 

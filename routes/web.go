@@ -5,9 +5,12 @@ import (
 	"telebot-trading/app/http/controllers/api"
 	"telebot-trading/app/http/controllers/auth"
 	"telebot-trading/app/http/controllers/home"
-	"telebot-trading/app/http/middleware"
+	localMiddleware "telebot-trading/app/http/middleware"
 
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func RegisterWebRoute(e *echo.Echo) {
@@ -19,7 +22,11 @@ func RegisterWebRoute(e *echo.Echo) {
 	e.GET("login", auth.ShowLoginFrom)
 	e.POST("login", auth.ProcessLogin)
 
-	g := e.Group("admin/", middleware.AuthSession)
+	g := e.Group("admin/", localMiddleware.AuthSession)
+	g.Use(session.Middleware(sessions.NewCookieStore([]byte("597598ca-f457-437f-b08e-5823ff94e0aa"))))
+	g.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
+		TokenLookup: "header:X-CSRF-TOKEN",
+	}))
 	g.GET("dashboard", home.Dashboard)
 
 	g.POST("logout", auth.Logout)
