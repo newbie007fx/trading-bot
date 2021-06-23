@@ -19,9 +19,9 @@ func GetConfigValueByName(name string) *string {
 	return value
 }
 
-func SaveConfig(key, value string) error {
+func SaveConfig(name, value string) error {
 	data := map[string]interface{}{
-		"key":   key,
+		"name":  name,
 		"value": value,
 	}
 
