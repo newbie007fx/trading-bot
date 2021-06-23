@@ -12,7 +12,7 @@ func GetConfigValueByName(name string) *string {
 	if value == nil {
 		value = repositories.GetConfigValueByName(name)
 		if value != nil {
-			SaveConfig(name, *value)
+			simple_store.Set(name, *value)
 		}
 	}
 
