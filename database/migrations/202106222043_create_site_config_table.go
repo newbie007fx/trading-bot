@@ -11,7 +11,7 @@ func CreateSiteConfigTable() *gormigrate.Migration {
 		Migrate: func(tx *gorm.DB) error {
 			type SiteConfig struct {
 				ID    uint   `gorm:"primaryKey"`
-				Key   string `gorm:"unique"`
+				Name  string `gorm:"unique"`
 				Value string `gorm:"size:200"`
 			}
 			return tx.AutoMigrate(&SiteConfig{})

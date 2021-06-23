@@ -5,9 +5,9 @@ import (
 	"telebot-trading/external/db"
 )
 
-func GetConfigValueByKey(key string) *string {
+func GetConfigValueByName(name string) *string {
 	site_config := new(models.SiteConfig)
-	res := db.GetDB().Where("key = ?", key).First(site_config)
+	res := db.GetDB().Where("name = ?", name).First(site_config)
 	if res.Error != nil {
 		return nil
 	}

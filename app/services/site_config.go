@@ -5,14 +5,14 @@ import (
 	"telebot-trading/app/repositories"
 )
 
-func GetConfigValueByKey(key string) *string {
+func GetConfigValueByName(name string) *string {
 	simple_store := helper.GetSimpleStore()
 
-	value := simple_store.Get(key)
+	value := simple_store.Get(name)
 	if value == nil {
-		value = repositories.GetConfigValueByKey(key)
+		value = repositories.GetConfigValueByName(name)
 		if value != nil {
-			SaveConfig(key, *value)
+			SaveConfig(name, *value)
 		}
 	}
 

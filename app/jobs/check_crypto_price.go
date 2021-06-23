@@ -16,7 +16,7 @@ func CheckCryptoPrice() {
 
 	log.Println("starting crypto check price worker")
 
-	clintIDString := services.GetConfigValueByKey("chat_id")
+	clintIDString := services.GetConfigValueByName("chat_id")
 	if clintIDString == nil {
 		log.Println("client id belum diset")
 		return
