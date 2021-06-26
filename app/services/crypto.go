@@ -30,8 +30,8 @@ func CheckLastCandleIsUp(bollingerBands []Band) bool {
 	return false
 }
 
-func CheckPositionInUpperBand(bollingerBands []Band) bool {
-	//candle posisi sekrang diatas upper band
+func CheckPositionOnUpperBand(bollingerBands []Band) bool {
+	//candle posisi sekrang  diupper band
 	size := len(bollingerBands)
 	if size > 0 {
 		band := bollingerBands[size-1]
@@ -64,17 +64,14 @@ func CheckPositionAfterLower(bollingerBands []Band) bool {
 	size := len(bollingerBands)
 	if size > 2 {
 		lastBand := bollingerBands[size-1]
-		if lastBand.Candle.Open <= float32(lastBand.Lower) && float32(lastBand.Lower) <= lastBand.Candle.Close {
+		isLastBandOnLower := lastBand.Candle.Open <= float32(lastBand.Lower) && float32(lastBand.Lower) <= lastBand.Candle.Close
+		isLastBandBelowLower := lastBand.Candle.Open <= float32(lastBand.Lower) && lastBand.Candle.Close <= float32(lastBand.Lower)
+		if isLastBandOnLower || isLastBandBelowLower {
 			return true
 		}
 
 		secondLastBand := bollingerBands[size-2]
-		if secondLastBand.Candle.Open >= float32(secondLastBand.Lower) && float32(secondLastBand.SMA) >= secondLastBand.Candle.Close {
-			return true
-		}
-
-		thirdLastBand := bollingerBands[size-2]
-		if thirdLastBand.Candle.Open >= float32(thirdLastBand.Lower) && float32(thirdLastBand.SMA) >= thirdLastBand.Candle.Close {
+		if secondLastBand.Candle.Low < float32(secondLastBand.Lower) {
 			return true
 		}
 	}

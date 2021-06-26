@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"telebot-trading/app/helper"
+	"telebot-trading/utils"
 
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
@@ -46,7 +48,8 @@ func getTemplate() *Template {
 		},
 	})
 
-	err := filepath.Walk("./resources/views", func(path string, info os.FileInfo, err error) error {
+	resource_path := utils.Env("RESOURCES_PATH", "./resources")
+	err := filepath.Walk(fmt.Sprintf("%s/views", resource_path), func(path string, info os.FileInfo, err error) error {
 		if strings.Contains(path, ".gohtml") {
 			_, err = templ.ParseFiles(path)
 			if err != nil {

@@ -24,7 +24,9 @@ func (rs *RouterService) Setup() error {
 
 	registerRouting(rs.server)
 
-	rs.server.Static("/assets", "resources/assets")
+	resource_path := utils.Env("RESOURCES_PATH", "./resources")
+
+	rs.server.Static("/assets", fmt.Sprintf("%s/assets", resource_path))
 
 	return nil
 }

@@ -35,7 +35,7 @@ func CheckCryptoPrice() {
 			continue
 		}
 
-		if services.CheckPositionInUpperBand(bands) {
+		if services.CheckPositionOnUpperBand(bands) {
 			msg := fmt.Sprintf("Koin %s sekarang sudah melewati upper band, check dulu gan", data.Symbol)
 			services.SendToTelegram(clientID, msg)
 		}
