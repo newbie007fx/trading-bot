@@ -6,12 +6,12 @@ import (
 
 func GetCurrentBollingerBands(symbol string) (bands []Band, err error) {
 	end := time.Now().Unix()
-	start := end - (60 * 15 * 23)
+	start := end - (60 * 15 * 25)
 
 	crypto := GetCrypto()
 	candlesData, err := crypto.GetCandlesData(symbol, start, end)
 	if err == nil {
-		bands = GenerateBollingerBands(candlesData, 1)
+		bands = GenerateBollingerBands(candlesData)
 	}
 
 	return
@@ -71,7 +71,7 @@ func CheckPositionAfterLower(bollingerBands []Band) bool {
 		}
 
 		secondLastBand := bollingerBands[size-2]
-		if secondLastBand.Candle.Low < float32(secondLastBand.Lower) {
+		if secondLastBand.Candle.Open > secondLastBand.Candle.Close && secondLastBand.Candle.Low < float32(secondLastBand.Lower) {
 			return true
 		}
 	}

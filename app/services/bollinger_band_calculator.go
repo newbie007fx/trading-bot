@@ -15,11 +15,12 @@ const SMA_DAYS = 20
 
 const STANDARD_DEVIATIONS = 2
 
-func GenerateBollingerBands(historical []CandleData, graphData int) (bands []Band) {
+func GenerateBollingerBands(historical []CandleData) (bands []Band) {
 	start := 0
 	end := SMA_DAYS
 
-	for i := 0; i < graphData; i++ {
+	graphData := len(historical) - SMA_DAYS
+	for i := 0; i <= graphData; i++ {
 		bands = append(bands, getBandData(historical[start:end]))
 		start++
 		end++
