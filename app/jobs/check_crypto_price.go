@@ -50,7 +50,9 @@ func CheckCryptoPrice() {
 		}
 	}
 
-	services.SendToTelegram(clientID, msg)
+	if msg != "" {
+		services.SendToTelegram(clientID, msg)
+	}
 
 	log.Println("crypto check price worker is done")
 }
