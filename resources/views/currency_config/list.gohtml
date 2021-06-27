@@ -1,0 +1,180 @@
+{{ .param.Add "title" "List Currency Config" }}
+
+{{ block "header" . }} {{ end }}
+
+<div class="row">
+    <div class="col-md-12 col-lg-12">
+        <div class="card">
+            <div class="card-header">Currency Configs
+                <div class="card-tools">
+                    <a href="/admin/currency-config/create" class="btn btn-success btn-sm" data-toggle="tooltip"
+                        title="Tambah Toko Baru">
+                        <i class="fas fa-plus"></i> Add Currency Config
+                    </a>
+
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Symbol</th>
+                                <th>Is On Hold</th>
+                                <th>Is Master</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ range .currency_configs }}
+                            <tr>
+                                <th scope="row">{{ .ID }}</th>
+                                <td>{{ .Symbol }}</td>
+                                <td>{{ .IsOnHold }}</td>
+                                <td>{{ .IsMaster }}</td>
+                                <td>
+                                    <a href="/admin/currency-config/edit/{{ .ID }}" title="edit"><i class="fas fa-edit"></i></a> |
+                                    <a class="delete-currency-config" href="#" data-id="{{ .ID }}"><i class="fas fa-trash-alt"></i></a>
+                                    {{ if eq .IsMaster false }}
+                                       | <a class="set-master-currency-config" href="#" data-id="{{ .ID }}">Set Master</a>
+                                    {{ end }}
+                                    {{ if eq .IsOnHold false }}
+                                       | <a class="hold-currency-config" href="#" data-id="{{ .ID }}">Hold</a>
+                                    {{ else }}
+                                       | <a class="release-currency-config" href="#" data-id="{{ .ID }}">Release</a>
+                                    {{ end }}
+                                </td>
+                            </tr>
+                            {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ define "script" }}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".delete-currency-config").click(function (ev) {
+            ev.preventDefault();
+
+            var confimation = confirm("Apakah yakin ingin menghapus data?");
+            if(! confimation) return;
+            
+            showLoader()
+            
+            var id = $(this).attr('data-id');
+            var token = $('meta[name="csrf_token"]').attr('content');
+            
+            $.ajax({
+                url: '/admin/currency-config/delete/'+id,
+                method: 'delete',
+                beforeSend: function (request) {
+                    request.setRequestHeader('X-CSRF-TOKEN', token);
+                },
+                success: function (res) {
+                    window.location = "/admin/currency-config";
+                },
+                error: function (xhr, status, error) {
+                    alert(xhr.responseJSON.message);
+                },
+                complete: function () {
+                    hideLoader();
+                },
+            });
+        })
+
+        $(".hold-currency-config").click(function (ev) {
+            ev.preventDefault();
+
+            var confimation = confirm("Apakah yakin ingin menghold data?");
+            if(! confimation) return;
+            
+            showLoader()
+            
+            var id = $(this).attr('data-id');
+            var token = $('meta[name="csrf_token"]').attr('content');
+            
+            $.ajax({
+                url: '/admin/currency-config/hold/'+id,
+                method: 'put',
+                beforeSend: function (request) {
+                    request.setRequestHeader('X-CSRF-TOKEN', token);
+                },
+                success: function (res) {
+                    window.location = "/admin/currency-config";
+                },
+                error: function (xhr, status, error) {
+                    alert(xhr.responseJSON.message);
+                },
+                complete: function () {
+                    hideLoader();
+                },
+            });
+        })
+
+        $(".release-currency-config").click(function (ev) {
+            ev.preventDefault();
+
+            var confimation = confirm("Apakah yakin ingin merelease data?");
+            if(! confimation) return;
+            
+            showLoader()
+            
+            var id = $(this).attr('data-id');
+            var token = $('meta[name="csrf_token"]').attr('content');
+            
+            $.ajax({
+                url: '/admin/currency-config/release/'+id,
+                method: 'put',
+                beforeSend: function (request) {
+                    request.setRequestHeader('X-CSRF-TOKEN', token);
+                },
+                success: function (res) {
+                    window.location = "/admin/currency-config";
+                },
+                error: function (xhr, status, error) {
+                    alert(xhr.responseJSON.message);
+                },
+                complete: function () {
+                    hideLoader();
+                },
+            });
+        })
+
+        $(".set-master-currency-config").click(function (ev) {
+            ev.preventDefault();
+
+            var confimation = confirm("Apakah yakin ingin set master data?");
+            if(! confimation) return;
+            
+            showLoader()
+            
+            var id = $(this).attr('data-id');
+            var token = $('meta[name="csrf_token"]').attr('content');
+            
+            $.ajax({
+                url: '/admin/currency-config/set-master/'+id,
+                method: 'put',
+                beforeSend: function (request) {
+                    request.setRequestHeader('X-CSRF-TOKEN', token);
+                },
+                success: function (res) {
+                    window.location = "/admin/currency-config";
+                },
+                error: function (xhr, status, error) {
+                    alert(xhr.responseJSON.message);
+                },
+                complete: function () {
+                    hideLoader();
+                },
+            });
+        })
+    });
+</script>
+{{ end }}
+
+{{ block "footer" . }} {{ end }}

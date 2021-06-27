@@ -1,0 +1,53 @@
+package repositories
+
+import (
+	"telebot-trading/app/models"
+	"telebot-trading/external/db"
+	"time"
+)
+
+func GetCurrencyNotifConfigs() *[]models.CurrencyNotifConfig {
+	notifConfigs := []models.CurrencyNotifConfig{}
+	res := db.GetDB().Order("is_master desc").Find(&notifConfigs)
+	if res.Error != nil {
+		return nil
+	}
+	return &notifConfigs
+}
+
+func SaveCurrencyNotifConfig(data map[string]interface{}) error {
+	data["created_at"] = time.Now()
+	data["updated_at"] = time.Now()
+
+	result := db.GetDB().Table("currency_notif_configs").Create(data)
+	return result.Error
+}
+
+func GetCurrencyNotifConfig(id uint) (*models.CurrencyNotifConfig, error) {
+	currencyConfig := models.CurrencyNotifConfig{}
+	result := db.GetDB().Table("currency_notif_configs").Where("id = ?", id).Take(&currencyConfig)
+	return &currencyConfig, result.Error
+}
+
+func UpdateCurrencyNotifConfig(id uint, data map[string]interface{}) error {
+	data["updated_at"] = time.Now()
+	result := db.GetDB().Table("currency_notif_configs").Where("id = ?", id).Updates(data)
+	return result.Error
+}
+
+func DeleteCurrencyNotifConfig(id uint) error {
+	currencyConfig, err := GetCurrencyNotifConfig(id)
+	if err != nil {
+		return err
+	}
+
+	result := db.GetDB().Delete(currencyConfig)
+	return result.Error
+}
+
+func SetMaster(id uint) error {
+	db.GetDB().Table("currency_notif_configs").Where("is_master = ?", 1).Updates(map[string]interface{}{"updated_at": time.Now(), "is_master": false})
+	result := db.GetDB().Table("currency_notif_configs").Where("id = ?", id).Updates(map[string]interface{}{"updated_at": time.Now(), "is_master": true})
+
+	return result.Error
+}

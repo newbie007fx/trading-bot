@@ -10,15 +10,12 @@ import (
 )
 
 func ShowLoginFrom(c echo.Context) error {
-	return c.Render(http.StatusOK, "login.gohtml", nil)
+	return c.Render(http.StatusOK, "auth/login.gohtml", nil)
 }
 
 func ProcessLogin(c echo.Context) (err error) {
 	req := new(requests.LoginRequest)
-
-	if err = c.Bind(req); err != nil {
-		return
-	}
+	c.Bind(req)
 
 	sess := helper.GetSession(c)
 

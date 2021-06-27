@@ -22,9 +22,11 @@ func CheckCryptoPrice() {
 		return
 	}
 
+	msg := ""
+
 	clientID, _ := strconv.ParseInt(*clintIDString, 10, 64)
-	currency_notif_configs := repositories.GetCurrencyNotifConfigs()
-	for _, data := range *currency_notif_configs {
+	currency_configs := repositories.GetCurrencyNotifConfigs()
+	for _, data := range *currency_configs {
 		bands, err := services.GetCurrentBollingerBands(data.Symbol)
 		if err != nil {
 			log.Println("error: ", err.Error())
@@ -36,20 +38,19 @@ func CheckCryptoPrice() {
 		}
 
 		if services.CheckPositionOnUpperBand(bands) {
-			msg := fmt.Sprintf("Koin %s sekarang sudah melewati upper band, check dulu gan", data.Symbol)
-			services.SendToTelegram(clientID, msg)
+			msg += fmt.Sprintf("Koin %s sekarang sudah melewati upper band, check dulu gan. ", data.Symbol)
 		}
 
 		if services.CheckPositionSMAAfterLower(bands) {
-			msg := fmt.Sprintf("Koin %s sekarang sudah melewati SMA band, Pantau gan", data.Symbol)
-			services.SendToTelegram(clientID, msg)
+			msg += fmt.Sprintf("Koin %s sekarang sudah melewati SMA band, Pantau gan. ", data.Symbol)
 		}
 
 		if services.CheckPositionAfterLower(bands) {
-			msg := fmt.Sprintf("Koin %s sekarang sudah melewati SMA band, Urgent gan", data.Symbol)
-			services.SendToTelegram(clientID, msg)
+			msg += fmt.Sprintf("Koin %s sekarang sudah ijo setelah melewati lower band, Urgent gan. ", data.Symbol)
 		}
 	}
+
+	services.SendToTelegram(clientID, msg)
 
 	log.Println("crypto check price worker is done")
 }

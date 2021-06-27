@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log"
-	"os"
 	"path/filepath"
-	"strings"
 	"telebot-trading/app/helper"
 	"telebot-trading/utils"
 
@@ -15,56 +12,46 @@ import (
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
 
-type Template struct {
-	templates *template.Template
-}
+type Template struct{}
 
-func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+func (t *Template) Render(w io.Writer, filename string, data interface{}, c echo.Context) error {
 	if data == nil {
 		data = map[string]interface{}{}
 	}
 
-	dataMap := data.(map[string]interface{})
-	dataMap["csrf_token"] = c.Get(echoMiddleware.DefaultCSRFConfig.ContextKey).(string)
+	tmpData := data.(map[string]interface{})
+	tmpData["csrf_token"] = c.Get(echoMiddleware.DefaultCSRFConfig.ContextKey).(string)
+	tmpData["param"] = templateParam{}
 
-	tmpl := t.templates.Funcs(template.FuncMap{
+	resourcePath := utils.Env("RESOURCES_PATH", "resources")
+	filename = fmt.Sprintf("%s/views/%s", resourcePath, filename)
+	baseLayout := fmt.Sprintf("%s/views/layouts/app.gohtml", resourcePath)
+
+	tmpl := template.New("")
+	_, err := tmpl.Funcs(template.FuncMap{
 		"session": getFlashMessage(c),
-	})
+	}).ParseFiles(filename, baseLayout)
+	if err != nil {
+		panic(err)
+	}
 
-	return tmpl.ExecuteTemplate(w, name, dataMap)
+	return tmpl.ExecuteTemplate(w, filepath.Base(filename), tmpData)
+}
+
+type templateParam map[string]string
+
+func (tmpParam templateParam) Add(key string, val string) interface{} {
+	tmpParam[key] = val
+	return nil
+}
+
+func (tmpParam templateParam) Get(key string) string {
+	return tmpParam[key]
 }
 
 func getFlashMessage(c echo.Context) func(string) *string {
 	return func(key string) *string {
 		sess := helper.GetSession(c)
 		return sess.GetFlashMessage(key)
-	}
-}
-
-func getTemplate() *Template {
-	templ := template.New("").Funcs(template.FuncMap{
-		"session": func(key string) *string {
-			return nil
-		},
-	})
-
-	resource_path := utils.Env("RESOURCES_PATH", "./resources")
-	err := filepath.Walk(fmt.Sprintf("%s/views", resource_path), func(path string, info os.FileInfo, err error) error {
-		if strings.Contains(path, ".gohtml") {
-			_, err = templ.ParseFiles(path)
-			if err != nil {
-				log.Println(err)
-			}
-		}
-
-		return err
-	})
-
-	if err != nil {
-		panic(err)
-	}
-
-	return &Template{
-		templates: templ,
 	}
 }

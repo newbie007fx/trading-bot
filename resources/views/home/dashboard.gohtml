@@ -1,4 +1,6 @@
-{{template "header" .csrf_token}}
+{{ .param.Add "title" "Dashboard" }}
+
+{{ block "header" . }} {{ end }}
 
 <div class="content">
     <div class="container">
@@ -325,4 +327,6 @@
     </div>
 </div>
 
-{{template "footer"}}
+{{ block "script" . }} {{ end}}
+
+{{ block "footer" . }} {{ end }}

@@ -20,12 +20,13 @@ func (rs *RouterService) Setup() error {
 
 	rs.server.Debug = (debug == "true")
 
-	rs.server.Renderer = getTemplate()
+	rs.server.Renderer = &Template{}
 
 	registerRouting(rs.server)
 
-	resource_path := utils.Env("RESOURCES_PATH", "./resources")
+	rs.server.HTTPErrorHandler = httpErrorHanlder()
 
+	resource_path := utils.Env("RESOURCES_PATH", "./resources")
 	rs.server.Static("/assets", fmt.Sprintf("%s/assets", resource_path))
 
 	return nil

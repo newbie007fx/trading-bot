@@ -14,9 +14,9 @@ type ConsoleService struct{}
 
 func (ConsoleService) rootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{}
-	rootCmd.Use = "reselku"
+	rootCmd.Use = "telebot"
 	rootCmd.Short = "A Simple Web"
-	rootCmd.Long = `A simple web admin application for reselku`
+	rootCmd.Long = `A simple web admin application for telebot`
 	return rootCmd
 }
 

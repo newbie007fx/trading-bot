@@ -6,6 +6,7 @@ import (
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var databaseService *DatabaseService
@@ -27,7 +28,10 @@ func (DatabaseService) loadConnString() string {
 
 func (ds *DatabaseService) Setup() error {
 	var err error
-	ds.DB, err = gorm.Open(mysql.Open(ds.loadConnString()), &gorm.Config{})
+	ds.DB, err = gorm.Open(mysql.Open(ds.loadConnString()), &gorm.Config{
+		Logger: logger.Default.LogMode(getLogMode()),
+	})
+
 	if err != nil {
 		fmt.Println(err)
 		panic("error connecting database")
@@ -49,4 +53,13 @@ func GetDatabaseService() *DatabaseService {
 
 func GetDB() *gorm.DB {
 	return GetDatabaseService().DB
+}
+
+func getLogMode() logger.LogLevel {
+	debug := utils.Env("debug", "false")
+	logMode := logger.Error
+	if debug == "true" {
+		logMode = logger.Info
+	}
+	return logMode
 }

@@ -1,3 +1,5 @@
+{{$msg := session "message"}}
+
 <!doctype html>
 <html lang="en">
 
@@ -24,7 +26,6 @@
             <img class="brand" src="assets/img/bootstraper-logo.png" alt="bootstraper logo">
           </div>
           <h6 class="mb-4 text-muted">Login to your account</h6>
-          {{$msg := session "message"}}
           {{if $msg}} {{$msg}} {{end}}
           <form action="" method="" id="signin-form">
             <div class="form-group text-left">

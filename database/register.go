@@ -9,4 +9,5 @@ func init() {
 	db.RegistMigration(migrations.CreateAdminTable())
 	db.RegistMigration(migrations.CreateCurrencyNotifConfigTable())
 	db.RegistMigration(migrations.CreateSiteConfigTable())
+	db.RegistMigration(migrations.AddOnHoldColumnCurrencyNotifTable())
 }
