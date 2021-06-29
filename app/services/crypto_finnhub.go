@@ -2,19 +2,11 @@ package services
 
 import (
 	"context"
+	"telebot-trading/app/models"
 	"telebot-trading/utils"
 
 	finnhub "github.com/Finnhub-Stock-API/finnhub-go"
 )
-
-type CandleData struct {
-	Open      float32
-	Close     float32
-	Low       float32
-	Hight     float32
-	Volume    float32
-	Timestamp int64
-}
 
 type FinnhubClient struct {
 	service     *finnhub.DefaultApiService
@@ -29,8 +21,8 @@ func (client *FinnhubClient) init() {
 	})
 }
 
-func (client *FinnhubClient) GetCandlesData(symbol string, startTime, endTime int64) ([]CandleData, error) {
-	var candlesData []CandleData
+func (client *FinnhubClient) GetCandlesData(symbol string, startTime, endTime int64) ([]models.CandleData, error) {
+	var candlesData []models.CandleData
 	cryptoCandles, _, err := client.service.CryptoCandles(client.contextAuth, symbol, "15", startTime, endTime)
 	if err == nil && cryptoCandles.S == "ok" {
 		candlesData = client.convertCandleDataMap(cryptoCandles)
@@ -39,13 +31,13 @@ func (client *FinnhubClient) GetCandlesData(symbol string, startTime, endTime in
 	return candlesData, err
 }
 
-func (FinnhubClient) convertCandleDataMap(cryptoCanldes finnhub.CryptoCandles) []CandleData {
+func (FinnhubClient) convertCandleDataMap(cryptoCanldes finnhub.CryptoCandles) []models.CandleData {
 
-	candlesData := []CandleData{}
+	candlesData := []models.CandleData{}
 	size := len(cryptoCanldes.O)
 
 	for i := 0; i < size; i++ {
-		candleData := CandleData{
+		candleData := models.CandleData{
 			Open:      cryptoCanldes.O[i],
 			Close:     cryptoCanldes.C[i],
 			Low:       cryptoCanldes.L[i],

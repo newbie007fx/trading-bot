@@ -1,12 +1,13 @@
 package services
 
 import (
+	"telebot-trading/app/models"
 	"time"
 )
 
-func GetCurrentBollingerBands(symbol string) (bands []Band, err error) {
+func GetCurrentBollingerBands(symbol string) (bands models.Bands, err error) {
 	end := time.Now().Unix()
-	start := end - (60 * 15 * 25)
+	start := end - (60 * 15 * 26)
 
 	crypto := GetCrypto()
 	candlesData, err := crypto.GetCandlesData(symbol, start, end)
@@ -17,7 +18,7 @@ func GetCurrentBollingerBands(symbol string) (bands []Band, err error) {
 	return
 }
 
-func CheckLastCandleIsUp(bollingerBands []Band) bool {
+func CheckLastCandleIsUp(bollingerBands []models.Band) bool {
 	//candle posisi sekarang up, close diatas open
 	size := len(bollingerBands)
 	if size > 0 {
@@ -30,7 +31,7 @@ func CheckLastCandleIsUp(bollingerBands []Band) bool {
 	return false
 }
 
-func CheckPositionOnUpperBand(bollingerBands []Band) bool {
+func CheckPositionOnUpperBand(bollingerBands []models.Band) bool {
 	//candle posisi sekrang  diupper band
 	size := len(bollingerBands)
 	if size > 0 {
@@ -43,7 +44,7 @@ func CheckPositionOnUpperBand(bollingerBands []Band) bool {
 	return false
 }
 
-func CheckPositionSMAAfterLower(bollingerBands []Band) bool {
+func CheckPositionSMAAfterLower(bollingerBands []models.Band) bool {
 	//candle posisi sekarang diatas sma, candle sebelumnya open close dibawah sma.
 	size := len(bollingerBands)
 	if size > 1 {
@@ -59,7 +60,7 @@ func CheckPositionSMAAfterLower(bollingerBands []Band) bool {
 	return false
 }
 
-func CheckPositionAfterLower(bollingerBands []Band) bool {
+func CheckPositionAfterLower(bollingerBands []models.Band) bool {
 	//candle posisi ditas lower band. setelah open/low dibaawah lowerband atau candle sebelumnya meyentuh loweband
 	size := len(bollingerBands)
 	if size > 2 {

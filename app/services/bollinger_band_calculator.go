@@ -2,34 +2,32 @@ package services
 
 import (
 	"math"
+	"telebot-trading/app/models"
 )
-
-type Band struct {
-	Candle *CandleData
-	SMA    float64
-	Upper  float64
-	Lower  float64
-}
 
 const SMA_DAYS = 20
 
 const STANDARD_DEVIATIONS = 2
 
-func GenerateBollingerBands(historical []CandleData) (bands []Band) {
+func GenerateBollingerBands(historical []models.CandleData) (bands models.Bands) {
 	start := 0
 	end := SMA_DAYS
 
+	bands.Data = []models.Band{}
+
 	graphData := len(historical) - SMA_DAYS
 	for i := 0; i <= graphData; i++ {
-		bands = append(bands, getBandData(historical[start:end]))
+		bands.Data = append(bands.Data, getBandData(historical[start:end]))
 		start++
 		end++
 	}
 
+	bands.Trend = CalculateTrends(bands.Data)
+
 	return
 }
 
-func getBandData(historical []CandleData) (result Band) {
+func getBandData(historical []models.CandleData) (result models.Band) {
 	size := len(historical)
 
 	sum := float64(0)
@@ -50,5 +48,9 @@ func getBandData(historical []CandleData) (result Band) {
 
 	lower := sma - (STANDARD_DEVIATIONS * dev)
 
-	return Band{&historical[size-1], sma, upper, lower}
+	return models.Band{
+		Candle: &historical[size-1],
+		SMA:    sma,
+		Upper:  upper,
+		Lower:  lower}
 }

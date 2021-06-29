@@ -6,14 +6,14 @@ import (
 	"telebot-trading/app/repositories"
 )
 
-func Login(email, password string) (error, *models.Admin) {
+func Login(email, password string) (*models.Admin, error) {
 	admin := repositories.GetAdminByEmail(email)
 
 	if admin != nil {
 		if admin.VerifyPassword(password) {
-			return nil, admin
+			return admin, nil
 		}
 	}
 
-	return errors.New("Email atau password salah"), nil
+	return nil, errors.New("email atau password salah")
 }

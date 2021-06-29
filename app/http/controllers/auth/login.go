@@ -21,7 +21,7 @@ func ProcessLogin(c echo.Context) (err error) {
 
 	err, data := helper.Validate(req)
 	if err == nil {
-		err, admin := services.Login(data["email"].(string), data["password"].(string))
+		admin, err := services.Login(data["email"].(string), data["password"].(string))
 		if err == nil {
 			data := map[string]interface{}{}
 			data["is_login"] = true
