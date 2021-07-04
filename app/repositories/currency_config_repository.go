@@ -8,7 +8,7 @@ import (
 
 func GetCurrencyNotifConfigs() *[]models.CurrencyNotifConfig {
 	notifConfigs := []models.CurrencyNotifConfig{}
-	res := db.GetDB().Order("is_master desc").Find(&notifConfigs)
+	res := db.GetDB().Order("is_master desc, id asc").Find(&notifConfigs)
 	if res.Error != nil {
 		return nil
 	}

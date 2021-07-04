@@ -1,9 +1,8 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
+	"strconv"
 	"telebot-trading/app/helper"
 	"telebot-trading/app/models"
 )
@@ -11,8 +10,6 @@ import (
 func GetCurrentBollingerBands(symbol string, time int64) (bands models.Bands, err error) {
 	end := time
 	start := end - (60 * 15 * 27)
-
-	log.Println(fmt.Sprintf("create request from %d to %d", start, end))
 
 	crypto := GetCrypto()
 	candlesData, err := crypto.GetCandlesData(symbol, start, end)
@@ -101,22 +98,20 @@ func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
 	store := helper.GetSimpleStore()
 
 	result := false
-	data := map[string]interface{}{}
+	var trend int8 = 0
 	if bands.Trend == models.TREND_UP {
 		resultString := store.Get(symbol)
 		if resultString != nil {
-			json.Unmarshal([]byte(*resultString), &data)
+			tmp, err := strconv.ParseInt(*resultString, 10, 8)
+			if err != nil {
+				trend = int8(tmp)
+			}
 		}
 	}
 
-	if val, ok := data["trend"]; ok {
-		trend := val.(int8)
-		result = trend != models.TREND_UP
-	}
+	result = trend != models.TREND_UP
 
-	data["trend"] = bands.Trend
-	dataString, _ := json.Marshal(data)
-	store.Set(symbol, string(dataString))
+	store.Set(symbol, fmt.Sprint(bands.Trend))
 
 	return result
 }
