@@ -30,7 +30,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 		responseMsg = "oke sukses lur"
 	} else if cmd == "/hold" {
 		responseMsg = "invalid format lur"
-		if len(msgData) > 2 {
+		if len(msgData) > 1 {
 			err := handlerHoldCoin(msgData[1])
 			if err != nil {
 				responseMsg = err.Error()
@@ -40,7 +40,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 		}
 	} else if cmd == "/release" {
 		responseMsg = "invalid format lur"
-		if len(msgData) > 2 {
+		if len(msgData) > 1 {
 			err := handlerReleaseCoin(msgData[1])
 			if err != nil {
 				responseMsg = err.Error()
