@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -8,6 +10,8 @@ import (
 func GetCurrentBollingerBands(symbol string) (bands models.Bands, err error) {
 	end := time.Now().Unix()
 	start := end - (60 * 15 * 27)
+
+	log.Println(fmt.Sprintf("create request from %d to %d", start, end))
 
 	crypto := GetCrypto()
 	candlesData, err := crypto.GetCandlesData(symbol, start, end)

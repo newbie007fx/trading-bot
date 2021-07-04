@@ -63,7 +63,7 @@ func CheckCryptoPrice() {
 				result.Note = downTrendChecking(data, bands)
 			}
 
-			if result.Note == "" && !isTimeMultipleFifteenMinute(currentTime) && data.IsOnHold {
+			if result.Note == "" && data.IsOnHold {
 				continue
 			}
 
