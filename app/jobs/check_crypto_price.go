@@ -106,7 +106,10 @@ func sendNotif(masterCoin models.BandResult, holdCoin []models.BandResult, altCo
 		msg += "untuk master coin"
 		msg += generateMsg(masterCoin)
 
-		services.SendToTelegram(clientID, msg)
+		err := services.SendToTelegram(clientID, msg)
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 
 	if len(altCoin) > 0 {
@@ -120,7 +123,10 @@ func sendNotif(masterCoin models.BandResult, holdCoin []models.BandResult, altCo
 			msg += "</br>"
 		}
 
-		services.SendToTelegram(clientID, msg)
+		err := services.SendToTelegram(clientID, msg)
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 }
 
