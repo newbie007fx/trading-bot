@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"telebot-trading/app/models"
 	"telebot-trading/utils"
 
@@ -26,6 +27,8 @@ func (client *FinnhubClient) GetCandlesData(symbol string, startTime, endTime in
 	cryptoCandles, _, err := client.service.CryptoCandles(client.contextAuth, symbol, "15", startTime, endTime-1)
 	if err == nil && cryptoCandles.S == "ok" {
 		candlesData = client.convertCandleDataMap(cryptoCandles)
+	} else if err == nil && cryptoCandles.S != "ok" {
+		err = errors.New(cryptoCandles.S)
 	}
 
 	return candlesData, err
