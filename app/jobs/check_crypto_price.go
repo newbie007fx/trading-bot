@@ -103,14 +103,17 @@ func sendNotif(masterCoin models.BandResult, holdCoin []models.BandResult, altCo
 
 	clientID, _ := strconv.ParseInt(*clintIDString, 10, 64)
 
+	masterCoinMsg := "untuk master coin\n"
+	masterCoinMsg += generateMsg(masterCoin)
+
 	if len(holdCoin) > 0 {
 		msg := "List coin yang dihold\n"
 		for _, coin := range holdCoin {
 			msg += generateMsg(coin)
 			msg += "\n"
 		}
-		msg += "untuk master coin"
-		msg += generateMsg(masterCoin)
+
+		msg += masterCoinMsg
 
 		err := services.SendToTelegram(clientID, msg)
 		if err != nil {
@@ -128,6 +131,8 @@ func sendNotif(masterCoin models.BandResult, holdCoin []models.BandResult, altCo
 			msg += generateMsg(coin)
 			msg += "\n"
 		}
+
+		msg += masterCoinMsg
 
 		err := services.SendToTelegram(clientID, msg)
 		if err != nil {
@@ -185,6 +190,10 @@ func downTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) stri
 
 	if services.IsPriceDecreasebelowThreshold(bands, data.IsMaster) {
 		note += "Turun dibawah threshold"
+	}
+
+	if services.IsTrendDownAfterTrendUp(data.Symbol, bands) {
+		note += "Trend Down after up"
 	}
 
 	return note

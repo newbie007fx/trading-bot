@@ -10,10 +10,10 @@ func CalculateVolumeAverage(data []models.Band) float32 {
 	lastCandle := data[len(data)-1].Candle
 
 	var total float32 = 0
-	for _, val := range data[0 : len(data)-1] {
+	for _, val := range data {
 		total += val.Candle.Volume
 	}
-	average := total/float32(len(data)) - 2
+	average := total / float32(len(data)-1)
 	if lastCandle.Volume > average {
 		difference := lastCandle.Volume - average
 		return difference / average * 100

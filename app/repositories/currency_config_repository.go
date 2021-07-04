@@ -29,6 +29,12 @@ func GetCurrencyNotifConfig(id uint) (*models.CurrencyNotifConfig, error) {
 	return &currencyConfig, result.Error
 }
 
+func GetCurrencyNotifConfigBySymbol(symbol string) (*models.CurrencyNotifConfig, error) {
+	currencyConfig := models.CurrencyNotifConfig{}
+	result := db.GetDB().Table("currency_notif_configs").Where("symbol = ?", symbol).Take(&currencyConfig)
+	return &currencyConfig, result.Error
+}
+
 func UpdateCurrencyNotifConfig(id uint, data map[string]interface{}) error {
 	data["updated_at"] = time.Now()
 	result := db.GetDB().Table("currency_notif_configs").Where("id = ?", id).Updates(data)

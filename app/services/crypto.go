@@ -1,8 +1,10 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"telebot-trading/app/helper"
 	"telebot-trading/app/models"
 )
 
@@ -93,6 +95,30 @@ func IsPriceIncreaseAboveThreshold(bands models.Bands, isMaster bool) bool {
 	}
 
 	return bands.PriceChanges > threshold
+}
+
+func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
+	store := helper.GetSimpleStore()
+
+	result := false
+	data := map[string]interface{}{}
+	if bands.Trend == models.TREND_UP {
+		resultString := store.Get(symbol)
+		if resultString != nil {
+			json.Unmarshal([]byte(*resultString), &data)
+		}
+	}
+
+	if val, ok := data["trend"]; ok {
+		trend := val.(int8)
+		result = trend != models.TREND_UP
+	}
+
+	data["trend"] = bands.Trend
+	dataString, _ := json.Marshal(data)
+	store.Set(symbol, string(dataString))
+
+	return result
 }
 
 func CheckPositionOnLowerBand(bollingerBands []models.Band) bool {
