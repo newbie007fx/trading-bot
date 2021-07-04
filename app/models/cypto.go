@@ -21,6 +21,20 @@ type Band struct {
 }
 
 type Bands struct {
-	Data  []Band
-	Trend int8
+	Data                 []Band
+	Trend                int8
+	PriceChanges         float32
+	VolumeAverageChanges float32
+}
+
+type BandResult struct {
+	Symbol        string
+	Direction     int8
+	CurrentPrice  float32
+	CurrentVolume float32
+	Trend         int8
+	PriceChanges  float32
+	VolumeChanges float32
+	Weight        float32
+	Note          string
 }

@@ -23,7 +23,7 @@ func (client *FinnhubClient) init() {
 
 func (client *FinnhubClient) GetCandlesData(symbol string, startTime, endTime int64) ([]models.CandleData, error) {
 	var candlesData []models.CandleData
-	cryptoCandles, _, err := client.service.CryptoCandles(client.contextAuth, symbol, "15", startTime, endTime)
+	cryptoCandles, _, err := client.service.CryptoCandles(client.contextAuth, symbol, "15", startTime, endTime-1)
 	if err == nil && cryptoCandles.S == "ok" {
 		candlesData = client.convertCandleDataMap(cryptoCandles)
 	}
