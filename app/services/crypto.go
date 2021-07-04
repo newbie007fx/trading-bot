@@ -109,7 +109,7 @@ func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
 		}
 	}
 
-	result = trend != models.TREND_UP
+	result = trend != models.TREND_UP && trend != 0
 
 	store.Set(symbol, fmt.Sprint(bands.Trend))
 
