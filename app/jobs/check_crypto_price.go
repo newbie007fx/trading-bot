@@ -49,6 +49,12 @@ func CheckCryptoPrice() {
 		}
 
 		lastBand := bands.Data[len(bands.Data)-1]
+
+		weight := bands.PriceChanges
+		if bands.VolumeAverageChanges > 0 {
+			weight += (bands.VolumeAverageChanges * 1 / 100)
+		}
+
 		result := models.BandResult{
 			Symbol:        data.Symbol,
 			Direction:     direction,
@@ -57,7 +63,7 @@ func CheckCryptoPrice() {
 			Trend:         bands.Trend,
 			PriceChanges:  bands.PriceChanges,
 			VolumeChanges: bands.VolumeAverageChanges,
-			Weight:        bands.PriceChanges + (bands.VolumeAverageChanges * 20 / 100),
+			Weight:        weight,
 		}
 
 		if data.IsMaster || data.IsOnHold {
