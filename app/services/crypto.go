@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"log"
 	"telebot-trading/app/models"
-	"time"
 )
 
-func GetCurrentBollingerBands(symbol string) (bands models.Bands, err error) {
-	end := time.Now().Unix()
+func GetCurrentBollingerBands(symbol string, time int64) (bands models.Bands, err error) {
+	end := time
 	start := end - (60 * 15 * 27)
 
 	log.Println(fmt.Sprintf("create request from %d to %d", start, end))

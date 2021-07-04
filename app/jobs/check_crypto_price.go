@@ -20,6 +20,10 @@ func CheckCryptoPrice() {
 
 	counter := 0
 	currentTime := time.Now().Unix()
+	requestTime := currentTime
+	if isTimeMultipleFifteenMinute(requestTime) {
+		requestTime -= 1
+	}
 
 	altCoin := []models.BandResult{}
 	holdCoin := []models.BandResult{}
@@ -33,7 +37,7 @@ func CheckCryptoPrice() {
 
 		checkCounter(&counter, currentTime)
 
-		bands, err := services.GetCurrentBollingerBands(data.Symbol)
+		bands, err := services.GetCurrentBollingerBands(data.Symbol, requestTime)
 		if err != nil {
 			log.Println("error: ", err.Error())
 			continue
