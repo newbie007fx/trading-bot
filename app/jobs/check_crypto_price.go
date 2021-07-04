@@ -98,10 +98,10 @@ func sendNotif(masterCoin models.BandResult, holdCoin []models.BandResult, altCo
 	clientID, _ := strconv.ParseInt(*clintIDString, 10, 64)
 
 	if len(holdCoin) > 0 {
-		msg := "List coin yang dihold</br>"
+		msg := "List coin yang dihold%0A"
 		for _, coin := range holdCoin {
 			msg += generateMsg(coin)
-			msg += "</br>"
+			msg += "%0A"
 		}
 		msg += "untuk master coin"
 		msg += generateMsg(masterCoin)
@@ -117,10 +117,10 @@ func sendNotif(masterCoin models.BandResult, holdCoin []models.BandResult, altCo
 			altCoin = sortAndGetTopFive(altCoin)
 		}
 
-		msg := "top gain coin</br>"
+		msg := "top gain coin:%0A"
 		for _, coin := range altCoin {
 			msg += generateMsg(coin)
-			msg += "</br>"
+			msg += "%0A"
 		}
 
 		err := services.SendToTelegram(clientID, msg)
@@ -137,7 +137,7 @@ func sortAndGetTopFive(coins []models.BandResult) []models.BandResult {
 }
 
 func generateMsg(coinResult models.BandResult) string {
-	format := "Coin name: %s</br>Direction: %s</br>Price: %.2f</br>Volume: %.2f</br>Trend: %s</br>Price Changes: %.2f%%</br>Volume Average Changes: %.2f%%</br>Notes: %s</br>"
+	format := "Coin name: %s %%0ADirection: %s %%0APrice: %.2f %%0AVolume: %.2f %%0ATrend: %s %%0APrice Changes: %.2f%% %%0AVolume Average Changes: %.2f%% %%0ANotes: %s %%0A"
 	msg := fmt.Sprintf(format, coinResult.Symbol, directionString(coinResult.Direction), coinResult.CurrentPrice, coinResult.CurrentVolume, trendString(coinResult.Trend), coinResult.PriceChanges, coinResult.VolumeChanges, coinResult.Note)
 	return msg
 }
