@@ -3,8 +3,8 @@ package services
 import (
 	"fmt"
 	"strconv"
-	"telebot-trading/app/helper"
 	"telebot-trading/app/models"
+	"telebot-trading/app/repositories"
 )
 
 func GetCurrentBollingerBands(symbol string, time int64) (bands models.Bands, err error) {
@@ -95,12 +95,11 @@ func IsPriceIncreaseAboveThreshold(bands models.Bands, isMaster bool) bool {
 }
 
 func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
-	store := helper.GetSimpleStore()
 
 	result := false
 	var trend int8 = 0
 	if bands.Trend == models.TREND_UP {
-		resultString := store.Get(symbol)
+		resultString := repositories.GetConfigValueByName(symbol)
 		if resultString != nil {
 			tmp, err := strconv.ParseInt(*resultString, 10, 8)
 			if err != nil {
@@ -111,7 +110,7 @@ func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
 
 	result = trend != models.TREND_UP && trend != 0
 
-	store.Set(symbol, fmt.Sprint(bands.Trend))
+	repositories.SetConfigByName(symbol, fmt.Sprint(bands.Trend))
 
 	return result
 }

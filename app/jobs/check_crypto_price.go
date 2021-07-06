@@ -52,7 +52,7 @@ func CheckCryptoPrice() {
 
 		weight := bands.PriceChanges
 		if bands.VolumeAverageChanges > 0 {
-			weight += (bands.VolumeAverageChanges * 1 / 100)
+			weight += (bands.VolumeAverageChanges * 0.2 / 100)
 		}
 
 		result := models.BandResult{
@@ -103,11 +103,11 @@ func sendNotif(masterCoin models.BandResult, holdCoin []models.BandResult, altCo
 
 	clientID, _ := strconv.ParseInt(*clintIDString, 10, 64)
 
-	masterCoinMsg := "untuk master coin\n"
+	masterCoinMsg := "untuk master coin:\n"
 	masterCoinMsg += generateMsg(masterCoin)
 
 	if len(holdCoin) > 0 {
-		msg := "List coin yang dihold\n"
+		msg := "List coin yang dihold:\n"
 		for _, coin := range holdCoin {
 			msg += generateMsg(coin)
 			msg += "\n"
@@ -154,49 +154,47 @@ func generateMsg(coinResult models.BandResult) string {
 }
 
 func upTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) string {
-	note := ""
 	if services.CheckPositionOnUpperBand(bands.Data) {
-		note += "Posisi diupper band"
+		return "Posisi diupper band"
 	}
 
 	if services.CheckPositionSMAAfterLower(bands) {
-		note += "Posisi diSMA"
+		return "Posisi diSMA"
 	}
 
 	if services.CheckPositionAfterLower(bands.Data) {
-		note += "Posisi lower"
+		return "Posisi lower"
 	}
 
 	if services.IsPriceIncreaseAboveThreshold(bands, data.IsMaster) {
-		note += "Naik diatas threshold"
+		return "Naik diatas threshold"
 	}
 
-	return note
+	return ""
 }
 
 func downTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) string {
-	note := ""
 	if services.CheckPositionOnLowerBand(bands.Data) {
-		note += "Posisi lower"
+		return "Posisi lower"
 	}
 
 	if services.CheckPositionSMAAfterUpper(bands) {
-		note += "Posisi SMA"
+		return "Posisi SMA"
 	}
 
 	if services.CheckPositionAfterUpper(bands.Data) {
-		note += "Posisi Upper"
+		return "Posisi Upper"
 	}
 
 	if services.IsPriceDecreasebelowThreshold(bands, data.IsMaster) {
-		note += "Turun dibawah threshold"
+		return "Turun dibawah threshold"
 	}
 
 	if services.IsTrendDownAfterTrendUp(data.Symbol, bands) {
-		note += "Trend Down after up"
+		return "Trend Down after up"
 	}
 
-	return note
+	return ""
 }
 
 func checkIsInSleepHours() bool {
