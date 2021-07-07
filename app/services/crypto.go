@@ -127,7 +127,7 @@ func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
 		}
 	}
 
-	result = trend != models.TREND_UP
+	result = trend == models.TREND_UP
 
 	repositories.SetConfigByName(symbol, fmt.Sprint(bands.Trend))
 
