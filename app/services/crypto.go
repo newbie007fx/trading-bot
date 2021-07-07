@@ -94,21 +94,40 @@ func IsPriceIncreaseAboveThreshold(bands models.Bands, isMaster bool) bool {
 	return bands.PriceChanges > threshold
 }
 
-func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
-
+func IsTrendUpAfterTrendDown(symbol string, bands models.Bands) bool {
 	result := false
 	var trend int8 = 0
 	if bands.Trend == models.TREND_UP {
 		resultString := repositories.GetConfigValueByName(symbol)
 		if resultString != nil {
 			tmp, err := strconv.ParseInt(*resultString, 10, 8)
-			if err != nil {
+			if err == nil {
 				trend = int8(tmp)
 			}
 		}
 	}
 
-	result = trend != models.TREND_UP && trend != 0
+	result = trend == models.TREND_DOWN
+
+	repositories.SetConfigByName(symbol, fmt.Sprint(bands.Trend))
+
+	return result
+}
+
+func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
+	result := false
+	var trend int8 = 0
+	if bands.Trend == models.TREND_DOWN {
+		resultString := repositories.GetConfigValueByName(symbol)
+		if resultString != nil {
+			tmp, err := strconv.ParseInt(*resultString, 10, 8)
+			if err == nil {
+				trend = int8(tmp)
+			}
+		}
+	}
+
+	result = trend != models.TREND_UP
 
 	repositories.SetConfigByName(symbol, fmt.Sprint(bands.Trend))
 

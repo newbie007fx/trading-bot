@@ -48,6 +48,12 @@ func ProcessTeleWebhook(c echo.Context) error {
 				responseMsg = "release berhasil lur"
 			}
 		}
+	} else if cmd == "/muted" {
+		repositories.SetConfigByName("is-muted", strconv.FormatBool(true))
+		responseMsg = "muted berhasil lur"
+	} else if cmd == "/unmuted" {
+		repositories.SetConfigByName("is-muted", strconv.FormatBool(false))
+		responseMsg = "unmuted berhasil lur"
 	} else {
 		responseMsg = "command gak valid lur"
 	}

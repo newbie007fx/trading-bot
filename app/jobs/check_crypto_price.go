@@ -16,6 +16,8 @@ func CheckCryptoPrice() {
 		return
 	}
 
+	muted := isMuted()
+
 	log.Println("starting crypto check price worker")
 
 	counter := 0
@@ -31,7 +33,7 @@ func CheckCryptoPrice() {
 
 	currency_configs := repositories.GetCurrencyNotifConfigs()
 	for _, data := range *currency_configs {
-		if !isTimeMultipleFifteenMinute(currentTime) && !data.IsMaster && !data.IsOnHold {
+		if (muted || !isTimeMultipleFifteenMinute(currentTime)) && !data.IsMaster && !data.IsOnHold {
 			continue
 		}
 
@@ -68,6 +70,11 @@ func CheckCryptoPrice() {
 
 		if data.IsMaster || data.IsOnHold {
 			if result.Direction == services.BAND_UP {
+				if muted {
+					log.Println("On muted, exclude non urgent notif")
+					return
+				}
+
 				result.Note = upTrendChecking(data, bands)
 			} else {
 				result.Note = downTrendChecking(data, bands)
@@ -170,6 +177,10 @@ func upTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) string
 		return "Naik diatas threshold"
 	}
 
+	if services.IsTrendUpAfterTrendDown(data.Symbol, bands) {
+		return "Trend Up after down"
+	}
+
 	return ""
 }
 
@@ -256,4 +267,17 @@ func checkCounter(counter *int, startTime int64) {
 	}
 
 	*counter++
+}
+
+func isMuted() bool {
+	key := "is-muted"
+	resultString := repositories.GetConfigValueByName(key)
+	if resultString != nil {
+		tmp, err := strconv.ParseBool(*resultString)
+		if err != nil {
+			return false
+		}
+		return tmp
+	}
+	return false
 }
