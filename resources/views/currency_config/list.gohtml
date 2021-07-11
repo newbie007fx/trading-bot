@@ -19,7 +19,7 @@
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>No</th>
                                 <th>Symbol</th>
                                 <th>Volume</th>
                                 <th>Is On Hold</th>
@@ -29,24 +29,24 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {{ range .currency_configs }}
+                            {{ range $index, $val := .currency_configs }}
                             <tr>
-                                <th scope="row">{{ .ID }}</th>
-                                <td>{{ .Symbol }}</td>
-                                <td>{{ .Volume }}</td>
-                                <td>{{ .IsOnHold }}</td>
-                                <td>{{ .IsMaster }}</td>
-                                <td>{{ .GetFormattedUpdatedAt }}</td>
+                                <th scope="row">{{ $index }}</th>
+                                <td>{{ $val.Symbol }}</td>
+                                <td>{{ $val.Volume }}</td>
+                                <td>{{ $val.IsOnHold }}</td>
+                                <td>{{ $val.IsMaster }}</td>
+                                <td>{{ $val.GetFormattedUpdatedAt }}</td>
                                 <td>
-                                    <a href="/admin/currency-config/edit/{{ .ID }}" title="edit"><i class="fas fa-edit"></i></a> |
-                                    <a class="delete-currency-config" href="#" data-id="{{ .ID }}"><i class="fas fa-trash-alt"></i></a>
-                                    {{ if eq .IsMaster false }}
-                                       | <a class="set-master-currency-config" href="#" data-id="{{ .ID }}">Set Master</a>
+                                    <a href="/admin/currency-config/edit/{{ $val.ID }}" title="edit"><i class="fas fa-edit"></i></a> |
+                                    <a class="delete-currency-config" href="#" data-id="{{ $val.ID }}"><i class="fas fa-trash-alt"></i></a>
+                                    {{ if eq $val.IsMaster false }}
+                                       | <a class="set-master-currency-config" href="#" data-id="{{ $val.ID }}">Set Master</a>
                                     {{ end }}
-                                    {{ if eq .IsOnHold false }}
-                                       | <a class="hold-currency-config" href="#" data-id="{{ .ID }}">Hold</a>
+                                    {{ if eq $val.IsOnHold false }}
+                                       | <a class="hold-currency-config" href="#" data-id="{{ $val.ID }}">Hold</a>
                                     {{ else }}
-                                       | <a class="release-currency-config" href="#" data-id="{{ .ID }}">Release</a>
+                                       | <a class="release-currency-config" href="#" data-id="{{ $val.ID }}">Release</a>
                                     {{ end }}
                                 </td>
                             </tr>
