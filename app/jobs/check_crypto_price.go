@@ -20,7 +20,6 @@ func CheckCryptoPrice() {
 
 	log.Println("starting crypto check price worker")
 
-	counter := 0
 	currentTime := time.Now().Unix()
 	requestTime := currentTime
 	if isTimeMultipleFifteenMinute(requestTime) {
@@ -31,13 +30,12 @@ func CheckCryptoPrice() {
 	holdCoin := []models.BandResult{}
 	masterCoin := models.BandResult{}
 
-	currency_configs := repositories.GetCurrencyNotifConfigs()
+	limit := 59
+	currency_configs := repositories.GetCurrencyNotifConfigs(&limit)
 	for _, data := range *currency_configs {
 		if (muted || !isTimeMultipleFifteenMinute(currentTime)) && !data.IsMaster && !data.IsOnHold {
 			continue
 		}
-
-		checkCounter(&counter, currentTime)
 
 		bands, err := services.GetCurrentBollingerBands(data.Symbol, requestTime)
 		if err != nil {
@@ -90,7 +88,7 @@ func CheckCryptoPrice() {
 				holdCoin = append(holdCoin, result)
 			}
 		} else {
-			if result.Direction == services.BAND_UP {
+			if result.Direction == services.BAND_UP && result.PriceChanges > 1.0 {
 				altCoin = append(altCoin, result)
 			}
 		}
@@ -239,34 +237,14 @@ func directionString(direction int8) string {
 	}
 }
 
-func isTimeMultipleFifteenMinute(currentTime int64) bool {
-	fifteenMinutes := int64(60 * 15)
-
-	return currentTime%fifteenMinutes == 0
-}
-
-func checkCounter(counter *int, startTime int64) {
-	currentTime := time.Now().Unix()
-	difference := currentTime - startTime
-	sleep := 0
-	quotaLeft := difference % 60
-	if *counter == 60 {
-		if quotaLeft > 0 {
-			sleep = int(quotaLeft) + 1
-		}
-		*counter = 0
+func isTimeMultipleFifteenMinute(unixTime int64) bool {
+	currentTime := time.Unix(unixTime, 0)
+	minute := currentTime.Minute()
+	if minute == 10 || minute == 25 || minute == 40 || minute == 55 {
+		return true
 	}
 
-	if difference%60 == 0 {
-		*counter = 0
-		sleep = 1
-	}
-
-	if sleep > 0 {
-		time.Sleep(time.Duration(sleep) * time.Second)
-	}
-
-	*counter++
+	return false
 }
 
 func isMuted() bool {

@@ -21,8 +21,10 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Symbol</th>
+                                <th>Volume</th>
                                 <th>Is On Hold</th>
                                 <th>Is Master</th>
+                                <th>Last Update</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -31,8 +33,10 @@
                             <tr>
                                 <th scope="row">{{ .ID }}</th>
                                 <td>{{ .Symbol }}</td>
+                                <td>{{ .Volume }}</td>
                                 <td>{{ .IsOnHold }}</td>
                                 <td>{{ .IsMaster }}</td>
+                                <td>{{ .GetFormattedUpdatedAt }}</td>
                                 <td>
                                     <a href="/admin/currency-config/edit/{{ .ID }}" title="edit"><i class="fas fa-edit"></i></a> |
                                     <a class="delete-currency-config" href="#" data-id="{{ .ID }}"><i class="fas fa-trash-alt"></i></a>

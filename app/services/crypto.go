@@ -12,7 +12,7 @@ func GetCurrentBollingerBands(symbol string, time int64) (bands models.Bands, er
 	start := end - (60 * 15 * 27)
 
 	crypto := GetCrypto()
-	candlesData, err := crypto.GetCandlesData(symbol, start, end)
+	candlesData, err := crypto.GetCandlesData(symbol, start, end, "15")
 	if err == nil {
 		bands = GenerateBollingerBands(candlesData)
 		direction := BAND_DOWN
