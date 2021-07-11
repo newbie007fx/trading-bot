@@ -31,8 +31,7 @@ func CheckCryptoPrice() {
 	holdCoin := []models.BandResult{}
 	masterCoin := models.BandResult{}
 
-	limit := 90
-	currency_configs := repositories.GetCurrencyNotifConfigs(&limit)
+	currency_configs := repositories.GetCurrencyNotifConfigs(nil)
 	for _, data := range *currency_configs {
 		if (muted || !isTimeMultipleFifteenMinute(currentTime)) && !data.IsMaster && !data.IsOnHold {
 			continue

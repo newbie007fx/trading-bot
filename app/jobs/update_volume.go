@@ -9,6 +9,8 @@ import (
 )
 
 func UpdateVolume() {
+	log.Println("starting update volume worker ")
+
 	counter := 0
 	currentTime := time.Now().Unix()
 	startTime := currentTime - (60 * 60 * 12) - 60
@@ -26,10 +28,17 @@ func UpdateVolume() {
 		}
 		vol := countVolume(candles)
 
-		repositories.UpdateCurrencyNotifConfig(data.ID, map[string]interface{}{
+		err = repositories.UpdateCurrencyNotifConfig(data.ID, map[string]interface{}{
 			"volume": vol,
 		})
+
+		if err != nil {
+			log.Println("error: ", err.Error())
+			continue
+		}
 	}
+
+	log.Println("update volume worker done")
 }
 
 func countVolume(candles []models.CandleData) float32 {
