@@ -19,7 +19,7 @@ func UpdateVolume() {
 		checkCounter(&counter, currentTime)
 
 		crypto := services.GetCrypto()
-		candles, err := crypto.GetCandlesData(data.Symbol, startTime, currentTime, "60")
+		candles, err := crypto.GetCandlesData(data.Symbol, startTime-60, currentTime, "60")
 		if err != nil {
 			log.Println("error: ", err.Error())
 			continue
@@ -34,11 +34,13 @@ func UpdateVolume() {
 
 func countVolume(candles []models.CandleData) float32 {
 	var volume float32 = 0
+	var lastPrice float32 = 1
 	for _, candle := range candles {
 		volume += candle.Volume
+		lastPrice = candle.Close
 	}
 
-	return volume
+	return volume / float32(len(candles)) * lastPrice
 }
 
 func checkCounter(counter *int, startTime int64) {

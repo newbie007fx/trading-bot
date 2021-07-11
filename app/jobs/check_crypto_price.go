@@ -20,6 +20,7 @@ func CheckCryptoPrice() {
 
 	log.Println("starting crypto check price worker")
 
+	counter := 0
 	currentTime := time.Now().Unix()
 	requestTime := currentTime
 	if isTimeMultipleFifteenMinute(requestTime) {
@@ -30,12 +31,14 @@ func CheckCryptoPrice() {
 	holdCoin := []models.BandResult{}
 	masterCoin := models.BandResult{}
 
-	limit := 59
+	limit := 90
 	currency_configs := repositories.GetCurrencyNotifConfigs(&limit)
 	for _, data := range *currency_configs {
 		if (muted || !isTimeMultipleFifteenMinute(currentTime)) && !data.IsMaster && !data.IsOnHold {
 			continue
 		}
+
+		checkCounter(&counter, currentTime)
 
 		bands, err := services.GetCurrentBollingerBands(data.Symbol, requestTime)
 		if err != nil {
