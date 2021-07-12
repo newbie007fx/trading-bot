@@ -31,7 +31,8 @@ func CheckCryptoPrice() {
 	holdCoin := []models.BandResult{}
 	masterCoin := models.BandResult{}
 
-	currency_configs := repositories.GetCurrencyNotifConfigs(nil)
+	limit := 85
+	currency_configs := repositories.GetCurrencyNotifConfigs(&limit)
 	for _, data := range *currency_configs {
 		if (muted || !isTimeMultipleFifteenMinute(currentTime)) && !data.IsMaster && !data.IsOnHold {
 			continue
@@ -91,6 +92,7 @@ func CheckCryptoPrice() {
 			}
 		} else {
 			if result.Direction == services.BAND_UP && result.PriceChanges > 1.0 {
+				result.Weight += getPositionWeight(lastBand)
 				altCoin = append(altCoin, result)
 			}
 		}
@@ -260,4 +262,17 @@ func isMuted() bool {
 		return tmp
 	}
 	return false
+}
+
+func getPositionWeight(band models.Band) float32 {
+	var weight float32 = 0
+	if band.Candle.Close <= float32(band.Lower) {
+		weight = 3
+	} else if band.Candle.Close > float32(band.Lower) && band.Candle.Close <= float32(band.SMA) {
+		weight = 2
+	} else if band.Candle.Close > float32(band.SMA) && band.Candle.Close <= float32(band.Upper) {
+		return 1
+	}
+
+	return weight
 }
