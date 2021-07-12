@@ -91,7 +91,7 @@ func CheckCryptoPrice() {
 				holdCoin = append(holdCoin, result)
 			}
 		} else {
-			if result.Direction == services.BAND_UP && result.PriceChanges > 1.0 {
+			if result.Direction == services.BAND_UP && result.PriceChanges > 0.7 {
 				result.Weight += getPositionWeight(lastBand)
 				altCoin = append(altCoin, result)
 			}

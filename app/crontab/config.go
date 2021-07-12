@@ -8,5 +8,5 @@ import (
 
 func RegisterCron(c *cron.Cron) {
 	c.AddFunc("*/5 * * * *", jobs.CheckCryptoPrice)
-	c.AddFunc("01 03,15 * * *", jobs.UpdateVolume)
+	c.AddFunc("01 08,22 * * *", jobs.UpdateVolume)
 }
