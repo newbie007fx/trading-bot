@@ -24,7 +24,8 @@ func CheckCryptoPrice() {
 	currentTime := time.Now().Unix()
 	requestTime := currentTime
 	if isTimeMultipleFifteenMinute(requestTime) {
-		requestTime -= 1
+		time.Sleep(1 * time.Second)
+		requestTime -= 15 * 60
 	}
 
 	altCoin := []models.BandResult{}
@@ -266,12 +267,10 @@ func isMuted() bool {
 
 func getPositionWeight(band models.Band) float32 {
 	var weight float32 = 0
-	if band.Candle.Close <= float32(band.Lower) {
-		weight = 3
-	} else if band.Candle.Close > float32(band.Lower) && band.Candle.Close <= float32(band.SMA) {
-		weight = 2
+	if band.Candle.Close > float32(band.Lower) && band.Candle.Close <= float32(band.SMA) {
+		weight = 1
 	} else if band.Candle.Close > float32(band.SMA) && band.Candle.Close <= float32(band.Upper) {
-		return 1
+		weight = 0.5
 	}
 
 	return weight
