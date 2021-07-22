@@ -24,8 +24,7 @@ func CheckCryptoPrice() {
 	currentTime := time.Now().Unix()
 	requestTime := currentTime
 	if isTimeMultipleFifteenMinute(requestTime) {
-		time.Sleep(1 * time.Second)
-		requestTime -= 15 * 60
+		requestTime -= 1
 	}
 
 	altCoin := []models.BandResult{}
@@ -35,7 +34,7 @@ func CheckCryptoPrice() {
 	limit := 85
 	currency_configs := repositories.GetCurrencyNotifConfigs(&limit)
 	for _, data := range *currency_configs {
-		if (muted || !isTimeMultipleFifteenMinute(currentTime)) && !data.IsMaster && !data.IsOnHold {
+		if (muted || !isTimeToCheckPriceChange(currentTime)) && !data.IsMaster && !data.IsOnHold {
 			continue
 		}
 
@@ -242,7 +241,7 @@ func directionString(direction int8) string {
 	}
 }
 
-func isTimeMultipleFifteenMinute(unixTime int64) bool {
+func isTimeToCheckPriceChange(unixTime int64) bool {
 	currentTime := time.Unix(unixTime, 0)
 	minute := currentTime.Minute()
 	if minute == 10 || minute == 25 || minute == 40 || minute == 55 {
@@ -250,6 +249,12 @@ func isTimeMultipleFifteenMinute(unixTime int64) bool {
 	}
 
 	return false
+}
+
+func isTimeMultipleFifteenMinute(currentTime int64) bool {
+	fifteenMinutes := int64(60 * 15)
+
+	return currentTime%fifteenMinutes == 0
 }
 
 func isMuted() bool {
