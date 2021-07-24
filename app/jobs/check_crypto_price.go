@@ -84,17 +84,13 @@ func CheckCryptoPrice() {
 				result.Note = downTrendChecking(data, bands)
 			}
 
-			if result.Note == "" && data.IsOnHold {
-				continue
-			}
-
 			if data.IsMaster {
 				masterCoin = result
 			} else {
 				holdCoin = append(holdCoin, result)
 			}
 		} else {
-			if (result.Direction == services.BAND_UP || result.Trend == models.TREND_UP) && result.PriceChanges > 0.7 {
+			if (result.Direction == services.BAND_UP || result.Trend == models.TREND_UP) && result.PriceChanges > 0.5 {
 				result.Weight += getPositionWeight(bands.Position)
 				altCoin = append(altCoin, result)
 			}
@@ -118,21 +114,29 @@ func sendNotif(masterCoin models.BandResult, holdCoin []models.BandResult, altCo
 	masterCoinMsg := "untuk master coin:\n"
 	masterCoinMsg += generateMsg(masterCoin)
 
-	if len(holdCoin) > 0 || masterCoin.Note != "" {
+	if len(holdCoin) > 0 {
 		msg := ""
 		if len(holdCoin) > 0 {
 			msg = "List coin yang dihold:\n"
+			haveNote := false
 			for _, coin := range holdCoin {
-				msg += generateMsg(coin)
-				msg += "\n"
+				if coin.Note != "" {
+					msg += generateMsg(coin)
+					msg += "\n"
+					haveNote = true
+				}
+			}
+			if !haveNote {
+				msg = ""
 			}
 		}
 
-		msg += masterCoinMsg
-
-		err := services.SendToTelegram(clientID, msg)
-		if err != nil {
-			log.Println(err.Error())
+		if masterCoin.Note != "" {
+			msg += masterCoinMsg
+			err := services.SendToTelegram(clientID, msg)
+			if err != nil {
+				log.Println(err.Error())
+			}
 		}
 	}
 
@@ -312,9 +316,9 @@ func isMuted() bool {
 func getPositionWeight(position int8) float32 {
 	var weight float32 = 0
 	if position == models.BELOW_SMA {
-		weight = 1
-	} else if position == models.ABOVE_SMA {
 		weight = 0.5
+	} else if position == models.ABOVE_SMA {
+		weight = 0.25
 	}
 
 	return weight
