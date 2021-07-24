@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var currentTime int64 = 0
+
 func CheckCryptoPrice() {
 	if checkIsInSleepHours() {
 		return
@@ -21,7 +23,7 @@ func CheckCryptoPrice() {
 	log.Println("starting crypto check price worker")
 
 	counter := 0
-	currentTime := time.Now().Unix()
+	currentTime = time.Now().Unix()
 	requestTime := currentTime
 	if isTimeMultipleFifteenMinute(requestTime) {
 		requestTime -= 1
@@ -67,6 +69,7 @@ func CheckCryptoPrice() {
 			PriceChanges:  bands.PriceChanges,
 			VolumeChanges: bands.VolumeAverageChanges,
 			Weight:        weight,
+			Position:      bands.Position,
 		}
 
 		if data.IsMaster || data.IsOnHold {
@@ -91,8 +94,8 @@ func CheckCryptoPrice() {
 				holdCoin = append(holdCoin, result)
 			}
 		} else {
-			if result.Direction == services.BAND_UP && result.PriceChanges > 0.7 {
-				result.Weight += getPositionWeight(lastBand)
+			if (result.Direction == services.BAND_UP || result.Trend == models.TREND_UP) && result.PriceChanges > 0.7 {
+				result.Weight += getPositionWeight(bands.Position)
 				altCoin = append(altCoin, result)
 			}
 		}
@@ -115,11 +118,14 @@ func sendNotif(masterCoin models.BandResult, holdCoin []models.BandResult, altCo
 	masterCoinMsg := "untuk master coin:\n"
 	masterCoinMsg += generateMsg(masterCoin)
 
-	if len(holdCoin) > 0 {
-		msg := "List coin yang dihold:\n"
-		for _, coin := range holdCoin {
-			msg += generateMsg(coin)
-			msg += "\n"
+	if len(holdCoin) > 0 || masterCoin.Note != "" {
+		msg := ""
+		if len(holdCoin) > 0 {
+			msg = "List coin yang dihold:\n"
+			for _, coin := range holdCoin {
+				msg += generateMsg(coin)
+				msg += "\n"
+			}
 		}
 
 		msg += masterCoinMsg
@@ -157,18 +163,18 @@ func sortAndGetTopFive(coins []models.BandResult) []models.BandResult {
 }
 
 func generateMsg(coinResult models.BandResult) string {
-	format := "Coin name: <b>%s</b> \nDirection: <b>%s</b> \nPrice: <b>%f</b> \nVolume: <b>%f</b> \nTrend: <b>%s</b> \nPrice Changes: <b>%.2f%%</b> \nVolume Average Changes: <b>%.2f%%</b> \nNotes: <b>%s</b> \n"
-	msg := fmt.Sprintf(format, coinResult.Symbol, directionString(coinResult.Direction), coinResult.CurrentPrice, coinResult.CurrentVolume, trendString(coinResult.Trend), coinResult.PriceChanges, coinResult.VolumeChanges, coinResult.Note)
+	format := "Coin name: <b>%s</b> \nDirection: <b>%s</b> \nPrice: <b>%f</b> \nVolume: <b>%f</b> \nTrend: <b>%s</b> \nPrice Changes: <b>%.2f%%</b> \nVolume Average Changes: <b>%.2f%%</b> \nNotes: <b>%s</b> \nPosition: <b>%s</b> \n"
+	msg := fmt.Sprintf(format, coinResult.Symbol, directionString(coinResult.Direction), coinResult.CurrentPrice, coinResult.CurrentVolume, trendString(coinResult.Trend), coinResult.PriceChanges, coinResult.VolumeChanges, coinResult.Note, positionString(coinResult.Position))
 	return msg
 }
 
 func upTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) string {
 	if services.CheckPositionOnUpperBand(bands.Data) {
-		return "Posisi diupper band"
+		return "Posisi naik upper band"
 	}
 
 	if services.CheckPositionSMAAfterLower(bands) {
-		return "Posisi diSMA"
+		return "Posisi naik ke SMA"
 	}
 
 	if services.CheckPositionAfterLower(bands.Data) {
@@ -188,15 +194,15 @@ func upTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) string
 
 func downTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) string {
 	if services.CheckPositionOnLowerBand(bands.Data) {
-		return "Posisi lower"
+		return "Posisi turun dibawah lower"
 	}
 
 	if services.CheckPositionSMAAfterUpper(bands) {
-		return "Posisi SMA"
+		return "Posisi turun dibawah SMA"
 	}
 
 	if services.CheckPositionAfterUpper(bands.Data) {
-		return "Posisi Upper"
+		return "Posisi turun dari Upper"
 	}
 
 	if services.IsPriceDecreasebelowThreshold(bands, data.IsMaster) {
@@ -207,7 +213,28 @@ func downTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) stri
 		return "Trend Down after up"
 	}
 
+	if data.IsOnHold && (bands.Position == models.ABOVE_SMA || bands.Position == models.ABOVE_UPPER) {
+		if isTimeMultipleFifteenMinute(currentTime) {
+			lastDown := countLastDownCandle(bands.Data)
+			return fmt.Sprintf("Turun gan siaga !!! jumlah down %d", lastDown)
+		}
+	}
+
 	return ""
+}
+
+func countLastDownCandle(data []models.Band) int {
+	count := 0
+	for i := len(data) - 1; i >= 0; i-- {
+		band := data[i]
+		if band.Candle.Close < band.Candle.Open {
+			count++
+		} else {
+			break
+		}
+	}
+
+	return count
 }
 
 func checkIsInSleepHours() bool {
@@ -228,23 +255,35 @@ func trendString(trend int8) string {
 		return "trend up"
 	} else if trend == models.TREND_DOWN {
 		return "trend down"
-	} else {
-		return "trend sideway"
 	}
+
+	return "trend sideway"
 }
 
 func directionString(direction int8) string {
 	if direction == services.BAND_UP {
 		return "UP"
-	} else {
-		return "DOWN"
 	}
+
+	return "DOWN"
+}
+
+func positionString(position int8) string {
+	if position == models.ABOVE_UPPER {
+		return "above upper"
+	} else if position == models.ABOVE_SMA {
+		return "above sma"
+	} else if position == models.BELOW_SMA {
+		return "below sma"
+	}
+
+	return "below lower"
 }
 
 func isTimeToCheckPriceChange(unixTime int64) bool {
 	currentTime := time.Unix(unixTime, 0)
 	minute := currentTime.Minute()
-	if minute == 10 || minute == 25 || minute == 40 || minute == 55 {
+	if minute == 5 || minute == 20 || minute == 35 || minute == 50 {
 		return true
 	}
 
@@ -270,11 +309,11 @@ func isMuted() bool {
 	return false
 }
 
-func getPositionWeight(band models.Band) float32 {
+func getPositionWeight(position int8) float32 {
 	var weight float32 = 0
-	if band.Candle.Close > float32(band.Lower) && band.Candle.Close <= float32(band.SMA) {
+	if position == models.BELOW_SMA {
 		weight = 1
-	} else if band.Candle.Close > float32(band.SMA) && band.Candle.Close <= float32(band.Upper) {
+	} else if position == models.ABOVE_SMA {
 		weight = 0.5
 	}
 

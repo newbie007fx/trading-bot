@@ -4,6 +4,11 @@ const TREND_UP int8 = 1
 const TREND_DOWN int8 = 2
 const TREND_SIDEWAY int8 = 3
 
+const BELOW_LOWER int8 = 1
+const BELOW_SMA int8 = 2
+const ABOVE_SMA int8 = 3
+const ABOVE_UPPER int8 = 4
+
 type CandleData struct {
 	Open      float32
 	Close     float32
@@ -25,6 +30,7 @@ type Bands struct {
 	Trend                int8
 	PriceChanges         float32
 	VolumeAverageChanges float32
+	Position             int8
 }
 
 type BandResult struct {
@@ -37,4 +43,5 @@ type BandResult struct {
 	VolumeChanges float32
 	Weight        float32
 	Note          string
+	Position      int8
 }

@@ -23,8 +23,22 @@ func GenerateBollingerBands(historical []models.CandleData) (bands models.Bands)
 	}
 
 	bands.Trend = CalculateTrends(bands.Data)
+	bands.Position = getPosition(bands.Data[len(bands.Data)-1])
 
 	return
+}
+
+func getPosition(band models.Band) int8 {
+	position := models.BELOW_LOWER
+	if band.Candle.Close >= float32(band.Upper) {
+		position = models.ABOVE_UPPER
+	} else if band.Candle.Close >= float32(band.SMA) {
+		position = models.ABOVE_SMA
+	} else if band.Candle.Close >= float32(band.Lower) {
+		position = models.BELOW_SMA
+	}
+
+	return position
 }
 
 func getBandData(historical []models.CandleData) (result models.Band) {
@@ -52,5 +66,6 @@ func getBandData(historical []models.CandleData) (result models.Band) {
 		Candle: &historical[size-1],
 		SMA:    sma,
 		Upper:  upper,
-		Lower:  lower}
+		Lower:  lower,
+	}
 }
