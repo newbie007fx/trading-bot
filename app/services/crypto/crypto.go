@@ -53,20 +53,18 @@ func checkCounter() {
 	timeLeft := difference % thresholdPerMinute
 	if counter == thresholdPerMinute {
 		if timeLeft > 0 {
-			sleep = int(timeLeft)
+			sleep = int(timeLeft) + 1
 		}
 		counter = 0
 	}
 
 	if timeLeft == 0 {
 		counter = 0
+		sleep = 1
 	}
 
 	if sleep > 0 {
 		time.Sleep(time.Duration(sleep) * time.Second)
-	}
-
-	if timeLeft == 0 || sleep > 0 {
 		previousTimeCheck = time.Now().Unix()
 	}
 
