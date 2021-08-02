@@ -244,7 +244,7 @@ func setMasterCoin(coin models.BandResult) error {
 		store.Set(key, resultString)
 		return nil
 	}
-
+	log.Println(err.Error())
 	return err
 }
 

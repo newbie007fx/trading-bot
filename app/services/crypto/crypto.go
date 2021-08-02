@@ -49,7 +49,7 @@ func RequestCandleService() {
 func checkCounter() {
 	currentTime := time.Now()
 	sleep := 0
-	timeLeft := currentTime.Second() - previousTimeCheck.Second()
+	timeLeft := 59 - currentTime.Second()
 	if counter == thresholdPerMinute {
 		if timeLeft > 0 {
 			sleep = int(timeLeft) + 1
@@ -57,7 +57,7 @@ func checkCounter() {
 		counter = 0
 	}
 
-	if currentTime.Minute() != previousTimeCheck.Minute() {
+	if timeLeft == 0 || currentTime.Minute() != previousTimeCheck.Minute() {
 		counter = 0
 		sleep = 1
 	}
