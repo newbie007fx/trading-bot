@@ -10,6 +10,7 @@ type CurrencyNotifConfig struct {
 	IsOnHold  bool    `gorm:"default:0"`
 	IsMaster  bool    `gorm:"default:0"`
 	Volume    float32 `gorm:"default:0;index"`
+	Balance   float32 `gorm:"default:0;index"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
