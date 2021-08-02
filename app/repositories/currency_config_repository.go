@@ -13,7 +13,7 @@ func GetCurrencyNotifConfigs(condition *map[string]interface{}, limit *int) *[]m
 		res.Limit(*limit)
 	}
 	if condition != nil {
-		res.Where(condition)
+		res.Where(*condition)
 	}
 	res.Find(&notifConfigs)
 	if res.Error != nil {
