@@ -54,6 +54,18 @@ func ProcessTeleWebhook(c echo.Context) error {
 	} else if cmd == "/unmuted" {
 		repositories.SetConfigByName("is-muted", strconv.FormatBool(false))
 		responseMsg = "unmuted berhasil lur"
+	} else if cmd == "/mode" {
+		responseMsg = "invalid format lur"
+		if len(msgData) > 1 {
+			if msgData[1] == "manual" || msgData[1] == "simulation" {
+				err := repositories.SetConfigByName("model", msgData[1])
+				if err != nil {
+					responseMsg = err.Error()
+				} else {
+					responseMsg = "mode berhasil diset lur"
+				}
+			}
+		}
 	} else {
 		responseMsg = "command gak valid lur"
 	}
@@ -74,18 +86,7 @@ func handlerHoldCoin(symbol string) error {
 		return errors.New("invalid symbol lur")
 	}
 
-	if !currencyConfig.IsOnHold {
-		data := map[string]interface{}{
-			"is_on_hold": true,
-		}
-		err = repositories.UpdateCurrencyNotifConfig(currencyConfig.ID, data)
-		if err != nil {
-			log.Println(err.Error())
-			return errors.New("error waktu update lur")
-		}
-	}
-
-	return nil
+	return services.HoldCoin(*currencyConfig, nil)
 }
 
 func handlerReleaseCoin(symbol string) error {
@@ -95,16 +96,5 @@ func handlerReleaseCoin(symbol string) error {
 		return errors.New("invalid symbol lur")
 	}
 
-	if currencyConfig.IsOnHold {
-		data := map[string]interface{}{
-			"is_on_hold": false,
-		}
-		err = repositories.UpdateCurrencyNotifConfig(currencyConfig.ID, data)
-		if err != nil {
-			log.Println(err.Error())
-			return errors.New("error waktu update lur")
-		}
-	}
-
-	return nil
+	return services.ReleaseCoin(*currencyConfig, nil)
 }

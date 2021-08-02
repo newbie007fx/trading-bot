@@ -55,24 +55,12 @@ func checkCryptoMasterCoinPrice() {
 		ResponseChan: responseChan,
 	}
 
-	crypto.DispatchRequestJob(request)
-
-	response := <-responseChan
-	if response.Err != nil {
-		log.Println("error: ", response.Err.Error(), " master")
+	result := MakeCryptoRequest(*masterCoinConfig, request)
+	if result == nil {
 		return
 	}
 
-	bands := analysis.GetCurrentBollingerBands(response.CandleData)
-	result := buildResult(masterCoinConfig.Symbol, bands)
-
-	if result.Direction == analysis.BAND_UP {
-		result.Note = upTrendChecking(*masterCoinConfig, bands)
-	} else {
-		result.Note = downTrendChecking(*masterCoinConfig, bands)
-	}
-
-	setMasterCoin(result)
+	setMasterCoin(*result)
 
 	log.Println("crypto check price worker is done")
 }
@@ -88,6 +76,7 @@ func checkCryptoHoldCoinPrice() {
 
 	condition := map[string]interface{}{"is_on_hold": true}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil)
+
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
@@ -97,24 +86,12 @@ func checkCryptoHoldCoinPrice() {
 			ResponseChan: responseChan,
 		}
 
-		crypto.DispatchRequestJob(request)
-
-		response := <-responseChan
-		if response.Err != nil {
-			log.Println("error: ", response.Err.Error(), " hold")
+		result := MakeCryptoRequest(data, request)
+		if result == nil {
 			continue
 		}
 
-		bands := analysis.GetCurrentBollingerBands(response.CandleData)
-		result := buildResult(data.Symbol, bands)
-
-		if result.Direction == analysis.BAND_UP {
-			result.Note = upTrendChecking(data, bands)
-		} else {
-			result.Note = downTrendChecking(data, bands)
-		}
-
-		holdCoin = append(holdCoin, result)
+		holdCoin = append(holdCoin, *result)
 	}
 
 	msg := ""
@@ -156,6 +133,7 @@ func checkCryptoAltCoinPrice() {
 	limit := 82
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
+
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
@@ -165,22 +143,15 @@ func checkCryptoAltCoinPrice() {
 			ResponseChan: responseChan,
 		}
 
-		crypto.DispatchRequestJob(request)
-
-		response := <-responseChan
-		if response.Err != nil {
-			log.Println("error: ", response.Err.Error())
+		result := MakeCryptoRequest(data, request)
+		if result == nil {
 			continue
 		}
 
-		bands := analysis.GetCurrentBollingerBands(response.CandleData)
-		result := buildResult(data.Symbol, bands)
-
 		if (result.Direction == analysis.BAND_UP || result.Trend == models.TREND_UP) && result.PriceChanges > 0.5 {
 			result.Weight += getPositionWeight(result.Position)
-			altCoin = append(altCoin, result)
+			altCoin = append(altCoin, *result)
 		}
-
 	}
 
 	msg := ""
@@ -248,7 +219,16 @@ func setMasterCoin(coin models.BandResult) error {
 	return err
 }
 
-func buildResult(symbol string, bands models.Bands) models.BandResult {
+func MakeCryptoRequest(data models.CurrencyNotifConfig, request crypto.CandleRequest) *models.BandResult {
+	crypto.DispatchRequestJob(request)
+
+	response := <-request.ResponseChan
+	if response.Err != nil {
+		log.Println("error: ", response.Err.Error())
+		return nil
+	}
+
+	bands := analysis.GetCurrentBollingerBands(response.CandleData)
 
 	direction := analysis.BAND_UP
 	if !analysis.CheckLastCandleIsUp(bands.Data) {
@@ -263,7 +243,7 @@ func buildResult(symbol string, bands models.Bands) models.BandResult {
 	}
 
 	result := models.BandResult{
-		Symbol:        symbol,
+		Symbol:        request.Symbol,
 		Direction:     direction,
 		CurrentPrice:  lastBand.Candle.Close,
 		CurrentVolume: lastBand.Candle.Volume,
@@ -274,7 +254,15 @@ func buildResult(symbol string, bands models.Bands) models.BandResult {
 		Position:      bands.Position,
 	}
 
-	return result
+	if data.IsMaster || data.IsOnHold {
+		if result.Direction == analysis.BAND_UP {
+			result.Note = upTrendChecking(data, bands)
+		} else {
+			result.Note = downTrendChecking(data, bands)
+		}
+	}
+
+	return &result
 }
 
 func sendNotif(msg string) {
