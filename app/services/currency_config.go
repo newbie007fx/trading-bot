@@ -64,7 +64,7 @@ func buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 
 	totalCoin := balance / candleData.Close
 	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": totalCoin})
-	setBalance(balance - (totalCoin * candleData.Close))
+	SetBalance(balance - (totalCoin * candleData.Close))
 
 	return nil
 }
@@ -84,7 +84,7 @@ func sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 
 	totalBalance := config.Balance * candleData.Close
 	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": 0})
-	setBalance(balance + totalBalance)
+	SetBalance(balance + totalBalance)
 
 	return nil
 }
@@ -103,7 +103,7 @@ func getBalance() float32 {
 	return balance
 }
 
-func setBalance(balance float32) error {
+func SetBalance(balance float32) error {
 	s := fmt.Sprintf("%f", balance)
 	return repositories.SetConfigByName("balance", s)
 }

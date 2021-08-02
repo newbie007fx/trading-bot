@@ -58,10 +58,11 @@ func ProcessTeleWebhook(c echo.Context) error {
 		responseMsg = "invalid format lur"
 		if len(msgData) > 1 {
 			if msgData[1] == "manual" || msgData[1] == "simulation" {
-				err := repositories.SetConfigByName("model", msgData[1])
+				err := repositories.SetConfigByName("mode", msgData[1])
 				if err != nil {
 					responseMsg = err.Error()
 				} else {
+					services.SetBalance(100)
 					responseMsg = "mode berhasil diset lur"
 				}
 			}
