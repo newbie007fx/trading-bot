@@ -1,8 +1,11 @@
 package crypto
 
 import (
+	"fmt"
+	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/services/crypto/driver"
+	"telebot-trading/utils"
 	"time"
 )
 
@@ -65,6 +68,11 @@ func checkCounter() {
 	if sleep > 0 {
 		time.Sleep(time.Duration(sleep) * time.Second)
 		previousTimeCheck = time.Now()
+	}
+
+	debug := utils.Env("debug", "false")
+	if debug == "true" {
+		log.Println(fmt.Sprintf("time: %d:%d counter: %d", currentTime.Minute(), currentTime.Second(), counter))
 	}
 
 	counter++
