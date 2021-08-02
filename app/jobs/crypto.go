@@ -16,6 +16,13 @@ var updateVolumeChan chan bool
 func StartCryptoWorker() {
 	startService()
 
+	defer func() {
+		close(cryptoMasterCoinPriceChan)
+		close(cryptoHoldCoinPriceChan)
+		close(cryptoAltCoinPriceChan)
+		close(updateVolumeChan)
+	}()
+
 	for {
 		currentTime := time.Now()
 		if !isMuted() {
@@ -33,13 +40,6 @@ func StartCryptoWorker() {
 		sleep := 60 - currentTime.Second()
 		time.Sleep(time.Duration(sleep) * time.Second)
 	}
-
-	defer func() {
-		close(cryptoMasterCoinPriceChan)
-		close(cryptoHoldCoinPriceChan)
-		close(cryptoAltCoinPriceChan)
-		close(updateVolumeChan)
-	}()
 }
 
 func startService() {

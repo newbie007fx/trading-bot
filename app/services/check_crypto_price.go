@@ -58,7 +58,7 @@ func checkCryptoMasterCoinPrice() {
 
 		response := <-responseChan
 		if response.Err != nil {
-			log.Println("error: ", response.Err.Error())
+			log.Println("error: ", response.Err.Error(), " master")
 			continue
 		}
 
@@ -102,7 +102,7 @@ func checkCryptoHoldCoinPrice() {
 
 		response := <-responseChan
 		if response.Err != nil {
-			log.Println("error: ", response.Err.Error())
+			log.Println("error: ", response.Err.Error(), " hold")
 			continue
 		}
 
