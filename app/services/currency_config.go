@@ -50,7 +50,7 @@ func ReleaseCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.C
 }
 
 func buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
-	balance := getBalance()
+	balance := GetBalance()
 	if candleData == nil {
 		endTime := time.Now().Unix()
 		startTime := endTime - (60 * 15)
@@ -70,7 +70,7 @@ func buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 }
 
 func sell(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
-	balance := getBalance()
+	balance := GetBalance()
 	if candleData == nil {
 		endTime := time.Now().Unix()
 		startTime := endTime - (60 * 15)
@@ -89,7 +89,7 @@ func sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 	return nil
 }
 
-func getBalance() float32 {
+func GetBalance() float32 {
 	var balance float32 = 0
 
 	result := repositories.GetConfigValueByName("balance")

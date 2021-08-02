@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -31,11 +32,12 @@ func ProcessTeleWebhook(c echo.Context) error {
 	} else if cmd == "/hold" {
 		responseMsg = "invalid format lur"
 		if len(msgData) > 1 {
+			balance := services.GetBalance()
 			err := handlerHoldCoin(msgData[1])
 			if err != nil {
 				responseMsg = err.Error()
 			} else {
-				responseMsg = "hold berhasil lur"
+				responseMsg = fmt.Sprintf("hold berhasil lur, saldo: %f", balance)
 			}
 		}
 	} else if cmd == "/release" {
@@ -45,7 +47,8 @@ func ProcessTeleWebhook(c echo.Context) error {
 			if err != nil {
 				responseMsg = err.Error()
 			} else {
-				responseMsg = "release berhasil lur"
+				balance := services.GetBalance()
+				responseMsg = fmt.Sprintf("release berhasil lur, saldo: %f", balance)
 			}
 		}
 	} else if cmd == "/muted" {
