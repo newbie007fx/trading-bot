@@ -1,4 +1,4 @@
-package services
+package analysis
 
 import "telebot-trading/app/models"
 

@@ -6,11 +6,14 @@ import (
 	"time"
 )
 
-func GetCurrencyNotifConfigs(limit *int) *[]models.CurrencyNotifConfig {
+func GetCurrencyNotifConfigs(condition *map[string]interface{}, limit *int) *[]models.CurrencyNotifConfig {
 	notifConfigs := []models.CurrencyNotifConfig{}
 	res := db.GetDB().Order("is_master desc, is_on_hold desc, volume desc, id asc")
 	if limit != nil {
 		res.Limit(*limit)
+	}
+	if condition != nil {
+		res.Where(condition)
 	}
 	res.Find(&notifConfigs)
 	if res.Error != nil {

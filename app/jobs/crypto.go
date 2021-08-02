@@ -1,0 +1,78 @@
+package jobs
+
+import (
+	"strconv"
+	"telebot-trading/app/repositories"
+	"telebot-trading/app/services"
+	"telebot-trading/app/services/crypto"
+	"time"
+)
+
+var cryptoMasterCoinPriceChan chan bool
+var cryptoHoldCoinPriceChan chan bool
+var cryptoAltCoinPriceChan chan bool
+var updateVolumeChan chan bool
+
+func StartCryptoWorker() {
+	startService()
+
+	for {
+		currentTime := time.Now()
+		if !isMuted() {
+			minute := currentTime.Minute()
+			if minute%5 == 0 {
+				cryptoMasterCoinPriceChan <- true
+				cryptoHoldCoinPriceChan <- true
+			}
+
+			if isTimeToCheckAltCoinPrice(currentTime) {
+				cryptoAltCoinPriceChan <- true
+			}
+		}
+
+		sleep := 60 - currentTime.Second()
+		time.Sleep(time.Duration(sleep) * time.Second)
+	}
+
+	defer func() {
+		close(cryptoMasterCoinPriceChan)
+		close(cryptoHoldCoinPriceChan)
+		close(cryptoAltCoinPriceChan)
+		close(updateVolumeChan)
+	}()
+}
+
+func startService() {
+	cryptoMasterCoinPriceChan = make(chan bool)
+	cryptoHoldCoinPriceChan = make(chan bool)
+	cryptoAltCoinPriceChan = make(chan bool)
+	updateVolumeChan = make(chan bool)
+
+	go crypto.RequestCandleService()
+	go services.StartCheckMasterCoinPriceService(cryptoMasterCoinPriceChan)
+	go services.StartCheckHoldCoinPriceService(cryptoHoldCoinPriceChan)
+	go services.StartCheckAltCoinPriceService(cryptoAltCoinPriceChan)
+	go services.StartUpdateVolumeService(updateVolumeChan)
+}
+
+func isMuted() bool {
+	key := "is-muted"
+	resultString := repositories.GetConfigValueByName(key)
+	if resultString != nil {
+		tmp, err := strconv.ParseBool(*resultString)
+		if err != nil {
+			return false
+		}
+		return tmp
+	}
+	return false
+}
+
+func isTimeToCheckAltCoinPrice(time time.Time) bool {
+	minute := time.Minute()
+	if minute == 5 || minute == 20 || minute == 35 || minute == 50 {
+		return true
+	}
+
+	return false
+}

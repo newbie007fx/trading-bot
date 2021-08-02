@@ -12,4 +12,5 @@ func init() {
 	cli.RegisterCommand(commands.GenerateAdminCommand())
 	cli.RegisterCommand(commands.AddNotifConfigCommand())
 	cli.RegisterCommand(commands.CronRunCommand())
+	cli.RegisterCommand(commands.WorkerRunCommand())
 }

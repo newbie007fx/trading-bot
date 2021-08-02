@@ -1,9 +1,9 @@
-package services
+package analysis
 
 import "telebot-trading/app/models"
 
 func CalculateTrends(data []models.Band) int8 {
-	if len(data) < 8 {
+	if len(data) < 10 {
 		return 0
 	}
 

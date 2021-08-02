@@ -1,31 +1,11 @@
-package services
+package analysis
 
 import (
 	"fmt"
 	"strconv"
+	"telebot-trading/app/helper"
 	"telebot-trading/app/models"
-	"telebot-trading/app/repositories"
 )
-
-func GetCurrentBollingerBands(symbol string, time int64) (bands models.Bands, err error) {
-	end := time
-	start := end - (60 * 15 * 27)
-
-	crypto := GetCrypto()
-	candlesData, err := crypto.GetCandlesData(symbol, start, end, "15")
-	if err == nil {
-		bands = GenerateBollingerBands(candlesData)
-		direction := BAND_DOWN
-		if CheckLastCandleIsUp(bands.Data) {
-			direction = BAND_UP
-		}
-
-		bands.PriceChanges = CalculateBandPriceChangesPercent(bands.Data, direction)
-		bands.VolumeAverageChanges = CalculateVolumeAverage(bands.Data)
-	}
-
-	return
-}
 
 func CheckLastCandleIsUp(bollingerBands []models.Band) bool {
 	//candle posisi sekarang up, close diatas open
@@ -97,8 +77,9 @@ func IsPriceIncreaseAboveThreshold(bands models.Bands, isMaster bool) bool {
 func IsTrendUpAfterTrendDown(symbol string, bands models.Bands) bool {
 	result := false
 	var trend int8 = 0
+	store := helper.GetSimpleStore()
 	if bands.Trend == models.TREND_UP {
-		resultString := repositories.GetConfigValueByName(symbol)
+		resultString := store.Get(symbol)
 		if resultString != nil {
 			tmp, err := strconv.ParseInt(*resultString, 10, 8)
 			if err == nil {
@@ -109,7 +90,7 @@ func IsTrendUpAfterTrendDown(symbol string, bands models.Bands) bool {
 
 	result = trend == models.TREND_DOWN
 
-	repositories.SetConfigByName(symbol, fmt.Sprint(bands.Trend))
+	store.Set(symbol, fmt.Sprint(bands.Trend))
 
 	return result
 }
@@ -117,8 +98,9 @@ func IsTrendUpAfterTrendDown(symbol string, bands models.Bands) bool {
 func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
 	result := false
 	var trend int8 = 0
+	store := helper.GetSimpleStore()
 	if bands.Trend == models.TREND_DOWN {
-		resultString := repositories.GetConfigValueByName(symbol)
+		resultString := store.Get(symbol)
 		if resultString != nil {
 			tmp, err := strconv.ParseInt(*resultString, 10, 8)
 			if err == nil {
@@ -129,7 +111,7 @@ func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
 
 	result = trend == models.TREND_UP
 
-	repositories.SetConfigByName(symbol, fmt.Sprint(bands.Trend))
+	store.Set(symbol, fmt.Sprint(bands.Trend))
 
 	return result
 }
