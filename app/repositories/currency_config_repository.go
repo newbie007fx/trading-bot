@@ -36,6 +36,12 @@ func GetCurrencyNotifConfig(id uint) (*models.CurrencyNotifConfig, error) {
 	return &currencyConfig, result.Error
 }
 
+func GetMasterCoinConfig() (*models.CurrencyNotifConfig, error) {
+	currencyConfig := models.CurrencyNotifConfig{}
+	result := db.GetDB().Table("currency_notif_configs").Where("is_master = ?", true).Take(&currencyConfig)
+	return &currencyConfig, result.Error
+}
+
 func GetCurrencyNotifConfigBySymbol(symbol string) (*models.CurrencyNotifConfig, error) {
 	currencyConfig := models.CurrencyNotifConfig{}
 	result := db.GetDB().Table("currency_notif_configs").Where("symbol = ?", symbol).Take(&currencyConfig)

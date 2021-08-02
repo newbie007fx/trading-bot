@@ -39,41 +39,40 @@ func checkCryptoMasterCoinPrice() {
 
 	startTime, endTime := getStartEndTime()
 
-	masterCoin := models.BandResult{}
-
 	responseChan := make(chan crypto.CandleResponse)
 
-	condition := map[string]interface{}{"is_master": true}
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil)
-	for _, data := range *currency_configs {
-		request := crypto.CandleRequest{
-			Symbol:       data.Symbol,
-			Start:        startTime,
-			End:          endTime,
-			Resolution:   "15",
-			ResponseChan: responseChan,
-		}
-
-		crypto.DispatchRequestJob(request)
-
-		response := <-responseChan
-		if response.Err != nil {
-			log.Println("error: ", response.Err.Error(), " master")
-			continue
-		}
-
-		bands := analysis.GetCurrentBollingerBands(response.CandleData)
-		result := buildResult(data.Symbol, bands)
-
-		if result.Direction == analysis.BAND_UP {
-			result.Note = upTrendChecking(data, bands)
-		} else {
-			result.Note = downTrendChecking(data, bands)
-		}
-		masterCoin = result
+	masterCoinConfig, err := repositories.GetMasterCoinConfig()
+	if err != nil {
+		log.Println("error: ", err.Error())
+		return
 	}
 
-	setMasterCoin(masterCoin)
+	request := crypto.CandleRequest{
+		Symbol:       masterCoinConfig.Symbol,
+		Start:        startTime,
+		End:          endTime,
+		Resolution:   "15",
+		ResponseChan: responseChan,
+	}
+
+	crypto.DispatchRequestJob(request)
+
+	response := <-responseChan
+	if response.Err != nil {
+		log.Println("error: ", response.Err.Error(), " master")
+		return
+	}
+
+	bands := analysis.GetCurrentBollingerBands(response.CandleData)
+	result := buildResult(masterCoinConfig.Symbol, bands)
+
+	if result.Direction == analysis.BAND_UP {
+		result.Note = upTrendChecking(*masterCoinConfig, bands)
+	} else {
+		result.Note = downTrendChecking(*masterCoinConfig, bands)
+	}
+
+	setMasterCoin(result)
 
 	log.Println("crypto check price worker is done")
 }
@@ -279,6 +278,10 @@ func buildResult(symbol string, bands models.Bands) models.BandResult {
 }
 
 func sendNotif(msg string) {
+	if msg == "" {
+		return
+	}
+
 	clintIDString := GetConfigValueByName("chat_id")
 	if clintIDString == nil {
 		log.Println("client id belum diset")
