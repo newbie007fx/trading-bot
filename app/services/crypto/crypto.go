@@ -20,7 +20,7 @@ type CandleResponse struct {
 }
 
 var canldeRequest chan CandleRequest
-var previousTimeCheck int64 = time.Now().Unix()
+var previousTimeCheck time.Time = time.Now()
 var thresholdPerMinute int64 = 60
 var counter int64 = 0
 
@@ -47,9 +47,9 @@ func RequestCandleService() {
 }
 
 func checkCounter() {
-	currentTime := time.Now().Unix()
+	currentTime := time.Now()
 	sleep := 0
-	timeLeft := currentTime - previousTimeCheck
+	timeLeft := currentTime.Second() - previousTimeCheck.Second()
 	if counter == thresholdPerMinute {
 		if timeLeft > 0 {
 			sleep = int(timeLeft) + 1
@@ -57,14 +57,14 @@ func checkCounter() {
 		counter = 0
 	}
 
-	if timeLeft > 59 {
+	if currentTime.Minute() != previousTimeCheck.Minute() {
 		counter = 0
 		sleep = 1
 	}
 
 	if sleep > 0 {
 		time.Sleep(time.Duration(sleep) * time.Second)
-		previousTimeCheck = time.Now().Unix()
+		previousTimeCheck = time.Now()
 	}
 
 	counter++
