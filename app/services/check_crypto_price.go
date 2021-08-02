@@ -239,12 +239,12 @@ func setMasterCoin(coin models.BandResult) error {
 	store := helper.GetSimpleStore()
 
 	result, err := json.Marshal(coin)
-	if err != nil {
+	if err == nil {
 		resultString := string(result)
 		store.Set(key, resultString)
 		return nil
 	}
-	log.Println(err.Error())
+
 	return err
 }
 

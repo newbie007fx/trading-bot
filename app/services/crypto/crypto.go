@@ -52,14 +52,14 @@ func checkCounter() {
 	timeLeft := 59 - currentTime.Second()
 	if counter == thresholdPerMinute {
 		if timeLeft > 0 {
-			sleep = int(timeLeft) + 1
+			sleep = int(timeLeft) + 2
 		}
 		counter = 0
 	}
 
 	if timeLeft == 0 || currentTime.Minute() != previousTimeCheck.Minute() {
 		counter = 0
-		sleep = 1
+		sleep = 2
 	}
 
 	if sleep > 0 {
