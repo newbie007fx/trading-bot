@@ -153,7 +153,7 @@ func checkCryptoAltCoinPrice() {
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 85
+	limit := 82
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 	for _, data := range *currency_configs {
