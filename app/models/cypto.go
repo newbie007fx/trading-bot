@@ -14,6 +14,7 @@ type CandleData struct {
 	Close     float32
 	Low       float32
 	Hight     float32
+	BuyVolume float32
 	Volume    float32
 	Timestamp int64
 }

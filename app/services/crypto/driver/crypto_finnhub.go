@@ -53,14 +53,3 @@ func (FinnhubClient) convertCandleDataMap(cryptoCanldes finnhub.CryptoCandles) [
 
 	return candlesData
 }
-
-var crypto *FinnhubClient
-
-func GetCrypto() *FinnhubClient {
-	if crypto == nil {
-		crypto = new(FinnhubClient)
-		crypto.init()
-	}
-
-	return crypto
-}

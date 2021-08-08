@@ -37,6 +37,10 @@ func StartCryptoWorker() {
 			}
 		}
 
+		if isTimeToUpdateVolume(currentTime) {
+			updateVolumeChan <- true
+		}
+
 		sleep := 60 - currentTime.Second()
 		time.Sleep(time.Duration(sleep) * time.Second)
 	}
@@ -71,6 +75,16 @@ func isMuted() bool {
 func isTimeToCheckAltCoinPrice(time time.Time) bool {
 	minute := time.Minute()
 	if minute == 5 || minute == 20 || minute == 35 || minute == 50 {
+		return true
+	}
+
+	return false
+}
+
+func isTimeToUpdateVolume(time time.Time) bool {
+	minute := time.Minute()
+	hour := time.Hour()
+	if (hour == 5 || hour == 17) && minute == 1 {
 		return true
 	}
 

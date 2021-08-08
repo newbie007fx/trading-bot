@@ -51,7 +51,7 @@ func checkCryptoMasterCoinPrice() {
 		Symbol:       masterCoinConfig.Symbol,
 		Start:        startTime,
 		End:          endTime,
-		Resolution:   "15",
+		Resolution:   "15m",
 		ResponseChan: responseChan,
 	}
 
@@ -82,7 +82,7 @@ func checkCryptoHoldCoinPrice() {
 			Symbol:       data.Symbol,
 			Start:        startTime,
 			End:          endTime,
-			Resolution:   "15",
+			Resolution:   "15m",
 			ResponseChan: responseChan,
 		}
 
@@ -139,7 +139,7 @@ func checkCryptoAltCoinPrice() {
 			Symbol:       data.Symbol,
 			Start:        startTime,
 			End:          endTime,
-			Resolution:   "15",
+			Resolution:   "15m",
 			ResponseChan: responseChan,
 		}
 

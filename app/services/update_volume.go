@@ -28,7 +28,7 @@ func updateVolume() {
 			Symbol:       data.Symbol,
 			Start:        startTime,
 			End:          currentTime,
-			Resolution:   "60",
+			Resolution:   "1h",
 			ResponseChan: responseChan,
 		}
 

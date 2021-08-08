@@ -34,11 +34,11 @@ func DispatchRequestJob(request CandleRequest) {
 func RequestCandleService() {
 	canldeRequest = make(chan CandleRequest, 100)
 
+	crypto := driver.GetCrypto()
 	for request := range canldeRequest {
 		checkCounter()
 
 		response := CandleResponse{}
-		crypto := driver.GetCrypto()
 		response.CandleData, response.Err = crypto.GetCandlesData(request.Symbol, request.Start, request.End, request.Resolution)
 
 		request.ResponseChan <- response
