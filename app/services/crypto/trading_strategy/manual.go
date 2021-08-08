@@ -1,4 +1,4 @@
-package services
+package trading_strategy
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"telebot-trading/app/helper"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
+	"telebot-trading/app/services"
 	"telebot-trading/app/services/crypto"
 	"telebot-trading/app/services/crypto/analysis"
 )
@@ -51,7 +52,7 @@ func checkCryptoMasterCoinPrice() {
 		ResponseChan: responseChan,
 	}
 
-	result := MakeCryptoRequest(*masterCoinConfig, request)
+	result := services.MakeCryptoRequest(*masterCoinConfig, request)
 	if result == nil {
 		return
 	}
@@ -79,7 +80,7 @@ func checkCryptoHoldCoinPrice() {
 			ResponseChan: responseChan,
 		}
 
-		result := MakeCryptoRequest(data, request)
+		result := services.MakeCryptoRequest(data, request)
 		if result == nil {
 			continue
 		}
@@ -133,7 +134,7 @@ func checkCryptoAltCoinPrice() {
 			ResponseChan: responseChan,
 		}
 
-		result := MakeCryptoRequest(data, request)
+		result := services.MakeCryptoRequest(data, request)
 		if result == nil {
 			continue
 		}
@@ -198,58 +199,12 @@ func setMasterCoin(coin models.BandResult) error {
 	return err
 }
 
-func MakeCryptoRequest(data models.CurrencyNotifConfig, request crypto.CandleRequest) *models.BandResult {
-	crypto.DispatchRequestJob(request)
-
-	response := <-request.ResponseChan
-	if response.Err != nil {
-		log.Println("error: ", response.Err.Error())
-		return nil
-	}
-
-	bands := analysis.GetCurrentBollingerBands(response.CandleData)
-
-	direction := analysis.BAND_UP
-	if !analysis.CheckLastCandleIsUp(bands.Data) {
-		direction = analysis.BAND_DOWN
-	}
-
-	lastBand := bands.Data[len(bands.Data)-1]
-
-	weight := bands.PriceChanges
-	if bands.VolumeAverageChanges > 0 {
-		weight += (bands.VolumeAverageChanges * 0.2 / 100)
-	}
-
-	result := models.BandResult{
-		Symbol:        request.Symbol,
-		Direction:     direction,
-		CurrentPrice:  lastBand.Candle.Close,
-		CurrentVolume: lastBand.Candle.Volume,
-		Trend:         bands.Trend,
-		PriceChanges:  bands.PriceChanges,
-		VolumeChanges: bands.VolumeAverageChanges,
-		Weight:        weight,
-		Position:      bands.Position,
-	}
-
-	if data.IsMaster || data.IsOnHold {
-		if result.Direction == analysis.BAND_UP {
-			result.Note = upTrendChecking(data, bands)
-		} else {
-			result.Note = downTrendChecking(data, bands)
-		}
-	}
-
-	return &result
-}
-
 func sendNotif(msg string) {
 	if msg == "" {
 		return
 	}
 
-	clintIDString := GetConfigValueByName("chat_id")
+	clintIDString := services.GetConfigValueByName("chat_id")
 	if clintIDString == nil {
 		log.Println("client id belum diset")
 		return
@@ -257,7 +212,7 @@ func sendNotif(msg string) {
 
 	clientID, _ := strconv.ParseInt(*clintIDString, 10, 64)
 
-	err := SendToTelegram(clientID, msg)
+	err := services.SendToTelegram(clientID, msg)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -273,75 +228,6 @@ func generateMsg(coinResult models.BandResult) string {
 	format := "Coin name: <b>%s</b> \nDirection: <b>%s</b> \nPrice: <b>%f</b> \nVolume: <b>%f</b> \nTrend: <b>%s</b> \nPrice Changes: <b>%.2f%%</b> \nVolume Average Changes: <b>%.2f%%</b> \nNotes: <b>%s</b> \nPosition: <b>%s</b> \n"
 	msg := fmt.Sprintf(format, coinResult.Symbol, directionString(coinResult.Direction), coinResult.CurrentPrice, coinResult.CurrentVolume, trendString(coinResult.Trend), coinResult.PriceChanges, coinResult.VolumeChanges, coinResult.Note, positionString(coinResult.Position))
 	return msg
-}
-
-func upTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) string {
-	if analysis.CheckPositionOnUpperBand(bands.Data) {
-		return "Posisi naik upper band"
-	}
-
-	if analysis.CheckPositionSMAAfterLower(bands) {
-		return "Posisi naik ke SMA"
-	}
-
-	if analysis.CheckPositionAfterLower(bands.Data) {
-		return "Posisi lower"
-	}
-
-	if analysis.IsPriceIncreaseAboveThreshold(bands, data.IsMaster) {
-		return "Naik diatas threshold"
-	}
-
-	if analysis.IsTrendUpAfterTrendDown(data.Symbol, bands) {
-		return "Trend Up after down"
-	}
-
-	return ""
-}
-
-func downTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) string {
-	if analysis.CheckPositionOnLowerBand(bands.Data) {
-		return "Posisi turun dibawah lower"
-	}
-
-	if analysis.CheckPositionSMAAfterUpper(bands) {
-		return "Posisi turun dibawah SMA"
-	}
-
-	if analysis.CheckPositionAfterUpper(bands.Data) {
-		return "Posisi turun dari Upper"
-	}
-
-	if analysis.IsPriceDecreasebelowThreshold(bands, data.IsMaster) {
-		return "Turun dibawah threshold"
-	}
-
-	if analysis.IsTrendDownAfterTrendUp(data.Symbol, bands) {
-		return "Trend Down after up"
-	}
-
-	if data.IsOnHold && (bands.Position == models.ABOVE_SMA || bands.Position == models.ABOVE_UPPER) {
-		if isTimeMultipleFifteenMinute(currentTime) {
-			lastDown := countLastDownCandle(bands.Data)
-			return fmt.Sprintf("Turun gan siaga !!! jumlah down %d", lastDown)
-		}
-	}
-
-	return ""
-}
-
-func countLastDownCandle(data []models.Band) int {
-	count := 0
-	for i := len(data) - 1; i >= 0; i-- {
-		band := data[i]
-		if band.Candle.Close < band.Candle.Open {
-			count++
-		} else {
-			break
-		}
-	}
-
-	return count
 }
 
 func trendString(trend int8) string {
@@ -372,12 +258,6 @@ func positionString(position int8) string {
 	}
 
 	return "below lower"
-}
-
-func isTimeMultipleFifteenMinute(currentTime int64) bool {
-	fifteenMinutes := int64(60 * 15)
-
-	return currentTime%fifteenMinutes == 0
 }
 
 func getPositionWeight(position int8) float32 {

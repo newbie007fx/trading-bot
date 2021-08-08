@@ -41,12 +41,12 @@ func (FinnhubClient) convertCandleDataMap(cryptoCanldes finnhub.CryptoCandles) [
 
 	for i := 0; i < size; i++ {
 		candleData := models.CandleData{
-			Open:      cryptoCanldes.O[i],
-			Close:     cryptoCanldes.C[i],
-			Low:       cryptoCanldes.L[i],
-			Hight:     cryptoCanldes.H[i],
-			Volume:    cryptoCanldes.V[i],
-			Timestamp: cryptoCanldes.T[i],
+			Open:     cryptoCanldes.O[i],
+			Close:    cryptoCanldes.C[i],
+			Low:      cryptoCanldes.L[i],
+			Hight:    cryptoCanldes.H[i],
+			Volume:   cryptoCanldes.V[i],
+			OpenTime: cryptoCanldes.T[i],
 		}
 		candlesData = append(candlesData, candleData)
 	}

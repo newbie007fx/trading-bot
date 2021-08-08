@@ -5,6 +5,7 @@ import (
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services"
 	"telebot-trading/app/services/crypto"
+	"telebot-trading/app/services/crypto/trading_strategy"
 	"time"
 )
 
@@ -53,9 +54,9 @@ func startService() {
 	updateVolumeChan = make(chan bool)
 
 	go crypto.RequestCandleService()
-	go services.StartCheckMasterCoinPriceService(cryptoMasterCoinPriceChan)
-	go services.StartCheckHoldCoinPriceService(cryptoHoldCoinPriceChan)
-	go services.StartCheckAltCoinPriceService(cryptoAltCoinPriceChan)
+	go trading_strategy.StartCheckMasterCoinPriceService(cryptoMasterCoinPriceChan)
+	go trading_strategy.StartCheckHoldCoinPriceService(cryptoHoldCoinPriceChan)
+	go trading_strategy.StartCheckAltCoinPriceService(cryptoAltCoinPriceChan)
 	go services.StartUpdateVolumeService(updateVolumeChan)
 }
 

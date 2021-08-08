@@ -16,7 +16,8 @@ type CandleData struct {
 	Hight     float32
 	BuyVolume float32
 	Volume    float32
-	Timestamp int64
+	OpenTime  int64
+	CloseTime int64
 }
 
 type Band struct {
