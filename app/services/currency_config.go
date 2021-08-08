@@ -8,7 +8,6 @@ import (
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto/driver"
-	"time"
 )
 
 func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
@@ -52,14 +51,12 @@ func ReleaseCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.C
 func buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
 	balance := GetBalance()
 	if candleData == nil {
-		endTime := time.Now().Unix()
-		startTime := endTime - (60 * 15)
 		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, startTime, endTime, "15")
+		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, "15")
 		if err != nil {
 			return err
 		}
-		candleData = &candlesData[len(candlesData)-1]
+		candleData = &candlesData[0]
 	}
 
 	totalCoin := balance / candleData.Close
@@ -72,14 +69,12 @@ func buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 func sell(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
 	balance := GetBalance()
 	if candleData == nil {
-		endTime := time.Now().Unix()
-		startTime := endTime - (60 * 15)
 		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, startTime, endTime, "15")
+		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, "15")
 		if err != nil {
 			return err
 		}
-		candleData = &candlesData[len(candlesData)-1]
+		candleData = &candlesData[0]
 	}
 
 	totalBalance := config.Balance * candleData.Close

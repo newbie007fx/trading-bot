@@ -11,7 +11,6 @@ import (
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto"
 	"telebot-trading/app/services/crypto/analysis"
-	"time"
 )
 
 var currentTime int64
@@ -37,8 +36,6 @@ func StartCheckAltCoinPriceService(checkPriceChan chan bool) {
 func checkCryptoMasterCoinPrice() {
 	log.Println("starting crypto check price master coin worker")
 
-	startTime, endTime := getStartEndTime()
-
 	responseChan := make(chan crypto.CandleResponse)
 
 	masterCoinConfig, err := repositories.GetMasterCoinConfig()
@@ -49,8 +46,7 @@ func checkCryptoMasterCoinPrice() {
 
 	request := crypto.CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
-		Start:        startTime,
-		End:          endTime,
+		Limit:        29,
 		Resolution:   "15m",
 		ResponseChan: responseChan,
 	}
@@ -68,8 +64,6 @@ func checkCryptoMasterCoinPrice() {
 func checkCryptoHoldCoinPrice() {
 	log.Println("starting crypto check price hold coin worker")
 
-	startTime, endTime := getStartEndTime()
-
 	holdCoin := []models.BandResult{}
 
 	responseChan := make(chan crypto.CandleResponse)
@@ -80,8 +74,7 @@ func checkCryptoHoldCoinPrice() {
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
-			Start:        startTime,
-			End:          endTime,
+			Limit:        29,
 			Resolution:   "15m",
 			ResponseChan: responseChan,
 		}
@@ -124,8 +117,6 @@ func checkCryptoHoldCoinPrice() {
 func checkCryptoAltCoinPrice() {
 	log.Println("starting crypto check price for alt coin worker")
 
-	startTime, endTime := getStartEndTime()
-
 	altCoin := []models.BandResult{}
 
 	responseChan := make(chan crypto.CandleResponse)
@@ -137,8 +128,7 @@ func checkCryptoAltCoinPrice() {
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
-			Start:        startTime,
-			End:          endTime,
+			Limit:        29,
 			Resolution:   "15m",
 			ResponseChan: responseChan,
 		}
@@ -176,17 +166,6 @@ func checkCryptoAltCoinPrice() {
 	sendNotif(msg)
 
 	log.Println("crypto check price worker is done")
-}
-
-func getStartEndTime() (int64, int64) {
-	currentTime = time.Now().Unix()
-	requestTime := currentTime
-	if isTimeMultipleFifteenMinute(requestTime) {
-		requestTime -= 1
-	}
-	startTime := requestTime - (60 * 15 * 29)
-
-	return startTime, requestTime
 }
 
 func getMasterCoin() *models.BandResult {

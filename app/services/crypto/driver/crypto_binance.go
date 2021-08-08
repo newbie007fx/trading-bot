@@ -22,9 +22,9 @@ func (client *BinanceClient) init() {
 	client.klineService = service.NewKlinesService()
 }
 
-func (client *BinanceClient) GetCandlesData(symbol string, startTime, endTime int64, resolution string) ([]models.CandleData, error) {
+func (client *BinanceClient) GetCandlesData(symbol string, limit int, resolution string) ([]models.CandleData, error) {
 	var candlesData []models.CandleData
-	cryptoCandles, err := client.klineService.Symbol(formatSymbol(symbol)).StartTime(startTime).EndTime(endTime).
+	cryptoCandles, err := client.klineService.Symbol(formatSymbol(symbol)).Limit(limit).
 		Interval(resolution).Do(context.Background())
 	if err == nil {
 		candlesData = client.convertCandleDataMap(cryptoCandles)
