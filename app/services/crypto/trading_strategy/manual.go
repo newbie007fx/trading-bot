@@ -1,12 +1,10 @@
 package trading_strategy
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"sort"
 	"strconv"
-	"telebot-trading/app/helper"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services"
@@ -14,9 +12,11 @@ import (
 	"telebot-trading/app/services/crypto/analysis"
 )
 
-var currentTime int64
+var masterCoin *models.BandResult
+var waitMasterCoin chan bool
 
 func StartCheckMasterCoinPriceService(checkPriceChan chan bool) {
+	waitMasterCoin = make(chan bool)
 	for <-checkPriceChan {
 		checkCryptoMasterCoinPrice()
 	}
@@ -57,7 +57,8 @@ func checkCryptoMasterCoinPrice() {
 		return
 	}
 
-	setMasterCoin(*result)
+	waitMasterCoin <- true
+	masterCoin = result
 
 	log.Println("crypto check price worker is done")
 }
@@ -103,7 +104,7 @@ func checkCryptoHoldCoinPrice() {
 			msg = ""
 		}
 
-		masterCoin := getMasterCoin()
+		<-waitMasterCoin
 		if masterCoin != nil && msg != "" {
 			msg += "untuk master coin:\n"
 			msg += generateMsg(*masterCoin)
@@ -157,7 +158,6 @@ func checkCryptoAltCoinPrice() {
 			msg += "\n"
 		}
 
-		masterCoin := getMasterCoin()
 		if masterCoin != nil {
 			msg += "untuk master coin:\n"
 			msg += generateMsg(*masterCoin)
@@ -167,36 +167,6 @@ func checkCryptoAltCoinPrice() {
 	sendNotif(msg)
 
 	log.Println("crypto check price worker is done")
-}
-
-func getMasterCoin() *models.BandResult {
-	key := "last:master:coin:check"
-	store := helper.GetSimpleStore()
-
-	resultString := store.Get(key)
-	if resultString != nil {
-		masterCoin := models.BandResult{}
-		err := json.Unmarshal([]byte(*resultString), &masterCoin)
-		if err == nil {
-			return &masterCoin
-		}
-	}
-
-	return nil
-}
-
-func setMasterCoin(coin models.BandResult) error {
-	key := "last:master:coin:check"
-	store := helper.GetSimpleStore()
-
-	result, err := json.Marshal(coin)
-	if err == nil {
-		resultString := string(result)
-		store.Set(key, resultString)
-		return nil
-	}
-
-	return err
 }
 
 func sendNotif(msg string) {
