@@ -45,7 +45,7 @@ func (BinanceClient) convertCandleDataMap(cryptoCanldes []*binance.Kline) []mode
 			Volume:    convertToFloat32(candle.Volume),
 			BuyVolume: convertToFloat32(candle.TakerBuyBaseAssetVolume),
 			OpenTime:  candle.OpenTime,
-			CloseTime: candle.OpenTime,
+			CloseTime: candle.CloseTime,
 		}
 		candlesData = append(candlesData, candleData)
 	}

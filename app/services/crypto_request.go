@@ -28,11 +28,6 @@ func MakeCryptoRequest(data models.CurrencyNotifConfig, request crypto.CandleReq
 
 	lastBand := bands.Data[len(bands.Data)-1]
 
-	weight := bands.PriceChanges
-	if bands.VolumeAverageChanges > 0 {
-		weight += (bands.VolumeAverageChanges * 0.5 / 100)
-	}
-
 	result := models.BandResult{
 		Symbol:        request.Symbol,
 		Direction:     direction,
@@ -41,8 +36,8 @@ func MakeCryptoRequest(data models.CurrencyNotifConfig, request crypto.CandleReq
 		Trend:         bands.Trend,
 		PriceChanges:  bands.PriceChanges,
 		VolumeChanges: bands.VolumeAverageChanges,
-		Weight:        weight,
 		Position:      bands.Position,
+		Bands:         bands.Data,
 	}
 
 	if data.IsMaster || data.IsOnHold {
@@ -151,7 +146,6 @@ func convertResolutionToSeconds(resolution string) int64 {
 	switch res[2] {
 	case "m":
 		base = 60
-		break
 	case "H":
 		base = 60 * 60
 	}

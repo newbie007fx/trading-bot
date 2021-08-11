@@ -13,10 +13,12 @@ import (
 )
 
 var masterCoin *models.BandResult
-var waitMasterCoin chan bool
+var waitMasterCoin1 chan bool
+var waitMasterCoin2 chan bool
 
 func StartCheckMasterCoinPriceService(checkPriceChan chan bool) {
-	waitMasterCoin = make(chan bool)
+	waitMasterCoin1 = make(chan bool)
+	waitMasterCoin2 = make(chan bool)
 	for <-checkPriceChan {
 		checkCryptoMasterCoinPrice()
 	}
@@ -35,6 +37,11 @@ func StartCheckAltCoinPriceService(checkPriceChan chan bool) {
 }
 
 func checkCryptoMasterCoinPrice() {
+	defer func() {
+		waitMasterCoin1 <- true
+		waitMasterCoin2 <- true
+	}()
+
 	log.Println("starting crypto check price master coin worker")
 
 	responseChan := make(chan crypto.CandleResponse)
@@ -57,7 +64,6 @@ func checkCryptoMasterCoinPrice() {
 		return
 	}
 
-	waitMasterCoin <- true
 	masterCoin = result
 
 	log.Println("crypto check price worker is done")
@@ -104,7 +110,7 @@ func checkCryptoHoldCoinPrice() {
 			msg = ""
 		}
 
-		<-waitMasterCoin
+		<-waitMasterCoin1
 		if masterCoin != nil && msg != "" {
 			msg += "untuk master coin:\n"
 			msg += generateMsg(*masterCoin)
@@ -127,6 +133,12 @@ func checkCryptoAltCoinPrice() {
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
+	var masterCoinTrend int8 = 0
+	<-waitMasterCoin2
+	if masterCoin != nil {
+		masterCoinTrend = masterCoin.Trend
+	}
+
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
@@ -140,8 +152,8 @@ func checkCryptoAltCoinPrice() {
 			continue
 		}
 
-		if (result.Direction == analysis.BAND_UP || result.Trend == models.TREND_UP) && result.PriceChanges > 0.5 {
-			result.Weight += getPositionWeight(result.Position)
+		result.Weight = analysis.CalculateWeight(result, masterCoinTrend)
+		if result.Direction == analysis.BAND_UP && result.Weight > 1.5 {
 			altCoin = append(altCoin, *result)
 		}
 	}
@@ -228,15 +240,4 @@ func positionString(position int8) string {
 	}
 
 	return "below lower"
-}
-
-func getPositionWeight(position int8) float32 {
-	var weight float32 = 0
-	if position == models.BELOW_SMA {
-		weight = 0.5
-	} else if position == models.ABOVE_SMA {
-		weight = 0.25
-	}
-
-	return weight
 }

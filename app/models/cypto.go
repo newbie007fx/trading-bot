@@ -46,4 +46,5 @@ type BandResult struct {
 	Weight        float32
 	Note          string
 	Position      int8
+	Bands         []Band
 }
