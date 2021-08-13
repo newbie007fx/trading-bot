@@ -95,6 +95,8 @@ func checkCryptoHoldCoinPrice() {
 		holdCoin = append(holdCoin, *result)
 	}
 
+	<-waitMasterCoin1
+
 	msg := ""
 	if len(holdCoin) > 0 {
 		msg = "List coin yang dihold:\n"
@@ -110,7 +112,6 @@ func checkCryptoHoldCoinPrice() {
 			msg = ""
 		}
 
-		<-waitMasterCoin1
 		if masterCoin != nil && msg != "" {
 			msg += "untuk master coin:\n"
 			msg += generateMsg(*masterCoin)

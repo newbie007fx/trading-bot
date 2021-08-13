@@ -10,6 +10,8 @@ import (
 	"telebot-trading/app/services/crypto/analysis"
 )
 
+// todo: ubah request berdasarkan limit, kembali menjadi berdasarkan waktu. minimal endtimenya
+
 func MakeCryptoRequest(data models.CurrencyNotifConfig, request crypto.CandleRequest) *models.BandResult {
 	crypto.DispatchRequestJob(request)
 
