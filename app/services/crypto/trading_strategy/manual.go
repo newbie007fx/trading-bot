@@ -10,15 +10,13 @@ import (
 	"telebot-trading/app/services"
 	"telebot-trading/app/services/crypto"
 	"telebot-trading/app/services/crypto/analysis"
+	"time"
 )
 
 var masterCoin *models.BandResult
-var waitMasterCoin1 chan bool
-var waitMasterCoin2 chan bool
+var waitMasterCoin bool
 
 func StartCheckMasterCoinPriceService(checkPriceChan chan bool) {
-	waitMasterCoin1 = make(chan bool)
-	waitMasterCoin2 = make(chan bool)
 	for <-checkPriceChan {
 		checkCryptoMasterCoinPrice()
 	}
@@ -37,10 +35,7 @@ func StartCheckAltCoinPriceService(checkPriceChan chan bool) {
 }
 
 func checkCryptoMasterCoinPrice() {
-	defer func() {
-		waitMasterCoin1 <- true
-		waitMasterCoin2 <- true
-	}()
+	waitMasterCoin = true
 
 	log.Println("starting crypto check price master coin worker")
 
@@ -67,6 +62,7 @@ func checkCryptoMasterCoinPrice() {
 	masterCoin = result
 
 	log.Println("crypto check price worker is done")
+	waitMasterCoin = false
 }
 
 func checkCryptoHoldCoinPrice() {
@@ -95,8 +91,6 @@ func checkCryptoHoldCoinPrice() {
 		holdCoin = append(holdCoin, *result)
 	}
 
-	<-waitMasterCoin1
-
 	msg := ""
 	if len(holdCoin) > 0 {
 		msg = "List coin yang dihold:\n"
@@ -112,6 +106,7 @@ func checkCryptoHoldCoinPrice() {
 			msg = ""
 		}
 
+		waitMasterCoinProcessed()
 		if masterCoin != nil && msg != "" {
 			msg += "untuk master coin:\n"
 			msg += generateMsg(*masterCoin)
@@ -135,7 +130,7 @@ func checkCryptoAltCoinPrice() {
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
 	var masterCoinTrend int8 = 0
-	<-waitMasterCoin2
+	waitMasterCoinProcessed()
 	if masterCoin != nil {
 		masterCoinTrend = masterCoin.Trend
 	}
@@ -241,4 +236,10 @@ func positionString(position int8) string {
 	}
 
 	return "below lower"
+}
+
+func waitMasterCoinProcessed() {
+	for waitMasterCoin {
+		time.Sleep(1 * time.Second)
+	}
 }
