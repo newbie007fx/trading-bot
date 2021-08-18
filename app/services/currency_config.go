@@ -52,7 +52,7 @@ func buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 	balance := GetBalance()
 	if candleData == nil {
 		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, "15")
+		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15")
 		if err != nil {
 			return err
 		}
@@ -60,7 +60,7 @@ func buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 	}
 
 	totalCoin := balance / candleData.Close
-	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": totalCoin})
+	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": totalCoin, "hold_price": candleData.Close})
 	SetBalance(balance - (totalCoin * candleData.Close))
 
 	return nil
@@ -70,7 +70,7 @@ func sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 	balance := GetBalance()
 	if candleData == nil {
 		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, "15")
+		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15")
 		if err != nil {
 			return err
 		}

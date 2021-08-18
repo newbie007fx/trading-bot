@@ -9,33 +9,25 @@ import (
 	"time"
 )
 
-var cryptoMasterCoinPriceChan chan bool
-var cryptoHoldCoinPriceChan chan bool
-var cryptoAltCoinPriceChan chan bool
 var updateVolumeChan chan bool
+var checkMasterCoinChan chan bool
+var strategy trading_strategy.TradingStrategy
 
 func StartCryptoWorker() {
 	startService()
 
 	defer func() {
-		close(cryptoMasterCoinPriceChan)
-		close(cryptoHoldCoinPriceChan)
-		close(cryptoAltCoinPriceChan)
+		strategy.Shutdown()
 		close(updateVolumeChan)
+		close(checkMasterCoinChan)
 	}()
 
 	for {
 		currentTime := time.Now()
 		if !isMuted() {
-			minute := currentTime.Minute()
-			if minute%5 == 0 {
-				cryptoMasterCoinPriceChan <- true
-				cryptoHoldCoinPriceChan <- true
-			}
+			checkMasterCoinChan <- true
 
-			if isTimeToCheckAltCoinPrice(currentTime) {
-				cryptoAltCoinPriceChan <- true
-			}
+			strategy.Execute(currentTime)
 		}
 
 		if isTimeToUpdateVolume(currentTime) {
@@ -48,16 +40,35 @@ func StartCryptoWorker() {
 }
 
 func startService() {
-	cryptoMasterCoinPriceChan = make(chan bool)
-	cryptoHoldCoinPriceChan = make(chan bool)
-	cryptoAltCoinPriceChan = make(chan bool)
 	updateVolumeChan = make(chan bool)
 
 	go crypto.RequestCandleService()
-	go trading_strategy.StartCheckMasterCoinPriceService(cryptoMasterCoinPriceChan)
-	go trading_strategy.StartCheckHoldCoinPriceService(cryptoHoldCoinPriceChan)
-	go trading_strategy.StartCheckAltCoinPriceService(cryptoAltCoinPriceChan)
 	go services.StartUpdateVolumeService(updateVolumeChan)
+	go trading_strategy.StartCheckMasterCoinPriceService(checkMasterCoinChan)
+
+	setStrategy()
+	strategy.InitService()
+}
+
+func setStrategy() {
+	mode := "manual"
+
+	result := repositories.GetConfigValueByName("mode")
+	if result != nil {
+		mode = *result
+	}
+
+	if mode == "automatic" {
+		strategy = &trading_strategy.AutomaticTradingStrategy{}
+	} else {
+		strategy = &trading_strategy.ManualTradingStrategy{}
+	}
+}
+
+func ChangeStrategy() {
+	strategy.Shutdown()
+	setStrategy()
+	strategy.InitService()
 }
 
 func isMuted() bool {
@@ -70,15 +81,6 @@ func isMuted() bool {
 		}
 		return tmp
 	}
-	return false
-}
-
-func isTimeToCheckAltCoinPrice(time time.Time) bool {
-	minute := time.Minute()
-	if minute == 5 || minute == 20 || minute == 35 || minute == 50 {
-		return true
-	}
-
 	return false
 }
 

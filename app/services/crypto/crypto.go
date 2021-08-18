@@ -12,6 +12,7 @@ import (
 type CandleRequest struct {
 	Symbol       string
 	Limit        int
+	EndDate      int64
 	Resolution   string
 	ResponseChan chan CandleResponse
 }
@@ -38,7 +39,7 @@ func RequestCandleService() {
 		checkCounter()
 
 		response := CandleResponse{}
-		response.CandleData, response.Err = crypto.GetCandlesData(request.Symbol, request.Limit, request.Resolution)
+		response.CandleData, response.Err = crypto.GetCandlesData(request.Symbol, request.Limit, request.EndDate, request.Resolution)
 
 		request.ResponseChan <- response
 	}

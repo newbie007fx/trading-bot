@@ -9,6 +9,7 @@ import (
 	"strings"
 	"telebot-trading/app/helper"
 	"telebot-trading/app/http/requests"
+	"telebot-trading/app/jobs"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services"
 
@@ -60,13 +61,14 @@ func ProcessTeleWebhook(c echo.Context) error {
 	} else if cmd == "/mode" {
 		responseMsg = "invalid format lur"
 		if len(msgData) > 1 {
-			if msgData[1] == "manual" || msgData[1] == "simulation" {
+			if msgData[1] == "manual" || msgData[1] == "simulation" || msgData[1] == "automatic" {
 				err := repositories.SetConfigByName("mode", msgData[1])
 				if err != nil {
 					responseMsg = err.Error()
 				} else {
 					services.SetBalance(100)
 					responseMsg = "mode berhasil diset lur"
+					jobs.ChangeStrategy()
 				}
 			}
 		}

@@ -22,6 +22,15 @@ func GetCurrencyNotifConfigs(condition *map[string]interface{}, limit *int) *[]m
 	return &notifConfigs
 }
 
+func CountNotifConfig(condition *map[string]interface{}) (count int64) {
+	query := db.GetDB().Table("currency_notif_configs")
+	if condition != nil {
+		query.Where(*condition)
+	}
+	query.Count(&count)
+	return
+}
+
 func SaveCurrencyNotifConfig(data map[string]interface{}) error {
 	data["created_at"] = time.Now()
 	data["updated_at"] = time.Now()
