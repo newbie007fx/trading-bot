@@ -42,6 +42,7 @@ func StartCryptoWorker() {
 
 func startService() {
 	updateVolumeChan = make(chan bool)
+	checkMasterCoinChan = make(chan bool)
 
 	go crypto.RequestCandleService()
 	go services.StartUpdateVolumeService(updateVolumeChan)
