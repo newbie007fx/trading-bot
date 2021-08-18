@@ -65,7 +65,7 @@ func setStrategy() {
 		strategy = &trading_strategy.ManualTradingStrategy{}
 	}
 
-	log.Panicln("mode: " + mode)
+	log.Println("mode: " + mode)
 }
 
 func ChangeStrategy() {
