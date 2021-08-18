@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"log"
 	"strconv"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services"
@@ -63,6 +64,8 @@ func setStrategy() {
 	} else {
 		strategy = &trading_strategy.ManualTradingStrategy{}
 	}
+
+	log.Panicln("mode: " + mode)
 }
 
 func ChangeStrategy() {
