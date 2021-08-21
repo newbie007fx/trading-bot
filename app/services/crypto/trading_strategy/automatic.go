@@ -11,22 +11,20 @@ import (
 )
 
 var lastCheckCoin *[]models.BandResult
-var currentTime time.Time
+var timeToBuy bool
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
 	cryptoAltCoinPriceChan  chan bool
 }
 
-func (ats *AutomaticTradingStrategy) Execute(existingTime time.Time) {
-	currentTime = existingTime
-
+func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	condition := map[string]interface{}{"is_on_hold": true}
 	hold_count := repositories.CountNotifConfig(&condition)
 	if hold_count > 0 {
 		ats.cryptoHoldCoinPriceChan <- true
 	} else {
-		if ats.isTimeToCheckAltCoinPrice() || ats.isTimeToBuykAltCoinPrice() {
+		if ats.isTimeToCheckAltCoinPrice(currentTime) || ats.isTimeToBuykAltCoinPrice(currentTime) {
 			ats.cryptoAltCoinPriceChan <- true
 		}
 	}
@@ -45,7 +43,7 @@ func (ats *AutomaticTradingStrategy) Shutdown() {
 	close(ats.cryptoAltCoinPriceChan)
 }
 
-func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice() bool {
+func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time) bool {
 	minute := currentTime.Minute()
 	var listMinutes []int = []int{15, 30, 45, 0}
 	for _, a := range listMinutes {
@@ -57,11 +55,12 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice() bool {
 	return false
 }
 
-func (AutomaticTradingStrategy) isTimeToBuykAltCoinPrice() bool {
+func (AutomaticTradingStrategy) isTimeToBuykAltCoinPrice(currentTime time.Time) bool {
 	minute := currentTime.Minute()
 	var listMinutes []int = []int{5, 20, 35, 50}
 	for _, a := range listMinutes {
 		if a == minute {
+			timeToBuy = true
 			return true
 		}
 	}
@@ -136,7 +135,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 }
 
 func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *models.BandResult {
-	if ats.isTimeToBuykAltCoinPrice(currentTime) {
+	if timeToBuy {
 		for i, _ := range altCoins {
 			if lastCheckCoin == nil {
 				continue
@@ -149,6 +148,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 		}
 
 		lastCheckCoin = nil
+		timeToBuy = false
 	} else {
 		lastCheckCoin = &altCoins
 		return nil
