@@ -11,15 +11,15 @@ import (
 )
 
 var lastCheckCoin *[]models.BandResult
+var currentTime time.Time
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
 	cryptoAltCoinPriceChan  chan bool
-	currentTime             time.Time
 }
 
-func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
-	ats.currentTime = currentTime
+func (ats *AutomaticTradingStrategy) Execute(existingTime time.Time) {
+	currentTime = existingTime
 
 	condition := map[string]interface{}{"is_on_hold": true}
 	hold_count := repositories.CountNotifConfig(&condition)
@@ -136,7 +136,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 }
 
 func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *models.BandResult {
-	if ats.isTimeToBuykAltCoinPrice(ats.currentTime) {
+	if ats.isTimeToBuykAltCoinPrice(currentTime) {
 		for i, _ := range altCoins {
 			if lastCheckCoin == nil {
 				continue
