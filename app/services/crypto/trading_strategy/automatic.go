@@ -26,7 +26,7 @@ func (ats *AutomaticTradingStrategy) Execute(existingTime time.Time) {
 	if hold_count > 0 {
 		ats.cryptoHoldCoinPriceChan <- true
 	} else {
-		if ats.isTimeToCheckAltCoinPrice(currentTime) || ats.isTimeToBuykAltCoinPrice(currentTime) {
+		if ats.isTimeToCheckAltCoinPrice() || ats.isTimeToBuykAltCoinPrice() {
 			ats.cryptoAltCoinPriceChan <- true
 		}
 	}
@@ -45,8 +45,8 @@ func (ats *AutomaticTradingStrategy) Shutdown() {
 	close(ats.cryptoAltCoinPriceChan)
 }
 
-func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(time time.Time) bool {
-	minute := time.Minute()
+func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice() bool {
+	minute := currentTime.Minute()
 	var listMinutes []int = []int{15, 30, 45, 0}
 	for _, a := range listMinutes {
 		if a == minute {
@@ -57,8 +57,8 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(time time.Time) bool {
 	return false
 }
 
-func (AutomaticTradingStrategy) isTimeToBuykAltCoinPrice(time time.Time) bool {
-	minute := time.Minute()
+func (AutomaticTradingStrategy) isTimeToBuykAltCoinPrice() bool {
+	minute := currentTime.Minute()
 	var listMinutes []int = []int{5, 20, 35, 50}
 	for _, a := range listMinutes {
 		if a == minute {
