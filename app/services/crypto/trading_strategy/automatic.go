@@ -138,11 +138,11 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	if timeToBuy {
 		for i, _ := range altCoins {
 			if lastCheckCoin == nil {
-				continue
+				return nil
 			}
 			for _, coin := range *lastCheckCoin {
 				if altCoins[i].Symbol == coin.Symbol {
-					altCoins[i].Weight += 1.5
+					altCoins[i].Weight += 0.5
 				}
 			}
 		}
