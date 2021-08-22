@@ -73,17 +73,17 @@ func getPriceMarginWithUpperBandPercentWeight(percent float32) float32 {
 
 func getVolumeAverageChangesWeight(volumeAverageChanges float32) float32 {
 	if volumeAverageChanges >= 101 {
-		return 0.3
+		return 0.4
 	} else if volumeAverageChanges >= 81 {
-		return 0.25
+		return 0.35
 	} else if volumeAverageChanges >= 61 {
-		return 0.2
+		return 0.3
 	} else if volumeAverageChanges >= 41 {
-		return 0.15
+		return 0.25
 	} else if volumeAverageChanges >= 21 {
-		return 0.1
+		return 0.2
 	} else if volumeAverageChanges >= 1 {
-		return 0.05
+		return 0.15
 	}
 
 	return 0
@@ -96,80 +96,80 @@ func getPositionWeight(bands []models.Band, trend int8) float32 {
 	// low hight dibawah lower
 	if lastBand.Candle.Hight < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.2
+			return 0.35
 		}
 	}
 
 	// hight menyentuh lower tp close dibaawh lower
 	if lastBand.Candle.Hight >= float32(lastBand.Lower) && lastBand.Candle.Close < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.15
+			return 0.3
 		}
 	}
 
 	// close menyentuh lower tp open dibaawh lower
 	if lastBand.Candle.Close >= float32(lastBand.Lower) && lastBand.Candle.Open < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.25
+			return 0.4
 		}
 	}
 
 	// open menyentuh lower tp low dibaawh lower
 	if lastBand.Candle.Open >= float32(lastBand.Lower) && lastBand.Candle.Low < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.35
+			return 0.5
 		}
 	}
 
 	// low hight dibawah SMA
 	if lastBand.Candle.Hight < float32(lastBand.SMA) {
 		if trend == models.TREND_UP {
-			return 0.18
+			return 0.23
 		}
 	}
 
 	// hight menyentuh SMA tp close dibaawh SMA
 	if lastBand.Candle.Hight >= float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA) {
 		if trend == models.TREND_UP {
-			return 0.13
+			return 0.28
 		}
 	}
 
 	// close menyentuh SMA tp open dibaawh SMA
 	if lastBand.Candle.Close >= float32(lastBand.SMA) && lastBand.Candle.Open < float32(lastBand.SMA) {
 		if trend == models.TREND_UP {
-			return 0.23
+			return 0.38
 		}
 	}
 
 	// open menyentuh SMA tp low dibaawh SMA
 	if lastBand.Candle.Open >= float32(lastBand.SMA) && lastBand.Candle.Low < float32(lastBand.SMA) {
 		if trend == models.TREND_UP {
-			return 0.33
+			return 0.48
 		}
 	}
 
 	// low hight dibawah Upper
 	if lastBand.Candle.Hight < float32(lastBand.Upper) {
 		if trend == models.TREND_UP {
-			return 0.15
+			return 0.3
 		}
 	}
 
 	// hight menyentuh Upper tp close dibaawh Upper
 	if lastBand.Candle.Hight >= float32(lastBand.Upper) && lastBand.Candle.Close < float32(lastBand.Upper) {
-		return 0.1
+		return 0.25
 	}
 
 	// close menyentuh Upper tp open dibaawh Upper
 	if lastBand.Candle.Close >= float32(lastBand.Upper) && lastBand.Candle.Open < float32(lastBand.Upper) {
-		return 0.2
+		return 0.35
 	}
 
 	// open menyentuh Upper tp low dibaawh Upper
 	if lastBand.Candle.Open >= float32(lastBand.Upper) && lastBand.Candle.Low < float32(lastBand.Upper) {
-		return 0.3
+		return 0.45
 	}
 
-	return 0.13
+	return 0.17
 }
