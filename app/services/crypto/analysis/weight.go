@@ -7,7 +7,7 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 	if weight < 0.5 {
 		return 0
 	} else if weight > 1.35 {
-		weight = 1.35
+		weight = 1.45
 	}
 
 	if result.VolumeChanges > 0 {
