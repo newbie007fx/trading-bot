@@ -61,18 +61,16 @@ func getPriceMarginWithUpperBandPercentWeight(percent float32) float32 {
 	if percent >= 5.1 {
 		return 0.5
 	} else if percent >= 4.1 {
-		return 0.4
+		return 0.45
 	} else if percent >= 3.1 {
-		return 0.325
+		return 0.375
 	} else if percent >= 2.1 {
-		return 0.25
+		return 0.3
 	} else if percent >= 1.1 {
-		return 0.175
-	} else if percent >= 0.1 {
-		return 0.1
+		return 0.225
 	}
 
-	return 0
+	return 0.15
 }
 
 func getVolumeAverageChangesWeight(volumeAverageChanges float32) float32 {
