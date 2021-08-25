@@ -6,6 +6,7 @@ import (
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services"
+	"telebot-trading/app/services/crypto"
 	"telebot-trading/app/services/crypto/analysis"
 	"time"
 )
@@ -136,25 +137,65 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *models.BandResult {
 	if timeToBuy {
+		results := []models.BandResult{}
 		for i, _ := range altCoins {
 			if lastCheckCoin == nil {
 				return nil
 			}
+
+			altCoins[i].Weight += ats.getOnLongIntervalWeight(altCoins[i])
 			for _, coin := range *lastCheckCoin {
 				if altCoins[i].Symbol == coin.Symbol {
 					altCoins[i].Weight += 0.5
 				}
 			}
+			if altCoins[i].Weight > 2.05 {
+				results = append(results, altCoins[i])
+			}
 		}
 
 		lastCheckCoin = nil
 		timeToBuy = false
-	} else {
-		lastCheckCoin = &altCoins
+
+		if len(results) > 0 {
+			sort.Slice(altCoins, func(i, j int) bool { return altCoins[i].Weight > altCoins[j].Weight })
+
+			return &altCoins[0]
+		}
 		return nil
 	}
 
-	sort.Slice(altCoins, func(i, j int) bool { return altCoins[i].Weight > altCoins[j].Weight })
+	lastCheckCoin = &altCoins
+	return nil
+}
 
-	return &altCoins[0]
+func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandResult) float32 {
+	responseChan := make(chan crypto.CandleResponse)
+
+	endDate := getEndDate()
+
+	data, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
+	if err != nil {
+		return 0
+	}
+
+	request := crypto.CandleRequest{
+		Symbol:       data.Symbol,
+		EndDate:      endDate,
+		Limit:        31,
+		Resolution:   "4h",
+		ResponseChan: responseChan,
+	}
+
+	result := services.MakeCryptoRequest(*data, request)
+	if result == nil {
+		return 0
+	}
+
+	weight := analysis.CalculateWeightLongInterval(result)
+	if analysis.IsIgnored(result) || result.Direction == analysis.BAND_DOWN {
+		return 0
+	}
+
+	return weight
 }
