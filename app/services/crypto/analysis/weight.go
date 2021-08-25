@@ -6,8 +6,8 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 	weight := result.PriceChanges
 	if weight < 0.5 {
 		return 0
-	} else if weight > 1.35 {
-		weight = 1.45
+	} else if weight > 1.5 {
+		weight = 1.5
 	}
 
 	if result.VolumeChanges > 0 {
@@ -21,6 +21,10 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 	weight += getPatternWeight(result.Bands)
 
 	if masterTrend == models.TREND_UP {
+		weight += 0.15
+	}
+
+	if result.Trend == models.TREND_UP {
 		weight += 0.15
 	}
 
