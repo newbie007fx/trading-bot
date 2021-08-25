@@ -137,12 +137,12 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *models.BandResult {
 	if timeToBuy {
+		if lastCheckCoin == nil {
+			return nil
+		}
+
 		results := []models.BandResult{}
 		for i, _ := range altCoins {
-			if lastCheckCoin == nil {
-				return nil
-			}
-
 			altCoins[i].Weight += ats.getOnLongIntervalWeight(altCoins[i])
 			for _, coin := range *lastCheckCoin {
 				if altCoins[i].Symbol == coin.Symbol {
@@ -158,9 +158,9 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 		timeToBuy = false
 
 		if len(results) > 0 {
-			sort.Slice(altCoins, func(i, j int) bool { return altCoins[i].Weight > altCoins[j].Weight })
+			sort.Slice(results, func(i, j int) bool { return results[i].Weight > results[j].Weight })
 
-			return &altCoins[0]
+			return &results[0]
 		}
 		return nil
 	}
