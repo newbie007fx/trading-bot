@@ -1,4 +1,4 @@
-package services
+package crypto
 
 import (
 	"fmt"
@@ -6,14 +6,11 @@ import (
 	"regexp"
 	"strconv"
 	"telebot-trading/app/models"
-	"telebot-trading/app/services/crypto"
 	"telebot-trading/app/services/crypto/analysis"
 )
 
-// todo: ubah request berdasarkan limit, kembali menjadi berdasarkan waktu. minimal endtimenya
-
-func MakeCryptoRequest(data models.CurrencyNotifConfig, request crypto.CandleRequest) *models.BandResult {
-	crypto.DispatchRequestJob(request)
+func MakeCryptoRequest(data models.CurrencyNotifConfig, request CandleRequest) *models.BandResult {
+	DispatchRequestJob(request)
 
 	response := <-request.ResponseChan
 	if response.Err != nil {
@@ -77,7 +74,7 @@ func upTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) string
 	return ""
 }
 
-func downTrendChecking(data models.CurrencyNotifConfig, bands models.Bands, request crypto.CandleRequest) string {
+func downTrendChecking(data models.CurrencyNotifConfig, bands models.Bands, request CandleRequest) string {
 	if analysis.CheckPositionOnLowerBand(bands.Data) {
 		return "Posisi turun dibawah lower"
 	}

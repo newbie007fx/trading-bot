@@ -3,7 +3,9 @@ package crypto
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"telebot-trading/app/models"
+	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto/driver"
 	"telebot-trading/utils"
 	"time"
@@ -76,4 +78,59 @@ func checkCounter() {
 	}
 
 	counter++
+}
+
+func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
+	balance := GetBalance()
+	if candleData == nil {
+		crypto := driver.GetCrypto()
+		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15")
+		if err != nil {
+			return err
+		}
+		candleData = &candlesData[0]
+	}
+
+	totalCoin := balance / candleData.Close
+	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": totalCoin, "hold_price": candleData.Close})
+	SetBalance(balance - (totalCoin * candleData.Close))
+
+	return nil
+}
+
+func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
+	balance := GetBalance()
+	if candleData == nil {
+		crypto := driver.GetCrypto()
+		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15")
+		if err != nil {
+			return err
+		}
+		candleData = &candlesData[0]
+	}
+
+	totalBalance := config.Balance * candleData.Close
+	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": 0})
+	SetBalance(balance + totalBalance)
+
+	return nil
+}
+
+func GetBalance() float32 {
+	var balance float32 = 0
+
+	result := repositories.GetConfigValueByName("balance")
+	if result != nil {
+		resultFloat, err := strconv.ParseFloat(*result, 32)
+		if err == nil {
+			balance = float32(resultFloat)
+		}
+	}
+
+	return balance
+}
+
+func SetBalance(balance float32) error {
+	s := fmt.Sprintf("%f", balance)
+	return repositories.SetConfigByName("balance", s)
 }

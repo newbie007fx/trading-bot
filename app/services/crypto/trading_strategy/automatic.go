@@ -77,7 +77,7 @@ func (AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan ch
 			for _, coin := range holdCoin {
 				if analysis.IsNeedToSell(coin) {
 					msg += "coin berikut akan dijual:\n"
-					msg += generateMsg(coin)
+					msg += crypto.GenerateMsg(coin)
 					msg += "\n"
 
 					currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
@@ -87,7 +87,7 @@ func (AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan ch
 						services.ReleaseCoin(*currencyConfig, lastBand.Candle)
 					}
 
-					balance := services.GetBalance()
+					balance := crypto.GetBalance()
 					msg += fmt.Sprintf("saldo saat ini: %f\n", balance)
 				}
 			}
@@ -95,7 +95,7 @@ func (AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan ch
 			waitMasterCoinProcessed()
 			if masterCoin != nil && msg != "" {
 				msg += "untuk master coin:\n"
-				msg += generateMsg(*masterCoin)
+				msg += crypto.GenerateMsg(*masterCoin)
 			}
 		}
 
@@ -115,12 +115,12 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 			}
 
 			msg = "coin berikut telah dihold:\n"
-			msg += generateMsg(*coin)
+			msg += crypto.GenerateMsg(*coin)
 			msg += "\n"
 
 			if masterCoin != nil {
 				msg += "untuk master coin:\n"
-				msg += generateMsg(*masterCoin)
+				msg += crypto.GenerateMsg(*masterCoin)
 			}
 
 			currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
@@ -142,7 +142,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 		}
 
 		results := []models.BandResult{}
-		for i, _ := range altCoins {
+		for i := range altCoins {
 			altCoins[i].Weight += ats.getOnLongIntervalWeight(altCoins[i])
 			for _, coin := range *lastCheckCoin {
 				if altCoins[i].Symbol == coin.Symbol {
@@ -172,7 +172,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandResult) float32 {
 	responseChan := make(chan crypto.CandleResponse)
 
-	endDate := getEndDate()
+	endDate := GetEndDate()
 
 	data, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
 	if err != nil {
@@ -187,7 +187,7 @@ func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandRes
 		ResponseChan: responseChan,
 	}
 
-	result := services.MakeCryptoRequest(*data, request)
+	result := crypto.MakeCryptoRequest(*data, request)
 	if result == nil {
 		return 0
 	}

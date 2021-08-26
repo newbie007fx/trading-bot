@@ -73,8 +73,8 @@ func getPatternWeight(bands []models.Band) float32 {
 	listMatchPattern := GetCandlePattern(bands)
 
 	var weight float32 = 0
-	for _ = range listMatchPattern {
-		weight += 0.5
+	if len(listMatchPattern) > 0 {
+		weight += 0.5 * float32(len(listMatchPattern))
 	}
 
 	return weight

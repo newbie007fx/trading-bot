@@ -3,6 +3,7 @@ package trading_strategy
 import (
 	"sort"
 	"telebot-trading/app/models"
+	"telebot-trading/app/services/crypto"
 	"time"
 )
 
@@ -56,7 +57,7 @@ func (ManualTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan 
 			haveNote := false
 			for _, coin := range holdCoin {
 				if coin.Note != "" {
-					msg += generateMsg(coin)
+					msg += crypto.GenerateMsg(coin)
 					msg += "\n"
 					haveNote = true
 				}
@@ -68,7 +69,7 @@ func (ManualTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan 
 			waitMasterCoinProcessed()
 			if masterCoin != nil && msg != "" {
 				msg += "untuk master coin:\n"
-				msg += generateMsg(*masterCoin)
+				msg += crypto.GenerateMsg(*masterCoin)
 			}
 		}
 
@@ -87,13 +88,13 @@ func (ManualTradingStrategy) startCheckAltCoinPriceService(checkPriceChan chan b
 
 			msg += "top gain coin:\n"
 			for _, coin := range altCoin {
-				msg += generateMsg(coin)
+				msg += crypto.GenerateMsg(coin)
 				msg += "\n"
 			}
 
 			if masterCoin != nil {
 				msg += "untuk master coin:\n"
-				msg += generateMsg(*masterCoin)
+				msg += crypto.GenerateMsg(*masterCoin)
 			}
 		}
 

@@ -13,6 +13,8 @@ import (
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services"
 
+	"telebot-trading/app/services/crypto"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -33,7 +35,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 	} else if cmd == "/hold" {
 		responseMsg = "invalid format lur"
 		if len(msgData) > 1 {
-			balance := services.GetBalance()
+			balance := crypto.GetBalance()
 			err := handlerHoldCoin(msgData[1])
 			if err != nil {
 				responseMsg = err.Error()
@@ -48,7 +50,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 			if err != nil {
 				responseMsg = err.Error()
 			} else {
-				balance := services.GetBalance()
+				balance := crypto.GetBalance()
 				responseMsg = fmt.Sprintf("release berhasil lur, saldo: %f", balance)
 			}
 		}
@@ -66,10 +68,21 @@ func ProcessTeleWebhook(c echo.Context) error {
 				if err != nil {
 					responseMsg = err.Error()
 				} else {
-					services.SetBalance(100)
+					crypto.SetBalance(100)
 					responseMsg = "mode berhasil diset lur"
 					jobs.ChangeStrategy()
 				}
+			}
+		}
+	} else if cmd == "/status" {
+		responseMsg = "invalid format lur"
+		if len(msgData) > 1 {
+			msg, err := handlerStatusCoin(msgData[1])
+			if err != nil {
+				responseMsg = err.Error()
+			} else {
+				responseMsg = fmt.Sprintf("Berikut ini status untuk coin %s :\n", msgData[1])
+				responseMsg += msg
 			}
 		}
 	} else {
@@ -103,4 +116,14 @@ func handlerReleaseCoin(symbol string) error {
 	}
 
 	return services.ReleaseCoin(*currencyConfig, nil)
+}
+
+func handlerStatusCoin(symbol string) (string, error) {
+	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
+	if err != nil {
+		log.Println(err.Error())
+		return "", errors.New("invalid symbol lur")
+	}
+
+	return services.GetCurrencyStatus(*currencyConfig), nil
 }

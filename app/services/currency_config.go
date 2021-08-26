@@ -2,17 +2,16 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"log"
-	"strconv"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
-	"telebot-trading/app/services/crypto/driver"
+	"telebot-trading/app/services/crypto"
+	"time"
 )
 
 func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
 	if getMode() != "manual" {
-		buy(currencyConfig, candleData)
+		crypto.Buy(currencyConfig, candleData)
 	}
 
 	if !currencyConfig.IsOnHold {
@@ -31,7 +30,7 @@ func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.Cand
 
 func ReleaseCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
 	if getMode() != "manual" {
-		sell(currencyConfig, candleData)
+		crypto.Sell(currencyConfig, candleData)
 	}
 
 	if currencyConfig.IsOnHold {
@@ -48,59 +47,22 @@ func ReleaseCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.C
 	return nil
 }
 
-func buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
-	balance := GetBalance()
-	if candleData == nil {
-		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15")
-		if err != nil {
-			return err
-		}
-		candleData = &candlesData[0]
+func GetCurrencyStatus(config models.CurrencyNotifConfig) string {
+	currentTime := time.Now()
+	timeInMili := currentTime.Unix() * 1000
+
+	responseChan := make(chan crypto.CandleResponse)
+	request := crypto.CandleRequest{
+		Symbol:       config.Symbol,
+		EndDate:      timeInMili,
+		Limit:        33,
+		Resolution:   "15m",
+		ResponseChan: responseChan,
 	}
 
-	totalCoin := balance / candleData.Close
-	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": totalCoin, "hold_price": candleData.Close})
-	SetBalance(balance - (totalCoin * candleData.Close))
+	result := crypto.MakeCryptoRequest(config, request)
 
-	return nil
-}
-
-func sell(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
-	balance := GetBalance()
-	if candleData == nil {
-		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15")
-		if err != nil {
-			return err
-		}
-		candleData = &candlesData[0]
-	}
-
-	totalBalance := config.Balance * candleData.Close
-	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": 0})
-	SetBalance(balance + totalBalance)
-
-	return nil
-}
-
-func GetBalance() float32 {
-	var balance float32 = 0
-
-	result := repositories.GetConfigValueByName("balance")
-	if result != nil {
-		resultFloat, err := strconv.ParseFloat(*result, 32)
-		if err == nil {
-			balance = float32(resultFloat)
-		}
-	}
-
-	return balance
-}
-
-func SetBalance(balance float32) error {
-	s := fmt.Sprintf("%f", balance)
-	return repositories.SetConfigByName("balance", s)
+	return crypto.GenerateMsg(*result)
 }
 
 func getMode() string {

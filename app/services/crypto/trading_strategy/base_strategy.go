@@ -1,7 +1,6 @@
 package trading_strategy
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"telebot-trading/app/models"
@@ -42,13 +41,13 @@ func checkCryptoMasterCoinPrice() {
 
 	request := crypto.CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
-		EndDate:      getEndDate(),
+		EndDate:      GetEndDate(),
 		Limit:        33,
 		Resolution:   "15m",
 		ResponseChan: responseChan,
 	}
 
-	result := services.MakeCryptoRequest(*masterCoinConfig, request)
+	result := crypto.MakeCryptoRequest(*masterCoinConfig, request)
 	if result == nil {
 		return
 	}
@@ -64,7 +63,7 @@ func checkCryptoHoldCoinPrice() []models.BandResult {
 
 	holdCoin := []models.BandResult{}
 
-	endDate := getEndDate()
+	endDate := GetEndDate()
 
 	responseChan := make(chan crypto.CandleResponse)
 
@@ -80,7 +79,7 @@ func checkCryptoHoldCoinPrice() []models.BandResult {
 			ResponseChan: responseChan,
 		}
 
-		result := services.MakeCryptoRequest(data, request)
+		result := crypto.MakeCryptoRequest(data, request)
 		if result == nil {
 			continue
 		}
@@ -98,7 +97,7 @@ func checkCryptoAltCoinPrice() []models.BandResult {
 
 	altCoin := []models.BandResult{}
 
-	endDate := getEndDate()
+	endDate := GetEndDate()
 
 	responseChan := make(chan crypto.CandleResponse)
 
@@ -121,7 +120,7 @@ func checkCryptoAltCoinPrice() []models.BandResult {
 			ResponseChan: responseChan,
 		}
 
-		result := services.MakeCryptoRequest(data, request)
+		result := crypto.MakeCryptoRequest(data, request)
 		if result == nil {
 			continue
 		}
@@ -137,7 +136,7 @@ func checkCryptoAltCoinPrice() []models.BandResult {
 	return altCoin
 }
 
-func getEndDate() int64 {
+func GetEndDate() int64 {
 	currentTime := time.Now()
 	minute := currentTime.Minute()
 	timeInMili := currentTime.Unix() * 1000
@@ -171,40 +170,4 @@ func sendNotif(msg string) {
 	if err != nil {
 		log.Println(err.Error())
 	}
-}
-
-func generateMsg(coinResult models.BandResult) string {
-	format := "Coin name: <b>%s</b> \nDirection: <b>%s</b> \nPrice: <b>%f</b> \nVolume: <b>%f</b> \nTrend: <b>%s</b> \nPrice Changes: <b>%.2f%%</b> \nVolume Average Changes: <b>%.2f%%</b> \nNotes: <b>%s</b> \nPosition: <b>%s</b> \n"
-	msg := fmt.Sprintf(format, coinResult.Symbol, directionString(coinResult.Direction), coinResult.CurrentPrice, coinResult.CurrentVolume, trendString(coinResult.Trend), coinResult.PriceChanges, coinResult.VolumeChanges, coinResult.Note, positionString(coinResult.Position))
-	return msg
-}
-
-func trendString(trend int8) string {
-	if trend == models.TREND_UP {
-		return "trend up"
-	} else if trend == models.TREND_DOWN {
-		return "trend down"
-	}
-
-	return "trend sideway"
-}
-
-func directionString(direction int8) string {
-	if direction == analysis.BAND_UP {
-		return "UP"
-	}
-
-	return "DOWN"
-}
-
-func positionString(position int8) string {
-	if position == models.ABOVE_UPPER {
-		return "above upper"
-	} else if position == models.ABOVE_SMA {
-		return "above sma"
-	} else if position == models.BELOW_SMA {
-		return "below sma"
-	}
-
-	return "below lower"
 }
