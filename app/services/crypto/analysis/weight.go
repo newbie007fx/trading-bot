@@ -58,11 +58,11 @@ func reversalWeight(result *models.BandResult) float32 {
 	isBandCrossWithLower := lastFiveData[0].Candle.Low <= float32(lastFiveData[0].Lower) || lastFiveData[1].Candle.Low <= float32(lastFiveData[1].Lower)
 	isBandCrossWithSMA := lastFiveData[0].Candle.Low <= float32(lastFiveData[0].SMA) || lastFiveData[1].Candle.Low <= float32(lastFiveData[1].SMA)
 	isBandCrossWithUpper := lastFiveData[0].Candle.Low <= float32(lastFiveData[0].Upper) || lastFiveData[1].Candle.Low <= float32(lastFiveData[1].Upper)
-	if isBandCrossWithLower && float64(lastFiveData[4].Candle.Close) > lastFiveData[4].Lower {
+	if isBandCrossWithLower && float64(lastFiveData[4].Candle.Low) > lastFiveData[4].Lower {
 		return 0.35
-	} else if isBandCrossWithSMA && float64(lastFiveData[4].Candle.Close) > lastFiveData[4].SMA {
+	} else if isBandCrossWithSMA && float64(lastFiveData[4].Candle.Low) > lastFiveData[4].SMA {
 		return 0.3
-	} else if isBandCrossWithUpper && float64(lastFiveData[4].Candle.Close) > lastFiveData[4].Upper {
+	} else if isBandCrossWithUpper && float64(lastFiveData[4].Candle.Low) > lastFiveData[4].Upper {
 		return 0.25
 	}
 
@@ -113,17 +113,17 @@ func getPriceMarginWithUpperBandPercentWeight(percent float32) float32 {
 
 func getVolumeAverageChangesWeight(volumeAverageChanges float32) float32 {
 	if volumeAverageChanges >= 101 {
-		return 0.3
+		return 0.35
 	} else if volumeAverageChanges >= 81 {
-		return 0.25
+		return 0.3
 	} else if volumeAverageChanges >= 61 {
-		return 0.2
+		return 0.25
 	} else if volumeAverageChanges >= 41 {
-		return 0.15
+		return 0.2
 	} else if volumeAverageChanges >= 21 {
-		return 0.1
+		return 0.15
 	} else if volumeAverageChanges >= 1 {
-		return 0.05
+		return 0.1
 	}
 
 	return 0
