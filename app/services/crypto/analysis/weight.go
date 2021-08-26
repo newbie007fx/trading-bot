@@ -20,6 +20,8 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 
 	weight += getPatternWeight(result.Bands)
 
+	weight += reversalWeight(result)
+
 	if masterTrend == models.TREND_UP {
 		weight += 0.15
 	}
@@ -41,10 +43,30 @@ func CalculateWeightLongInterval(result *models.BandResult) float32 {
 	weight += getPatternWeight(result.Bands)
 
 	if result.Trend == models.TREND_UP {
-		weight += 0.15
+		weight += 0.25
 	}
 
 	return weight
+}
+
+func reversalWeight(result *models.BandResult) float32 {
+	lastFiveData := result.Bands[len(result.Bands)-5 : len(result.Bands)]
+	if result.Trend != models.TREND_DOWN || CalculateTrends(lastFiveData) != models.TREND_UP {
+		return 0
+	}
+
+	isBandCrossWithLower := lastFiveData[0].Candle.Low <= float32(lastFiveData[0].Lower) || lastFiveData[1].Candle.Low <= float32(lastFiveData[1].Lower)
+	isBandCrossWithSMA := lastFiveData[0].Candle.Low <= float32(lastFiveData[0].SMA) || lastFiveData[1].Candle.Low <= float32(lastFiveData[1].SMA)
+	isBandCrossWithUpper := lastFiveData[0].Candle.Low <= float32(lastFiveData[0].Upper) || lastFiveData[1].Candle.Low <= float32(lastFiveData[1].Upper)
+	if isBandCrossWithLower && float64(lastFiveData[4].Candle.Close) > lastFiveData[4].Lower {
+		return 0.35
+	} else if isBandCrossWithSMA && float64(lastFiveData[4].Candle.Close) > lastFiveData[4].SMA {
+		return 0.3
+	} else if isBandCrossWithUpper && float64(lastFiveData[4].Candle.Close) > lastFiveData[4].Upper {
+		return 0.25
+	}
+
+	return 0.1
 }
 
 func getPatternWeight(bands []models.Band) float32 {
