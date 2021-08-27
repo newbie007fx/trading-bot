@@ -6,6 +6,8 @@ import (
 	"telebot-trading/app/repositories"
 )
 
+var reason string = ""
+
 func IsNeedToSell(result models.BandResult) bool {
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
 	if err != nil {
@@ -18,27 +20,32 @@ func IsNeedToSell(result models.BandResult) bool {
 		changesInPercent := changes / currencyConfig.HoldPrice * 100
 		if changesInPercent >= 3 && result.Direction == BAND_DOWN {
 			if result.Position == models.BELOW_LOWER {
+				reason = "sell on down with criteria 1"
 				return true
 			} else if result.Position == models.BELOW_SMA {
 				changesFromLower := currencyConfig.HoldPrice - float32(lastBand.Lower)
 				changesFromLowerPercent := changesFromLower / currencyConfig.HoldPrice * 100
 				if changesFromLowerPercent > 4 {
+					reason = "sell on down with criteria 2"
 					return true
 				}
 			} else if result.Position == models.ABOVE_SMA {
 				changesFromSMA := currencyConfig.HoldPrice - float32(lastBand.SMA)
 				changesFromSMAPercent := changesFromSMA / currencyConfig.HoldPrice * 100
 				if changesFromSMAPercent > 4 {
+					reason = "sell on down with criteria 3"
 					return true
 				}
 			} else if result.Position == models.ABOVE_UPPER {
 				changesFromUpper := currencyConfig.HoldPrice - float32(lastBand.Upper)
 				changesFromUpperPercent := changesFromUpper / currencyConfig.HoldPrice * 100
 				if changesFromUpperPercent > 4 {
+					reason = "sell on down with criteria 4"
 					return true
 				}
 			}
 		} else if changesInPercent > 4 {
+			reason = "sell on down with criteria 5"
 			return true
 		}
 	} else {
@@ -54,12 +61,14 @@ func IsNeedToSell(result models.BandResult) bool {
 					changesOnLower := result.CurrentPrice - float32(lastBand.Lower)
 					changesOnLowerPercent := changesOnLower / float32(lastBand.Lower) * 100
 					if changesOnLowerPercent >= 3 {
+						reason = "sell on up with criteria 1"
 						return true
 					}
 				}
 
 				if secondLastBand.Candle.Close > float32(secondLastBand.Lower) || secondLastBand.Candle.Open > float32(secondLastBand.Lower) {
 					if lastBand.Candle.Close < float32(lastBand.Lower) && lastBand.Candle.Open < float32(lastBand.Lower) && lastBand.Candle.Open > lastBand.Candle.Close {
+						reason = "sell on up with criteria 2"
 						return true
 					}
 				}
@@ -74,12 +83,14 @@ func IsNeedToSell(result models.BandResult) bool {
 					changesOnSMA := result.CurrentPrice - float32(lastBand.SMA)
 					changesOnSMAPercent := changesOnSMA / float32(lastBand.SMA) * 100
 					if changesOnSMAPercent >= 3 {
+						reason = "sell on up with criteria 3"
 						return true
 					}
 				}
 
 				if secondLastBand.Candle.Close > float32(secondLastBand.SMA) || secondLastBand.Candle.Open > float32(secondLastBand.SMA) {
 					if lastBand.Candle.Close < float32(lastBand.SMA) && lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Open > lastBand.Candle.Close {
+						reason = "sell on up with criteria 4"
 						return true
 					}
 				}
@@ -94,12 +105,14 @@ func IsNeedToSell(result models.BandResult) bool {
 					changesOnUpper := result.CurrentPrice - float32(lastBand.Upper)
 					changesOnUpperPercent := changesOnUpper / float32(lastBand.Upper) * 100
 					if changesOnUpperPercent >= 3 {
+						reason = "sell on up with criteria 5"
 						return true
 					}
 				}
 
 				if secondLastBand.Candle.Close > float32(secondLastBand.Upper) || secondLastBand.Candle.Open > float32(secondLastBand.Upper) {
 					if lastBand.Candle.Close < float32(lastBand.Upper) && lastBand.Candle.Open < float32(lastBand.Upper) && lastBand.Candle.Open > lastBand.Candle.Close {
+						reason = "sell on up with criteria 6"
 						return true
 					}
 				}
@@ -113,10 +126,12 @@ func IsNeedToSell(result models.BandResult) bool {
 
 			lastFourData := result.Bands[len(result.Bands)-4 : len(result.Bands)]
 			if CalculateTrends(lastFourData) == models.TREND_DOWN && result.Direction == BAND_DOWN {
+				reason = "sell on up with criteria 7"
 				return true
 			}
 
 		} else if highestChangePercent < 34 && changesInPercent >= 3 {
+			reason = "sell on up with criteria 8"
 			return true
 		}
 	}
@@ -133,4 +148,8 @@ func getHigestPrice(bands []models.Band) float32 {
 	}
 
 	return highest
+}
+
+func GetSellReason() string {
+	return reason
 }

@@ -26,7 +26,7 @@ type CandleResponse struct {
 
 var canldeRequest chan CandleRequest
 var previousTimeCheck time.Time = time.Now()
-var thresholdPerMinute int64 = 60
+var thresholdPerMinute int64 = 80
 var counter int64 = 0
 
 func DispatchRequestJob(request CandleRequest) {
@@ -84,7 +84,7 @@ func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 	balance := GetBalance()
 	if candleData == nil {
 		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15")
+		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15m")
 		if err != nil {
 			return err
 		}
@@ -102,7 +102,7 @@ func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 	balance := GetBalance()
 	if candleData == nil {
 		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15")
+		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15m")
 		if err != nil {
 			return err
 		}

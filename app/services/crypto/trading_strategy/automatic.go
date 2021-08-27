@@ -79,6 +79,7 @@ func (AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan ch
 					msg += "coin berikut akan dijual:\n"
 					msg += crypto.GenerateMsg(coin)
 					msg += "\n"
+					msg += "alasan dijual: " + analysis.GetSellReason() + "\n\n"
 
 					currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
 					if err == nil {
@@ -149,7 +150,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 					altCoins[i].Weight += 0.5
 				}
 			}
-			if altCoins[i].Weight > 2.01 {
+			if altCoins[i].Weight > 1.97 {
 				results = append(results, altCoins[i])
 			}
 		}
