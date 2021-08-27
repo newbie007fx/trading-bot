@@ -149,7 +149,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 					altCoins[i].Weight += 0.5
 				}
 			}
-			if altCoins[i].Weight > 2.1 {
+			if altCoins[i].Weight > 2.01 {
 				results = append(results, altCoins[i])
 			}
 		}
