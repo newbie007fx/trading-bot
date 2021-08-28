@@ -28,6 +28,7 @@ var canldeRequest chan CandleRequest
 var previousTimeCheck time.Time = time.Now()
 var thresholdPerMinute int64 = 80
 var counter int64 = 0
+var MaxHoldCoin int64 = 3
 
 func DispatchRequestJob(request CandleRequest) {
 	canldeRequest <- request
@@ -94,7 +95,7 @@ func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 	condition := map[string]interface{}{"is_on_hold": true}
 	holdCount := repositories.CountNotifConfig(&condition)
 
-	coinBalance := balance / (5 - float32(holdCount))
+	coinBalance := balance / (float32(MaxHoldCoin) - float32(holdCount))
 
 	totalCoin := coinBalance / candleData.Close
 	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": totalCoin, "hold_price": candleData.Close})

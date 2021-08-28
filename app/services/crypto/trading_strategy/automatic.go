@@ -13,7 +13,6 @@ import (
 
 var lastCheckCoin *[]models.BandResult
 var timeToBuy bool
-var maxHoldCoin int64 = 5
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
@@ -27,7 +26,7 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 		ats.cryptoHoldCoinPriceChan <- true
 	}
 
-	if holdCount < maxHoldCoin && (ats.isTimeToCheckAltCoinPrice(currentTime) || ats.isTimeToBuykAltCoinPrice(currentTime)) {
+	if holdCount < crypto.MaxHoldCoin && (ats.isTimeToCheckAltCoinPrice(currentTime) || ats.isTimeToBuykAltCoinPrice(currentTime)) {
 		ats.cryptoAltCoinPriceChan <- true
 	}
 
