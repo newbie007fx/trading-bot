@@ -94,9 +94,9 @@ func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 	condition := map[string]interface{}{"is_on_hold": true}
 	holdCount := repositories.CountNotifConfig(&condition)
 
-	balance = balance / float32(holdCount)
+	coinBalance := balance / float32(holdCount)
 
-	totalCoin := balance / candleData.Close
+	totalCoin := coinBalance / candleData.Close
 	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": totalCoin, "hold_price": candleData.Close})
 	SetBalance(balance - (totalCoin * candleData.Close))
 
