@@ -108,7 +108,7 @@ func crossBandWeight(result *models.BandResult) float32 {
 		return 0.3
 	}
 
-	return 0.1
+	return 0.15
 }
 
 func getPatternWeight(bands []models.Band) float32 {
@@ -245,8 +245,13 @@ func getPositionWeight(bands []models.Band, trend int8) float32 {
 
 	// close menyentuh Upper tp open dibaawh Upper
 	if lastBand.Candle.Close >= float32(lastBand.Upper) && lastBand.Candle.Open < float32(lastBand.Upper) {
-		var val float32 = 0.35
-		if secondLastBand.Candle.Close >= float32(secondLastBand.Upper) && secondLastBand.Candle.Open < float32(secondLastBand.Upper) {
+		return 0.35
+	}
+
+	// close diatas upper dan band sebelumya juga diatas upper
+	if lastBand.Candle.Close > float32(lastBand.Upper) {
+		var val float32 = 0.2
+		if secondLastBand.Candle.Close > float32(secondLastBand.Upper) && secondLastBand.Candle.Close < float32(secondLastBand.Upper) {
 			val += 0.15
 		}
 
@@ -258,5 +263,5 @@ func getPositionWeight(bands []models.Band, trend int8) float32 {
 		return 0.425
 	}
 
-	return 0.15
+	return 0.2
 }
