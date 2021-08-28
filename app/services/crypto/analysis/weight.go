@@ -245,7 +245,12 @@ func getPositionWeight(bands []models.Band, trend int8) float32 {
 
 	// close menyentuh Upper tp open dibaawh Upper
 	if lastBand.Candle.Close >= float32(lastBand.Upper) && lastBand.Candle.Open < float32(lastBand.Upper) {
-		return 0.35
+		var val float32 = 0.35
+		if secondLastBand.Candle.Close >= float32(secondLastBand.Upper) && secondLastBand.Candle.Open < float32(secondLastBand.Upper) {
+			val += 0.15
+		}
+
+		return val
 	}
 
 	// open menyentuh Upper tp low dibaawh Upper
