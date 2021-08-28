@@ -3,7 +3,6 @@ package crypto
 import (
 	"fmt"
 	"log"
-	"math"
 	"strconv"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
@@ -98,7 +97,7 @@ func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 	coinBalance := balance / float32(holdCount)
 
 	totalCoin := coinBalance / candleData.Close
-	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": math.Floor(float64(totalCoin)*100) / 100, "hold_price": candleData.Close})
+	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": totalCoin, "hold_price": candleData.Close})
 	SetBalance(balance - (totalCoin * candleData.Close))
 
 	return nil
