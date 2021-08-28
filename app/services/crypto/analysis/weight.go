@@ -138,11 +138,11 @@ func getPriceMarginWithUpperBandWeight(bands []models.Band) float32 {
 }
 
 func getPriceMarginWithUpperBandPercentWeight(percent float32) float32 {
-	if percent >= 5 {
+	if percent >= 3.5 {
 		return 0.5
-	} else if percent >= 4 {
-		return 0.45
 	} else if percent >= 3 {
+		return 0.45
+	} else if percent >= 2.5 {
 		return 0.375
 	} else if percent >= 2 {
 		return 0.3
