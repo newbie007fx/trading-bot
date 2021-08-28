@@ -3,11 +3,9 @@ package analysis
 import "telebot-trading/app/models"
 
 func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
-	weight := result.PriceChanges
-	if weight < 0.5 {
+	weight := priceChangeWeight(result.PriceChanges)
+	if weight == 0 {
 		return 0
-	} else if weight > 1.4 {
-		weight = 1.4
 	}
 
 	if result.VolumeChanges > 0 {
@@ -25,11 +23,11 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 	weight += crossBandWeight(result)
 
 	if masterTrend == models.TREND_UP {
-		weight += 0.15
+		weight += 0.1
 	}
 
 	if result.Trend == models.TREND_UP {
-		weight += 0.15
+		weight += 0.1
 	}
 
 	return weight
@@ -44,13 +42,31 @@ func CalculateWeightLongInterval(result *models.BandResult) float32 {
 
 	weight += getPatternWeight(result.Bands)
 
+	weight += reversalWeight(result)
+
 	weight += crossBandWeight(result)
 
 	if result.Trend == models.TREND_UP {
-		weight += 0.25
+		weight += 0.2
 	}
 
 	return weight
+}
+
+func priceChangeWeight(priceChange float32) float32 {
+	if priceChange >= 1.4 {
+		return 0.5
+	} else if priceChange >= 1.2 {
+		return 0.4
+	} else if priceChange >= 1 {
+		return 0.3
+	} else if priceChange >= 0.75 {
+		return 0.2
+	} else if priceChange >= 0.5 {
+		return 0.1
+	}
+
+	return 0
 }
 
 func reversalWeight(result *models.BandResult) float32 {
@@ -61,9 +77,10 @@ func reversalWeight(result *models.BandResult) float32 {
 
 	firstBand := lastFiveData[0]
 	secondBand := lastFiveData[1]
-	isBandCrossWithLower := firstBand.Candle.Low <= float32(firstBand.Lower) || secondBand.Candle.Low <= float32(secondBand.Lower)
-	isBandCrossWithSMA := firstBand.Candle.Low <= float32(firstBand.SMA) || secondBand.Candle.Low <= float32(secondBand.SMA)
-	isBandCrossWithUpper := firstBand.Candle.Low <= float32(firstBand.Upper) || secondBand.Candle.Low <= float32(secondBand.Upper)
+	thirdBand := lastFiveData[2]
+	isBandCrossWithLower := firstBand.Candle.Low <= float32(firstBand.Lower) || secondBand.Candle.Low <= float32(secondBand.Lower) || thirdBand.Candle.Low <= float32(thirdBand.Lower)
+	isBandCrossWithSMA := firstBand.Candle.Low <= float32(firstBand.SMA) || secondBand.Candle.Low <= float32(secondBand.SMA) || thirdBand.Candle.Low <= float32(thirdBand.SMA)
+	isBandCrossWithUpper := firstBand.Candle.Low <= float32(firstBand.Upper) || secondBand.Candle.Low <= float32(secondBand.Upper) || thirdBand.Candle.Low <= float32(thirdBand.Upper)
 	if isBandCrossWithLower && float64(lastFiveData[4].Candle.Low) > lastFiveData[4].Lower {
 		return 0.35
 	} else if isBandCrossWithSMA && float64(lastFiveData[4].Candle.Low) > lastFiveData[4].SMA {
@@ -107,7 +124,7 @@ func getPatternWeight(bands []models.Band) float32 {
 
 func getPriceMarginWithUpperBandWeight(bands []models.Band) float32 {
 	lastBand := bands[len(bands)-1]
-	var percent float32 = 2.1
+	var percent float32 = 0
 
 	if lastBand.Candle.Close < float32(lastBand.SMA) {
 		different := float32(lastBand.SMA) - lastBand.Candle.Close
@@ -121,15 +138,15 @@ func getPriceMarginWithUpperBandWeight(bands []models.Band) float32 {
 }
 
 func getPriceMarginWithUpperBandPercentWeight(percent float32) float32 {
-	if percent >= 5.1 {
+	if percent >= 5 {
 		return 0.5
-	} else if percent >= 4.1 {
+	} else if percent >= 4 {
 		return 0.45
-	} else if percent >= 3.1 {
+	} else if percent >= 3 {
 		return 0.375
-	} else if percent >= 2.1 {
+	} else if percent >= 2 {
 		return 0.3
-	} else if percent >= 1.1 {
+	} else if percent >= 1 {
 		return 0.225
 	}
 
