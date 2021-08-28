@@ -11,6 +11,10 @@ import (
 )
 
 func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
+	if getMode() != "manual" {
+		crypto.Buy(currencyConfig, candleData)
+	}
+
 	if !currencyConfig.IsOnHold {
 		data := map[string]interface{}{
 			"is_on_hold": true,
@@ -22,14 +26,14 @@ func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.Cand
 		}
 	}
 
-	if getMode() != "manual" {
-		crypto.Buy(currencyConfig, candleData)
-	}
-
 	return nil
 }
 
 func ReleaseCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
+	if getMode() != "manual" {
+		crypto.Sell(currencyConfig, candleData)
+	}
+
 	if currencyConfig.IsOnHold {
 		data := map[string]interface{}{
 			"is_on_hold": false,
@@ -39,10 +43,6 @@ func ReleaseCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.C
 			log.Println(err.Error())
 			return errors.New("error waktu update lur")
 		}
-	}
-
-	if getMode() != "manual" {
-		crypto.Sell(currencyConfig, candleData)
 	}
 
 	return nil
