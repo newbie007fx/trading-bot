@@ -13,6 +13,7 @@ import (
 
 var lastCheckCoin *[]models.BandResult
 var timeToBuy bool
+var maxHoldCoin int64 = 5
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
@@ -21,14 +22,15 @@ type AutomaticTradingStrategy struct {
 
 func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	condition := map[string]interface{}{"is_on_hold": true}
-	hold_count := repositories.CountNotifConfig(&condition)
-	if hold_count > 0 {
+	holdCount := repositories.CountNotifConfig(&condition)
+	if holdCount > 0 {
 		ats.cryptoHoldCoinPriceChan <- true
-	} else {
-		if ats.isTimeToCheckAltCoinPrice(currentTime) || ats.isTimeToBuykAltCoinPrice(currentTime) {
-			ats.cryptoAltCoinPriceChan <- true
-		}
 	}
+
+	if holdCount < maxHoldCoin && (ats.isTimeToCheckAltCoinPrice(currentTime) || ats.isTimeToBuykAltCoinPrice(currentTime)) {
+		ats.cryptoAltCoinPriceChan <- true
+	}
+
 }
 
 func (ats *AutomaticTradingStrategy) InitService() {
