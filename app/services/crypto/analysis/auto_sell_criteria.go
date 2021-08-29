@@ -149,6 +149,17 @@ func getHigestPrice(bands []models.Band) float32 {
 	return highest
 }
 
+func getLowestPrice(bands []models.Band) float32 {
+	var lowest float32 = bands[0].Candle.Close
+	for _, band := range bands {
+		if lowest > band.Candle.Close {
+			lowest = band.Candle.Close
+		}
+	}
+
+	return lowest
+}
+
 func GetSellReason() string {
 	return reason
 }

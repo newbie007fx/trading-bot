@@ -10,6 +10,14 @@ var weightLog string = ""
 func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 	weightLog = ""
 
+	highest := getHigestPrice(result.Bands)
+	lowest := getLowestPrice(result.Bands)
+	difference := highest - lowest
+	percent := difference / lowest * 100
+	if percent < 2.5 {
+		return 0
+	}
+
 	weight := priceChangeWeight(result.PriceChanges)
 	weightLog += fmt.Sprintf("priceWeight: %.2f", weight)
 	if weight == 0 {
