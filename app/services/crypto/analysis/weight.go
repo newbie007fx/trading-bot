@@ -1,33 +1,55 @@
 package analysis
 
-import "telebot-trading/app/models"
+import (
+	"fmt"
+	"telebot-trading/app/models"
+)
+
+var weightLog string = ""
 
 func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
+	weightLog = ""
+
 	weight := priceChangeWeight(result.PriceChanges)
+	weightLog += fmt.Sprintf("priceWeight: %.2f", weight)
 	if weight == 0 {
 		return 0
 	}
 
 	if result.VolumeChanges > 0 {
-		weight += getVolumeAverageChangesWeight(result.VolumeChanges)
+		volumeWight := getVolumeAverageChangesWeight(result.VolumeChanges)
+		weightLog += fmt.Sprintf(", volumeWeight: %.2f", volumeWight)
+		weight += volumeWight
 	}
 
-	weight += getPositionWeight(result.Bands, result.Trend, masterTrend)
+	positionWeight := getPositionWeight(result.Bands, result.Trend, masterTrend)
+	weightLog += fmt.Sprintf(", positionWeight: %.2f", positionWeight)
+	weight += positionWeight
 
-	weight += getPriceMarginWithUpperBandWeight(result.Bands)
+	priceMarginWeight := getPriceMarginWithUpperBandWeight(result.Bands)
+	weightLog += fmt.Sprintf(", priceMarginWeight: %.2f", priceMarginWeight)
+	weight += priceMarginWeight
 
-	weight += getPatternWeight(result.Bands)
+	patternWeight := getPatternWeight(result.Bands)
+	weightLog += fmt.Sprintf(", patternWeight: %.2f", patternWeight)
+	weight += patternWeight
 
-	weight += reversalWeight(result)
+	reversalWeight := reversalWeight(result)
+	weightLog += fmt.Sprintf(", reversalWeight: %.2f", reversalWeight)
+	weight += reversalWeight
 
-	weight += crossBandWeight(result)
+	crossBandWeight := crossBandWeight(result)
+	weightLog += fmt.Sprintf(", crossBandWeight: %.2f", crossBandWeight)
+	weight += crossBandWeight
 
 	if masterTrend == models.TREND_UP {
 		weight += 0.1
+		weightLog += fmt.Sprintf(", masterTrenWeight: %.2f", 0.1)
 	}
 
 	if result.Trend == models.TREND_UP {
 		weight += 0.1
+		weightLog += fmt.Sprintf(", TrenWeight: %.2f", 0.1)
 	}
 
 	return weight
@@ -51,6 +73,10 @@ func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) fl
 	}
 
 	return weight
+}
+
+func GetWeightLog() string {
+	return weightLog
 }
 
 func priceChangeWeight(priceChange float32) float32 {

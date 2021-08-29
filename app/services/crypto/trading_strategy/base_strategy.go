@@ -129,6 +129,8 @@ func checkCryptoAltCoinPrice() []models.BandResult {
 		if !analysis.IsIgnored(result) && result.Direction == analysis.BAND_UP && result.Weight > 0.73 {
 			altCoin = append(altCoin, *result)
 		}
+
+		//log.Println(analysis.GetWeightLog())
 	}
 
 	log.Println("crypto check price worker is done")
