@@ -151,7 +151,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 					altCoins[i].Weight += 0.5
 				}
 			}
-			if altCoins[i].Weight > 1.5 {
+			if altCoins[i].Weight > 1.53 {
 				results = append(results, altCoins[i])
 			}
 		}
@@ -194,7 +194,7 @@ func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandRes
 		return 0
 	}
 
-	weight := analysis.CalculateWeightLongInterval(result)
+	weight := analysis.CalculateWeightLongInterval(result, masterCoin.Trend)
 	if analysis.IsIgnored(result) || result.Direction == analysis.BAND_DOWN {
 		return 0
 	}

@@ -12,7 +12,7 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 		weight += getVolumeAverageChangesWeight(result.VolumeChanges)
 	}
 
-	weight += getPositionWeight(result.Bands, result.Trend)
+	weight += getPositionWeight(result.Bands, result.Trend, masterTrend)
 
 	weight += getPriceMarginWithUpperBandWeight(result.Bands)
 
@@ -33,10 +33,10 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 	return weight
 }
 
-func CalculateWeightLongInterval(result *models.BandResult) float32 {
+func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) float32 {
 	var weight float32 = 0
 
-	weight += getPositionWeight(result.Bands, result.Trend)
+	weight += getPositionWeight(result.Bands, result.Trend, masterTrend)
 
 	weight += getPriceMarginWithUpperBandWeight(result.Bands)
 
@@ -171,7 +171,7 @@ func getVolumeAverageChangesWeight(volumeAverageChanges float32) float32 {
 	return 0
 }
 
-func getPositionWeight(bands []models.Band, trend int8) float32 {
+func getPositionWeight(bands []models.Band, trend int8, masterTrend int8) float32 {
 	lastBand := bands[len(bands)-1]
 	secondLastBand := bands[len(bands)-2]
 
@@ -250,8 +250,8 @@ func getPositionWeight(bands []models.Band, trend int8) float32 {
 
 	// close diatas upper dan band sebelumya juga diatas upper
 	if lastBand.Candle.Close > float32(lastBand.Upper) {
-		var val float32 = 0.2
-		if secondLastBand.Candle.Close > float32(secondLastBand.Upper) && secondLastBand.Candle.Close < float32(secondLastBand.Upper) {
+		var val float32 = 0.15
+		if secondLastBand.Candle.Close > float32(secondLastBand.Upper) && secondLastBand.Candle.Close < float32(secondLastBand.Upper) && masterTrend == models.TREND_UP {
 			val += 0.15
 		}
 
@@ -263,5 +263,5 @@ func getPositionWeight(bands []models.Band, trend int8) float32 {
 		return 0.425
 	}
 
-	return 0.2
+	return 0.15
 }
