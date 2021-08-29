@@ -125,7 +125,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	results := []models.BandResult{}
 	for i := range altCoins {
 		altCoins[i].Weight += ats.getOnLongIntervalWeight(altCoins[i])
-		if altCoins[i].Weight > 1.53 {
+		if altCoins[i].Weight > 1.55 {
 			results = append(results, altCoins[i])
 		}
 	}

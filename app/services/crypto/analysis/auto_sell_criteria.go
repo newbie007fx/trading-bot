@@ -53,7 +53,9 @@ func IsNeedToSell(result models.BandResult) bool {
 		changesInPercent := changes / currencyConfig.HoldPrice * 100
 		highest := getHigestPrice(result.Bands)
 		highestChangePercent := changes / (highest - currencyConfig.HoldPrice) * 100
-		if highestChangePercent >= 34 && changesInPercent >= 3 {
+		lastFourData := result.Bands[len(result.Bands)-4 : len(result.Bands)]
+
+		if highestChangePercent >= 34 && changesInPercent >= 3 && CalculateTrends(lastFourData) == models.TREND_DOWN && result.Direction == BAND_DOWN {
 
 			secondLastBand := result.Bands[len(result.Bands)-2]
 			if result.Position == models.BELOW_LOWER {
@@ -124,11 +126,8 @@ func IsNeedToSell(result models.BandResult) bool {
 				}
 			}
 
-			lastFourData := result.Bands[len(result.Bands)-4 : len(result.Bands)]
-			if CalculateTrends(lastFourData) == models.TREND_DOWN && result.Direction == BAND_DOWN {
-				reason = "sell on up with criteria 7"
-				return true
-			}
+			reason = "sell on up with criteria 7"
+			return true
 
 		} else if highestChangePercent < 34 && changesInPercent >= 3 {
 			reason = "sell on up with criteria 8"
