@@ -11,9 +11,6 @@ import (
 	"time"
 )
 
-var lastCheckCoin *[]models.BandResult
-var timeToBuy bool
-
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
 	cryptoAltCoinPriceChan  chan bool
@@ -26,7 +23,7 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 		ats.cryptoHoldCoinPriceChan <- true
 	}
 
-	if holdCount < crypto.MaxHoldCoin && (ats.isTimeToCheckAltCoinPrice(currentTime) || ats.isTimeToBuykAltCoinPrice(currentTime)) {
+	if holdCount < crypto.MaxHoldCoin && ats.isTimeToCheckAltCoinPrice(currentTime) {
 		ats.cryptoAltCoinPriceChan <- true
 	}
 
@@ -50,19 +47,6 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 	var listMinutes []int = []int{15, 30, 45, 0}
 	for _, a := range listMinutes {
 		if a == minute {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (AutomaticTradingStrategy) isTimeToBuykAltCoinPrice(currentTime time.Time) bool {
-	minute := currentTime.Minute()
-	var listMinutes []int = []int{5, 20, 35, 50}
-	for _, a := range listMinutes {
-		if a == minute {
-			timeToBuy = true
 			return true
 		}
 	}
@@ -138,36 +122,19 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 }
 
 func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *models.BandResult {
-	if timeToBuy {
-		if lastCheckCoin == nil {
-			return nil
+	results := []models.BandResult{}
+	for i := range altCoins {
+		altCoins[i].Weight += ats.getOnLongIntervalWeight(altCoins[i])
+		if altCoins[i].Weight > 1.53 {
+			results = append(results, altCoins[i])
 		}
-
-		results := []models.BandResult{}
-		for i := range altCoins {
-			altCoins[i].Weight += ats.getOnLongIntervalWeight(altCoins[i])
-			for _, coin := range *lastCheckCoin {
-				if altCoins[i].Symbol == coin.Symbol {
-					altCoins[i].Weight += 0.5
-				}
-			}
-			if altCoins[i].Weight > 1.53 {
-				results = append(results, altCoins[i])
-			}
-		}
-
-		lastCheckCoin = nil
-		timeToBuy = false
-
-		if len(results) > 0 {
-			sort.Slice(results, func(i, j int) bool { return results[i].Weight > results[j].Weight })
-
-			return &results[0]
-		}
-		return nil
 	}
 
-	lastCheckCoin = &altCoins
+	if len(results) > 0 {
+		sort.Slice(results, func(i, j int) bool { return results[i].Weight > results[j].Weight })
+
+		return &results[0]
+	}
 	return nil
 }
 
