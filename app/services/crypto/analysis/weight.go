@@ -272,29 +272,32 @@ func getPositionWeight(bands []models.Band, trend int8, masterTrend int8) float3
 		}
 	}
 
-	// hight menyentuh Upper tp close dibaawh Upper
-	if lastBand.Candle.Hight >= float32(lastBand.Upper) && lastBand.Candle.Close < float32(lastBand.Upper) {
-		return 0.175
-	}
+	if masterTrend != models.TREND_DOWN {
 
-	// close menyentuh Upper tp open dibaawh Upper
-	if lastBand.Candle.Close >= float32(lastBand.Upper) && lastBand.Candle.Open < float32(lastBand.Upper) {
-		return 0.35
-	}
-
-	// close diatas upper dan band sebelumya juga diatas upper
-	if lastBand.Candle.Close > float32(lastBand.Upper) {
-		var val float32 = 0.15
-		if secondLastBand.Candle.Close > float32(secondLastBand.Upper) && secondLastBand.Candle.Close < float32(secondLastBand.Upper) && masterTrend == models.TREND_UP {
-			val += 0.15
+		// hight menyentuh Upper tp close dibaawh Upper
+		if lastBand.Candle.Hight >= float32(lastBand.Upper) && lastBand.Candle.Close < float32(lastBand.Upper) {
+			return 0.175
 		}
 
-		return val
-	}
+		// close menyentuh Upper tp open dibaawh Upper
+		if lastBand.Candle.Close >= float32(lastBand.Upper) && lastBand.Candle.Open < float32(lastBand.Upper) {
+			return 0.35
+		}
 
-	// open menyentuh Upper tp low dibaawh Upper
-	if lastBand.Candle.Open >= float32(lastBand.Upper) && lastBand.Candle.Low < float32(lastBand.Upper) {
-		return 0.425
+		// close diatas upper dan band sebelumya juga diatas upper
+		if lastBand.Candle.Close > float32(lastBand.Upper) {
+			var val float32 = 0.15
+			if secondLastBand.Candle.Close > float32(secondLastBand.Upper) && secondLastBand.Candle.Close < float32(secondLastBand.Upper) {
+				val += 0.15
+			}
+
+			return val
+		}
+
+		// open menyentuh Upper tp low dibaawh Upper
+		if lastBand.Candle.Open >= float32(lastBand.Upper) && lastBand.Candle.Low < float32(lastBand.Upper) {
+			return 0.425
+		}
 	}
 
 	return 0.15
