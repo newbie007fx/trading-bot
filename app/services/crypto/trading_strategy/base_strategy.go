@@ -126,7 +126,7 @@ func checkCryptoAltCoinPrice() []models.BandResult {
 		}
 
 		result.Weight = analysis.CalculateWeight(result, masterCoinTrend)
-		if !analysis.IsIgnored(result) && result.Direction == analysis.BAND_UP && result.Weight > 1.25 {
+		if !analysis.IsIgnored(result) && result.Direction == analysis.BAND_UP && result.Weight > 1.3 {
 			altCoin = append(altCoin, *result)
 		}
 

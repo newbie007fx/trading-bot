@@ -11,12 +11,16 @@ import (
 	"time"
 )
 
+var checkingTime time.Time
+
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
 	cryptoAltCoinPriceChan  chan bool
 }
 
 func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
+	checkingTime = currentTime
+
 	condition := map[string]interface{}{"is_on_hold": true}
 	holdCount := repositories.CountNotifConfig(&condition)
 	if holdCount > 0 {
@@ -54,13 +58,13 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 	return false
 }
 
-func (AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan bool) {
+func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
 		holdCoin := checkCryptoHoldCoinPrice()
 		msg := ""
 		if len(holdCoin) > 0 {
 			for _, coin := range holdCoin {
-				if analysis.IsNeedToSell(coin) {
+				if analysis.IsNeedToSell(coin, ats.isTimeToCheckAltCoinPrice(checkingTime)) {
 					msg += "coin berikut akan dijual:\n"
 					msg += crypto.GenerateMsg(coin)
 					msg += "\n"
@@ -125,7 +129,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	results := []models.BandResult{}
 	for i := range altCoins {
 		altCoins[i].Weight += ats.getOnLongIntervalWeight(altCoins[i])
-		if altCoins[i].Weight > 2.1 {
+		if altCoins[i].Weight > 2.3 {
 			results = append(results, altCoins[i])
 		}
 	}
@@ -161,8 +165,13 @@ func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandRes
 		return 0
 	}
 
+	waitMasterCoinProcessed()
+	trendChecking := true
+	if masterCoin.Trend != models.TREND_UP || masterCoin.Direction == analysis.BAND_DOWN {
+		trendChecking = result.Trend == models.TREND_UP
+	}
 	weight := analysis.CalculateWeightLongInterval(result, masterCoin.Trend)
-	if analysis.IsIgnored(result) || result.Direction == analysis.BAND_DOWN {
+	if analysis.IsIgnored(result) || result.Direction == analysis.BAND_DOWN || !trendChecking {
 		return 0
 	}
 
