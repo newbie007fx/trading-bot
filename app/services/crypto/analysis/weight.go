@@ -18,6 +18,13 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 		return 0
 	}
 
+	if masterTrend == models.TREND_DOWN {
+		lastFourData := result.Bands[len(result.Bands)-4 : len(result.Bands)]
+		if CalculateTrends(lastFourData) != models.TREND_UP {
+			return 0
+		}
+	}
+
 	weight := priceChangeWeight(result.PriceChanges)
 	weightLog += fmt.Sprintf("priceWeight: %.2f", weight)
 	if weight == 0 {
