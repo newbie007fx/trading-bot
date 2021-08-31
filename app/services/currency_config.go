@@ -71,6 +71,25 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig) string {
 	return msg
 }
 
+func GetBalance() string {
+	msg := "Balance status: \nWallet Balance:\n"
+	format := "Symbol: <b>%s</b> \nBalance: <b>%f</b> \nEstimation In USDT: <b>%f</b> \n"
+
+	walletBalances := crypto.GetWalletBalance()
+	var totalWalletBalance float32 = 0
+	for _, walb := range walletBalances {
+		msg += fmt.Sprintf(format, walb["symbol"], walb["balance"], walb["estimation_usdt"])
+		totalWalletBalance += walb["estimation_usdt"].(float32)
+	}
+
+	currentBalance := crypto.GetBalance()
+	msg += fmt.Sprintf("\n\nCurrent Balance: <b>%f</b>", currentBalance)
+
+	msg += fmt.Sprintf("\n\nTotal Estimation Balance: <b>%f</b>", currentBalance+totalWalletBalance)
+
+	return msg
+}
+
 func holdCoinMessage(config models.CurrencyNotifConfig, result *models.BandResult) string {
 	var changes float32
 

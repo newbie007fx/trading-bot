@@ -122,6 +122,31 @@ func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 	return nil
 }
 
+func GetWalletBalance() []map[string]interface{} {
+	data := []map[string]interface{}{}
+	condition := map[string]interface{}{"is_on_hold": true}
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil)
+	if len(*currency_configs) > 0 {
+		for _, config := range *currency_configs {
+			crypto := driver.GetCrypto()
+			candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15m")
+			if err != nil {
+				continue
+			}
+
+			tmp := map[string]interface{}{
+				"symbol":          config.Symbol,
+				"balance":         config.Balance,
+				"estimation_usdt": candlesData[0].Close * config.Balance,
+			}
+
+			data = append(data, tmp)
+		}
+	}
+
+	return data
+}
+
 func GetBalance() float32 {
 	var balance float32 = 0
 

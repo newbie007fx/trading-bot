@@ -85,6 +85,8 @@ func ProcessTeleWebhook(c echo.Context) error {
 				responseMsg += msg
 			}
 		}
+	} else if cmd == "/balance" {
+		responseMsg = services.GetBalance()
 	} else {
 		responseMsg = "command gak valid lur"
 	}
