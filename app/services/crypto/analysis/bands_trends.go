@@ -34,7 +34,7 @@ func CalculateTrends(data []models.Band) int8 {
 		percent = (difference / lowestValueDifference) * 100
 	}
 
-	if percent <= float32(30) {
+	if percent <= float32(40) {
 		return models.TREND_SIDEWAY
 	}
 
