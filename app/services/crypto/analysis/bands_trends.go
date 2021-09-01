@@ -3,8 +3,6 @@ package analysis
 import "telebot-trading/app/models"
 
 func CalculateTrends(data []models.Band) int8 {
-	lastCandle := data[len(data)-1].Candle
-
 	highestIndex, lowestIndex := 0, 0
 	for i, val := range data {
 		if data[highestIndex].Candle.Close < val.Candle.Close {
@@ -26,6 +24,8 @@ func CalculateTrends(data []models.Band) int8 {
 
 	firstSMA := data[0].SMA
 	lastSMA := data[len(data)-1].SMA
+	firstAvg := (data[0].Candle.Open + data[0].Candle.Close) / 2
+	lastAvg := (data[len(data)-1].Candle.Open + data[len(data)-1].Candle.Close) / 2
 
 	var percent float64 = 0
 	if firstSMA > lastSMA {
@@ -34,12 +34,11 @@ func CalculateTrends(data []models.Band) int8 {
 		percent = (firstSMA / lastSMA) * 100
 	}
 
-	if percent >= float64(93) {
+	if percent >= float64(98) {
 		return models.TREND_SIDEWAY
 	}
 
-	averageTrend := (data[lowestIndex].Candle.Close + data[highestIndex].Candle.Close) / 2
-	if lastCandle.Close > averageTrend {
+	if firstAvg < lastAvg {
 		return models.TREND_UP
 	}
 
