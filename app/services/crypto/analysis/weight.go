@@ -112,7 +112,7 @@ func priceChangeWeight(priceChange float32) float32 {
 
 func reversalWeight(result *models.BandResult) float32 {
 	lastFiveData := result.Bands[len(result.Bands)-5 : len(result.Bands)]
-	if result.Trend == models.TREND_UP || CalculateTrends(lastFiveData) != models.TREND_UP {
+	if result.Trend == models.TREND_UP || CalculateTrends(lastFiveData) != models.TREND_UP || result.PriceChanges < 1.5 {
 		return 0
 	}
 
