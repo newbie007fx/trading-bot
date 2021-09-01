@@ -30,7 +30,7 @@ func CalculateTrends(data []models.Band) int8 {
 		percent = (lastCandle.Close / average) * 100
 	}
 
-	if percent >= float32(98) {
+	if percent >= float32(92) {
 		return models.TREND_SIDEWAY
 	}
 
