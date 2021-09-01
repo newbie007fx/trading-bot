@@ -27,7 +27,7 @@ func CalculateTrends(data []models.Band) int8 {
 		return models.TREND_DOWN
 	}
 
-	avgSMA := totalSMA / float64(len(data)-2)
+	avgSMA := totalSMA / float64(len(data)-1)
 	lastSMA := data[len(data)-1].SMA
 
 	firstAvg := (data[0].Candle.Open + data[0].Candle.Close) / 2
