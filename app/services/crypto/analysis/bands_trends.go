@@ -6,8 +6,6 @@ func CalculateTrends(data []models.Band) int8 {
 	lastCandle := data[len(data)-1].Candle
 
 	highestIndex, lowestIndex := 0, 0
-	var hightAverage float32 = 0
-	var lowAverage float32 = 0
 	var total float32 = 0
 	for i, val := range data {
 		if data[highestIndex].Candle.Close < val.Candle.Close {
@@ -18,32 +16,21 @@ func CalculateTrends(data []models.Band) int8 {
 			lowestIndex = i
 		}
 
-		avg := (val.Candle.Open + val.Candle.Close) / 2
-		if hightAverage < avg {
-			hightAverage = avg
-		}
-
-		if lowAverage > avg || lowAverage == 0 {
-			lowAverage = avg
-		}
-
 		if i < len(data)-1 {
-			total += avg
+			total += (val.Candle.Open + val.Candle.Close) / 2
 		}
 	}
 
 	average := total / float32(len(data)-2)
 
-	diffHight := hightAverage - average
-	diffLow := average - lowAverage
 	var percent float32 = 0
-	if diffHight > diffLow {
-		percent = (diffLow / diffHight) * 100
+	if lastCandle.Close > average {
+		percent = (average / lastCandle.Close) * 100
 	} else {
-		percent = (diffHight / diffLow) * 100
+		percent = (lastCandle.Close / average) * 100
 	}
 
-	if percent > float32(75) {
+	if percent <= float32(2) {
 		return models.TREND_SIDEWAY
 	}
 
