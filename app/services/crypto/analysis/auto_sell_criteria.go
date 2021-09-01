@@ -33,7 +33,7 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 		return false
 	}
 
-	if highestChangePercent >= 34 && changesInPercent >= 3 && CalculateTrends(lastFiveData) == models.TREND_DOWN && result.Direction == BAND_DOWN {
+	if highestChangePercent <= 65 && changesInPercent >= 3 && CalculateTrends(lastFiveData) == models.TREND_DOWN && result.Direction == BAND_DOWN {
 
 		secondLastBand := result.Bands[len(result.Bands)-2]
 		if result.Position == models.BELOW_LOWER {

@@ -15,18 +15,6 @@ func CalculateTrends(data []models.Band) int8 {
 		if data[lowestIndex].Candle.Close > val.Candle.Close {
 			lowestIndex = i
 		}
-
-		if i < len(data)-1 {
-			total += val.Candle.Close
-		}
-	}
-
-	if highestIndex == len(data)-1 {
-		return models.TREND_UP
-	}
-
-	if lowestIndex == len(data)-1 {
-		return models.TREND_DOWN
 	}
 
 	average := total / float32(len(data)-1)
@@ -48,7 +36,7 @@ func CalculateTrends(data []models.Band) int8 {
 
 	if lastCandle.Close > average {
 		return models.TREND_UP
-	} else {
-		return models.TREND_DOWN
 	}
+
+	return models.TREND_DOWN
 }
