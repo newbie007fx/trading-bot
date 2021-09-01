@@ -4,6 +4,7 @@ import "telebot-trading/app/models"
 
 func CalculateTrends(data []models.Band) int8 {
 	highestIndex, lowestIndex := 0, 0
+	var totalSMA float64 = 0
 	for i, val := range data {
 		if data[highestIndex].Candle.Close < val.Candle.Close {
 			highestIndex = i
@@ -11,6 +12,10 @@ func CalculateTrends(data []models.Band) int8 {
 
 		if data[lowestIndex].Candle.Close > val.Candle.Close {
 			lowestIndex = i
+		}
+
+		if i < len(data)-1 {
+			totalSMA += val.SMA
 		}
 	}
 
@@ -22,19 +27,20 @@ func CalculateTrends(data []models.Band) int8 {
 		return models.TREND_DOWN
 	}
 
-	firstSMA := data[0].SMA
+	avgSMA := totalSMA / float64(len(data)-2)
 	lastSMA := data[len(data)-1].SMA
+
 	firstAvg := (data[0].Candle.Open + data[0].Candle.Close) / 2
 	lastAvg := (data[len(data)-1].Candle.Open + data[len(data)-1].Candle.Close) / 2
 
 	var percent float64 = 0
-	if firstSMA > lastSMA {
-		percent = (lastSMA / firstSMA) * 100
+	if avgSMA > lastSMA {
+		percent = (lastSMA / avgSMA) * 100
 	} else {
-		percent = (firstSMA / lastSMA) * 100
+		percent = (avgSMA / lastSMA) * 100
 	}
 
-	if percent >= float64(98) {
+	if percent >= float64(99) {
 		return models.TREND_SIDEWAY
 	}
 
