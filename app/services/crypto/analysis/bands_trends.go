@@ -16,7 +16,7 @@ func CalculateTrends(data []models.Band) int8 {
 			lowestIndex = i
 		}
 
-		total += (val.Candle.Close + val.Candle.Open) / 2
+		total += val.Candle.Close
 	}
 
 	average := total / float32(len(data)-1)
