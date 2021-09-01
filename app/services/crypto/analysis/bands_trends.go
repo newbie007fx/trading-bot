@@ -6,7 +6,6 @@ func CalculateTrends(data []models.Band) int8 {
 	lastCandle := data[len(data)-1].Candle
 
 	highestIndex, lowestIndex := 0, 0
-	var total float32 = 0
 	for i, val := range data {
 		if data[highestIndex].Candle.Close < val.Candle.Close {
 			highestIndex = i
@@ -15,13 +14,9 @@ func CalculateTrends(data []models.Band) int8 {
 		if data[lowestIndex].Candle.Close > val.Candle.Close {
 			lowestIndex = i
 		}
-
-		if i < len(data)-1 {
-			total += val.Candle.Close
-		}
 	}
 
-	average := total / float32(len(data)-2)
+	average := (data[lowestIndex].Candle.Close + data[highestIndex].Candle.Close) / 2
 	highestValueDifference := data[highestIndex].Candle.Close - average
 	lowestValueDifference := average - data[lowestIndex].Candle.Close
 
