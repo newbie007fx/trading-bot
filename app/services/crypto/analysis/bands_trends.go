@@ -40,7 +40,7 @@ func CalculateTrends(data []models.Band) int8 {
 		percent = (avgSMA / lastSMA) * 100
 	}
 
-	if percent >= float64(99.55) {
+	if percent >= float64(99.59) {
 		return models.TREND_SIDEWAY
 	}
 

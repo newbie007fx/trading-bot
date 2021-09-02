@@ -84,8 +84,11 @@ func checkCounter() {
 func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
 	balance := GetBalance()
 	if candleData == nil {
+		currentTime := time.Now()
+		timeInMili := currentTime.Unix() * 1000
+
 		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15m")
+		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, timeInMili, "15m")
 		if err != nil {
 			return err
 		}
@@ -107,8 +110,11 @@ func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
 	balance := GetBalance()
 	if candleData == nil {
+		currentTime := time.Now()
+		timeInMili := currentTime.Unix() * 1000
+
 		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15m")
+		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, timeInMili, "15m")
 		if err != nil {
 			return err
 		}
@@ -127,9 +133,12 @@ func GetWalletBalance() []map[string]interface{} {
 	condition := map[string]interface{}{"is_on_hold": true}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil)
 	if len(*currency_configs) > 0 {
+		currentTime := time.Now()
+		timeInMili := currentTime.Unix() * 1000
+
 		for _, config := range *currency_configs {
 			crypto := driver.GetCrypto()
-			candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, "15m")
+			candlesData, err := crypto.GetCandlesData(config.Symbol, 1, timeInMili, "15m")
 			if err != nil {
 				continue
 			}

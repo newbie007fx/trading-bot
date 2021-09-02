@@ -42,7 +42,7 @@ func checkCryptoMasterCoinPrice() {
 	request := crypto.CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
 		EndDate:      GetEndDate(),
-		Limit:        35,
+		Limit:        33,
 		Resolution:   "15m",
 		ResponseChan: responseChan,
 	}
@@ -73,7 +73,7 @@ func checkCryptoHoldCoinPrice() []models.BandResult {
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
-			Limit:        35,
+			Limit:        33,
 			EndDate:      endDate,
 			Resolution:   "15m",
 			ResponseChan: responseChan,
@@ -115,7 +115,7 @@ func checkCryptoAltCoinPrice() []models.BandResult {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
 			EndDate:      endDate,
-			Limit:        35,
+			Limit:        33,
 			Resolution:   "15m",
 			ResponseChan: responseChan,
 		}
@@ -126,7 +126,7 @@ func checkCryptoAltCoinPrice() []models.BandResult {
 		}
 
 		result.Weight = analysis.CalculateWeight(result, masterCoinTrend)
-		if !analysis.IsIgnored(result) && result.Direction == analysis.BAND_UP && result.Weight > 1.79 {
+		if !analysis.IsIgnored(result) && result.Direction == analysis.BAND_UP && result.Weight > 1.75 {
 			altCoin = append(altCoin, *result)
 		}
 

@@ -295,7 +295,7 @@ func getPositionWeight(bands []models.Band, trend int8, masterTrend int8) float3
 		if lastBand.Candle.Close > float32(lastBand.Upper) {
 			var val float32 = 0.15
 			if secondLastBand.Candle.Close > float32(secondLastBand.Upper) && secondLastBand.Candle.Close < float32(secondLastBand.Upper) {
-				val += 0.15
+				val += 0.17
 			}
 
 			return val
