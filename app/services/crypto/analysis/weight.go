@@ -191,7 +191,7 @@ func getPriceMarginWithUpperBandPercentWeight(percent float32) float32 {
 		return 0.225
 	}
 
-	return 0.15
+	return 0.3
 }
 
 func getVolumeAverageChangesWeight(volumeAverageChanges float32) float32 {

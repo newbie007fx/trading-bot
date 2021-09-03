@@ -105,28 +105,9 @@ func dragonflyDoji(bands []models.Band) bool {
 }
 
 func threeWhiteSoldiers(bands []models.Band) bool {
-	lastFive := bands[len(bands)-6:]
+	threeBand := bands[len(bands)-3:]
 
-	if hasAnyBandCrossWithLower(lastFive) {
-		threeBand := lastFive[1:4]
-		if checkWhiteSoldiers(threeBand) {
-			lastBand := lastFive[4]
-			secondLastBand := lastFive[3]
-			return lastBand.Candle.Close > secondLastBand.Candle.Close
-		}
-	}
-
-	return false
-}
-
-func hasAnyBandCrossWithLower(bands []models.Band) bool {
-	for _, band := range bands {
-		if band.Candle.Low <= float32(band.Lower) {
-			return true
-		}
-	}
-
-	return false
+	return checkWhiteSoldiers(threeBand)
 }
 
 func checkWhiteSoldiers(bands []models.Band) bool {
@@ -140,7 +121,7 @@ func checkWhiteSoldiers(bands []models.Band) bool {
 		candleBody := band.Candle.Hight - band.Candle.Low
 		percentUp := differentUp / candleBody * 100
 		percentDown := differentDown / candleBody * 100
-		if percentDown > 10 || percentUp > 10 {
+		if percentDown+percentUp > 30 {
 			return false
 		}
 	}
