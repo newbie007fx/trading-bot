@@ -121,7 +121,7 @@ func checkWhiteSoldiers(bands []models.Band) bool {
 		candleBody := band.Candle.Hight - band.Candle.Low
 		percentUp := differentUp / candleBody * 100
 		percentDown := differentDown / candleBody * 100
-		if percentDown+percentUp > 30 {
+		if percentDown+percentUp > 40 {
 			return false
 		}
 	}
