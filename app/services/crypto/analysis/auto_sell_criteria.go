@@ -44,6 +44,10 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 					reason = "sell on up with criteria 1"
 					return true
 				}
+
+				if changesInPercent > 3.7 {
+					return false
+				}
 			}
 
 			if secondLastBand.Candle.Close > float32(secondLastBand.Lower) || secondLastBand.Candle.Open > float32(secondLastBand.Lower) {
@@ -65,6 +69,10 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 				if changesOnSMAPercent >= 3 {
 					reason = "sell on up with criteria 3"
 					return true
+				}
+
+				if changesInPercent > 3.7 {
+					return false
 				}
 			}
 
@@ -88,6 +96,10 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 					reason = "sell on up with criteria 5"
 					return true
 				}
+
+				if changesInPercent > 3.7 {
+					return false
+				}
 			}
 
 			if secondLastBand.Candle.Close > float32(secondLastBand.Upper) || secondLastBand.Candle.Open > float32(secondLastBand.Upper) {
@@ -107,9 +119,6 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 		reason = "sell on up with criteria 7"
 		return true
 
-	} else if highestChangePercent < 34 && changesInPercent >= 3 {
-		reason = "sell on up with criteria 8"
-		return true
 	}
 
 	return false
