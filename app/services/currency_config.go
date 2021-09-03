@@ -56,7 +56,7 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig) string {
 	request := crypto.CandleRequest{
 		Symbol:       config.Symbol,
 		EndDate:      timeInMili,
-		Limit:        33,
+		Limit:        35,
 		Resolution:   "15m",
 		ResponseChan: responseChan,
 	}

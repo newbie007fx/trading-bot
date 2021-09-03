@@ -1,10 +1,17 @@
 package analysis
 
-import "telebot-trading/app/models"
+import (
+	"math"
+	"telebot-trading/app/models"
+)
 
 func CalculateTrends(data []models.Band) int8 {
 	highestIndex, lowestIndex := 0, 0
-	var totalSMA float64 = 0
+	thirtyPercent := float64(len(data)) * float64(30) / float64(100)
+	limit := int(math.Floor(thirtyPercent))
+
+	var totalFirstData float32 = 0
+	var totalLastData float32 = 0
 	for i, val := range data {
 		if data[highestIndex].Candle.Close < val.Candle.Close {
 			highestIndex = i
@@ -14,8 +21,12 @@ func CalculateTrends(data []models.Band) int8 {
 			lowestIndex = i
 		}
 
-		if i < len(data)-1 {
-			totalSMA += val.SMA
+		if i < limit {
+			totalFirstData += (val.Candle.Open + val.Candle.Close) / 2
+		}
+
+		if i >= len(data)-limit {
+			totalLastData += (val.Candle.Open + val.Candle.Close) / 2
 		}
 	}
 
@@ -27,20 +38,17 @@ func CalculateTrends(data []models.Band) int8 {
 		return models.TREND_DOWN
 	}
 
-	avgSMA := totalSMA / float64(len(data)-1)
-	lastSMA := data[len(data)-1].SMA
+	firstAvg := totalFirstData / float32(limit)
+	lastAvg := totalLastData / float32(limit)
 
-	firstAvg := (data[0].Candle.Open + data[0].Candle.Close) / 2
-	lastAvg := (data[len(data)-1].Candle.Open + data[len(data)-1].Candle.Close) / 2
-
-	var percent float64 = 0
-	if avgSMA > lastSMA {
-		percent = (lastSMA / avgSMA) * 100
+	var percent float32 = 0
+	if firstAvg > lastAvg {
+		percent = (lastAvg / firstAvg) * 100
 	} else {
-		percent = (avgSMA / lastSMA) * 100
+		percent = (firstAvg / lastAvg) * 100
 	}
 
-	if percent >= float64(99.59) {
+	if percent >= 93 {
 		return models.TREND_SIDEWAY
 	}
 
