@@ -168,7 +168,8 @@ func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandRes
 	waitMasterCoinProcessed()
 	trendChecking := true
 	if masterCoin.Trend == models.TREND_DOWN || (masterCoin.Trend == models.TREND_SIDEWAY && masterCoin.Direction == analysis.BAND_DOWN) {
-		trendChecking = result.Trend == models.TREND_UP
+		lastBand := result.Bands[len(result.Bands)-1]
+		trendChecking = result.Trend == models.TREND_UP || (lastBand.Candle.Hight < float32(lastBand.Upper))
 	}
 	weight := analysis.CalculateWeightLongInterval(result, masterCoin.Trend)
 	if analysis.IsIgnored(result) || result.Direction == analysis.BAND_DOWN || !trendChecking {
