@@ -7,6 +7,7 @@ const PATTERN_INVERTED_HAMMER int8 = 2
 const PATTERN_BULLISH_HARAMI int8 = 3
 const PATTERN_DRAGONFLY_DOJI int8 = 4
 const PATTERN_THREE_WHITE_SOLDIERS int8 = 5
+const PATTERN_TURN int8 = 6
 
 func GetCandlePattern(bands []models.Band) []int8 {
 	result := []int8{}
@@ -29,6 +30,10 @@ func GetCandlePattern(bands []models.Band) []int8 {
 
 	if threeWhiteSoldiers(bands) {
 		result = append(result, PATTERN_THREE_WHITE_SOLDIERS)
+	}
+
+	if turnPattern(bands) {
+		result = append(result, PATTERN_TURN)
 	}
 
 	return result
@@ -104,10 +109,51 @@ func dragonflyDoji(bands []models.Band) bool {
 	return false
 }
 
-func threeWhiteSoldiers(bands []models.Band) bool {
-	threeBand := bands[len(bands)-3:]
+func turnPattern(bands []models.Band) bool {
+	countDown := 0
+	countTemp := 0
+	for i := len(bands) - 2; i >= 0; i-- {
+		if bands[i].Candle.Open > bands[i].Candle.Close {
+			countTemp += 1
+		} else {
+			countTemp = 0
+		}
 
-	return checkWhiteSoldiers(threeBand)
+		if countTemp > 1 {
+			return false
+		}
+
+		if countTemp == 1 {
+			countDown += 1
+		}
+
+		if countDown == 3 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func threeWhiteSoldiers(bands []models.Band) bool {
+	lastFive := bands[len(bands)-5:]
+
+	if hasAnyBandCrossWithLower(lastFive) {
+		threeBand := lastFive[1:4]
+		return checkWhiteSoldiers(threeBand)
+	}
+
+	return false
+}
+
+func hasAnyBandCrossWithLower(bands []models.Band) bool {
+	for _, band := range bands {
+		if band.Candle.Low <= float32(band.Lower) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func checkWhiteSoldiers(bands []models.Band) bool {
@@ -121,7 +167,7 @@ func checkWhiteSoldiers(bands []models.Band) bool {
 		candleBody := band.Candle.Hight - band.Candle.Low
 		percentUp := differentUp / candleBody * 100
 		percentDown := differentDown / candleBody * 100
-		if percentDown+percentUp > 40 {
+		if percentDown > 15 || percentUp > 15 {
 			return false
 		}
 	}

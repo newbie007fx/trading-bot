@@ -37,7 +37,7 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 		weight += volumeWight
 	}
 
-	positionWeight := getPositionWeight(result.Bands, result.Trend, masterTrend)
+	positionWeight := getPositionWeight(result.Bands, result.Trend, masterTrend, false)
 	weightLog += fmt.Sprintf(", positionWeight: %.2f", positionWeight)
 	weight += positionWeight
 
@@ -73,7 +73,7 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) float32 {
 	var weight float32 = 0
 
-	weight += getPositionWeight(result.Bands, result.Trend, masterTrend)
+	weight += getPositionWeight(result.Bands, result.Trend, masterTrend, true)
 
 	weight += getPriceMarginWithUpperBandWeight(result.Bands)
 
@@ -212,7 +212,7 @@ func getVolumeAverageChangesWeight(volumeAverageChanges float32) float32 {
 	return 0
 }
 
-func getPositionWeight(bands []models.Band, trend int8, masterTrend int8) float32 {
+func getPositionWeight(bands []models.Band, trend int8, masterTrend int8, isLongInterval bool) float32 {
 	lastBand := bands[len(bands)-1]
 	secondLastBand := bands[len(bands)-2]
 
@@ -279,7 +279,7 @@ func getPositionWeight(bands []models.Band, trend int8, masterTrend int8) float3
 		}
 	}
 
-	if masterTrend != models.TREND_DOWN {
+	if masterTrend != models.TREND_DOWN && !isLongInterval {
 
 		// hight menyentuh Upper tp close dibaawh Upper
 		if lastBand.Candle.Hight >= float32(lastBand.Upper) && lastBand.Candle.Close < float32(lastBand.Upper) {

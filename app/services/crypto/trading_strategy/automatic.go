@@ -48,7 +48,7 @@ func (ats *AutomaticTradingStrategy) Shutdown() {
 
 func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time) bool {
 	minute := currentTime.Minute()
-	var listMinutes []int = []int{15, 30, 45, 0}
+	var listMinutes []int = []int{10, 20, 30, 40, 50, 0}
 	for _, a := range listMinutes {
 		if a == minute {
 			return true
@@ -129,7 +129,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	results := []models.BandResult{}
 	for i := range altCoins {
 		altCoins[i].Weight += ats.getOnLongIntervalWeight(altCoins[i])
-		if altCoins[i].Weight > 3.05 {
+		if altCoins[i].Weight > 3.01 {
 			results = append(results, altCoins[i])
 		}
 	}
@@ -169,7 +169,7 @@ func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandRes
 	trendChecking := true
 	if masterCoin.Trend == models.TREND_DOWN || (masterCoin.Trend == models.TREND_SIDEWAY && masterCoin.Direction == analysis.BAND_DOWN) {
 		lastBand := result.Bands[len(result.Bands)-1]
-		trendChecking = result.Trend == models.TREND_UP || (lastBand.Candle.Hight < float32(lastBand.Upper))
+		trendChecking = result.Trend == models.TREND_UP || (lastBand.Candle.Close < float32(lastBand.Upper))
 	}
 	weight := analysis.CalculateWeightLongInterval(result, masterCoin.Trend)
 	if analysis.IsIgnored(result) || result.Direction == analysis.BAND_DOWN || !trendChecking {
