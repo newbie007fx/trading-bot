@@ -25,15 +25,24 @@ func IsNeedToSell(result models.BandResult, isCandleComplete bool) bool {
 func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConfig, lastBand models.Band, isCandleComplete bool) bool {
 	changes := result.CurrentPrice - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
+
 	highest := getHigestPrice(result.Bands)
 	highestChangePercent := changes / (highest - currencyConfig.HoldPrice) * 100
+
+	highestHight := getHigestHightPrice(result.Bands)
+	highestHightChangePercent := changes / (highestHight - currencyConfig.HoldPrice) * 100
+
 	lastFiveData := result.Bands[len(result.Bands)-5 : len(result.Bands)]
 
-	if changesInPercent > 3.5 && !isCandleComplete && highestChangePercent > 50 && countDownCandleFromHighest(result.Bands) < 4 {
-		return false
+	specialTolerance := changesInPercent > 10 && highestHightChangePercent <= 76
+
+	if !specialTolerance {
+		if changesInPercent > 3.5 && !isCandleComplete && highestChangePercent > 55 && countDownCandleFromHighest(result.Bands) < 4 {
+			return false
+		}
 	}
 
-	if highestChangePercent <= 65 && changesInPercent >= 3 && CalculateTrends(lastFiveData) == models.TREND_DOWN && result.Direction == BAND_DOWN {
+	if specialTolerance || (highestChangePercent <= 65 && changesInPercent >= 3 && CalculateTrends(lastFiveData) == models.TREND_DOWN && result.Direction == BAND_DOWN) {
 
 		secondLastBand := result.Bands[len(result.Bands)-2]
 		if result.Position == models.BELOW_LOWER {
@@ -168,6 +177,18 @@ func getHigestPrice(bands []models.Band) float32 {
 	for i, band := range bands {
 		if highest < band.Candle.Close {
 			highest = band.Candle.Close
+			highestIndex = i
+		}
+	}
+
+	return highest
+}
+
+func getHigestHightPrice(bands []models.Band) float32 {
+	var highest float32 = 0
+	for i, band := range bands {
+		if highest < band.Candle.Close {
+			highest = band.Candle.Hight
 			highestIndex = i
 		}
 	}
