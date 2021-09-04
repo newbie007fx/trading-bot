@@ -12,7 +12,8 @@ import (
 )
 
 type BinanceClient struct {
-	klineService *binance.KlinesService
+	klineService   *binance.KlinesService
+	accountService *binance.GetAccountSnapshotService
 }
 
 func (client *BinanceClient) init() {
@@ -20,6 +21,7 @@ func (client *BinanceClient) init() {
 	secretKey := utils.Env("BINANCE_SECRET_KEY", "")
 	service := binance.NewClient(apiKey, secretKey)
 	client.klineService = service.NewKlinesService()
+	client.accountService = service.NewGetAccountSnapshotService()
 }
 
 func (client *BinanceClient) GetCandlesData(symbol string, limit int, endDate int64, resolution string) ([]models.CandleData, error) {
@@ -34,6 +36,12 @@ func (client *BinanceClient) GetCandlesData(symbol string, limit int, endDate in
 	}
 
 	return candlesData, err
+}
+
+func (client *BinanceClient) GetBlanceInfo() (*binance.Snapshot, error) {
+	account, err := client.accountService.Type("SPOT").Limit(1).Do(context.Background())
+
+	return account, err
 }
 
 func (BinanceClient) convertCandleDataMap(cryptoCanldes []*binance.Kline) []models.CandleData {
