@@ -157,7 +157,7 @@ func getPatternWeight(result *models.BandResult) float32 {
 
 	var weight float32 = 0
 	if len(listMatchPattern) > 0 {
-		weight += 0.5 * float32(len(listMatchPattern))
+		weight += 0.35 * float32(len(listMatchPattern))
 	}
 
 	return weight

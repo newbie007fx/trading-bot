@@ -111,9 +111,8 @@ func dragonflyDoji(bands []models.Band) bool {
 }
 
 func turnPattern(bands []models.Band) bool {
-	countDown := 0
 	countTemp := 0
-	for i := len(bands) - 2; i >= 0; i-- {
+	for i := len(bands) - 1; i >= 0; i-- {
 		if bands[i].Candle.Open > bands[i].Candle.Close {
 			countTemp += 1
 		} else {
@@ -124,11 +123,7 @@ func turnPattern(bands []models.Band) bool {
 			return false
 		}
 
-		if countTemp == 1 {
-			countDown += 1
-		}
-
-		if countDown == 3 {
+		if i == (3*len(bands)/4)-1 {
 			return true
 		}
 	}
