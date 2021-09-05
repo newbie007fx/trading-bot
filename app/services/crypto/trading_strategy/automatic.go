@@ -182,8 +182,7 @@ func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandRes
 }
 
 func getTimeSubstractOneSecond() time.Time {
-	cloneTime := checkingTime
-	cloneTime.Add(-1 * time.Second)
+	cloneTime := checkingTime.Add(-1 * time.Second)
 
 	return cloneTime
 }
