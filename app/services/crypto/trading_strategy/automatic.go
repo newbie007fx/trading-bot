@@ -95,7 +95,8 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 
 func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
-		altCoins := checkCryptoAltCoinPrice()
+		newTime := getTimeSubstractOneSecond()
+		altCoins := checkCryptoAltCoinPrice(&newTime)
 		msg := ""
 		if len(altCoins) > 0 {
 
@@ -145,7 +146,8 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandResult) float32 {
 	responseChan := make(chan crypto.CandleResponse)
 
-	endDate := GetEndDate()
+	newTime := getTimeSubstractOneSecond()
+	endDate := GetEndDate(&newTime)
 
 	data, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
 	if err != nil {
@@ -177,4 +179,11 @@ func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandRes
 	}
 
 	return weight
+}
+
+func getTimeSubstractOneSecond() time.Time {
+	cloneTime := checkingTime
+	cloneTime.Add(-1 * time.Second)
+
+	return cloneTime
 }

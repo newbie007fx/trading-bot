@@ -79,7 +79,7 @@ func (ManualTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan 
 
 func (ManualTradingStrategy) startCheckAltCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
-		altCoin := checkCryptoAltCoinPrice()
+		altCoin := checkCryptoAltCoinPrice(nil)
 		msg := ""
 		if len(altCoin) > 0 {
 			if len(altCoin) > 5 {

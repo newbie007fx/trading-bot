@@ -41,7 +41,7 @@ func checkCryptoMasterCoinPrice() {
 
 	request := crypto.CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
-		EndDate:      GetEndDate(),
+		EndDate:      GetEndDate(nil),
 		Limit:        35,
 		Resolution:   "15m",
 		ResponseChan: responseChan,
@@ -63,7 +63,7 @@ func checkCryptoHoldCoinPrice() []models.BandResult {
 
 	holdCoin := []models.BandResult{}
 
-	endDate := GetEndDate()
+	endDate := GetEndDate(nil)
 
 	responseChan := make(chan crypto.CandleResponse)
 
@@ -92,12 +92,12 @@ func checkCryptoHoldCoinPrice() []models.BandResult {
 	return holdCoin
 }
 
-func checkCryptoAltCoinPrice() []models.BandResult {
+func checkCryptoAltCoinPrice(baseTime *time.Time) []models.BandResult {
 	log.Println("starting crypto check price for alt coin worker")
 
 	altCoin := []models.BandResult{}
 
-	endDate := GetEndDate()
+	endDate := GetEndDate(baseTime)
 
 	responseChan := make(chan crypto.CandleResponse)
 
@@ -138,10 +138,15 @@ func checkCryptoAltCoinPrice() []models.BandResult {
 	return altCoin
 }
 
-func GetEndDate() int64 {
-	currentTime := time.Now()
-	minute := currentTime.Minute()
-	timeInMili := currentTime.Unix() * 1000
+func GetEndDate(baseTime *time.Time) int64 {
+	var endTime time.Time
+	if baseTime == nil {
+		endTime = time.Now()
+	} else {
+		endTime = *baseTime
+	}
+	minute := endTime.Minute()
+	timeInMili := endTime.Unix() * 1000
 	if minute%15 == 0 {
 		timeInMili -= 1
 	}
