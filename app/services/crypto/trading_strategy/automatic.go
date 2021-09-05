@@ -129,7 +129,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	results := []models.BandResult{}
 	for i := range altCoins {
 		altCoins[i].Weight += ats.getOnLongIntervalWeight(altCoins[i])
-		if altCoins[i].Weight > 3.01 {
+		if altCoins[i].Weight > 3.05 {
 			results = append(results, altCoins[i])
 		}
 	}
@@ -169,7 +169,7 @@ func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandRes
 	trendChecking := true
 	if masterCoin.Trend == models.TREND_DOWN || (masterCoin.Trend == models.TREND_SIDEWAY && masterCoin.Direction == analysis.BAND_DOWN) {
 		lastBand := result.Bands[len(result.Bands)-1]
-		trendChecking = result.Trend == models.TREND_UP || (lastBand.Candle.Close < float32(lastBand.Upper))
+		trendChecking = result.Trend == models.TREND_UP || (lastBand.Candle.Close < float32(lastBand.Upper) && result.Trend != models.TREND_DOWN)
 	}
 	weight := analysis.CalculateWeightLongInterval(result, masterCoin.Trend)
 	if analysis.IsIgnored(result) || result.Direction == analysis.BAND_DOWN || !trendChecking {
