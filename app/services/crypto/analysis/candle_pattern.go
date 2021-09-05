@@ -119,11 +119,11 @@ func turnPattern(bands []models.Band) bool {
 			countTemp = 0
 		}
 
-		if countTemp > 1 {
+		if countTemp > 1 || bands[i].Candle.Close >= float32(bands[i].Upper) {
 			return false
 		}
 
-		if i == (3*len(bands)/4)-1 {
+		if i == (2*len(bands)/3)-1 {
 			return true
 		}
 	}
