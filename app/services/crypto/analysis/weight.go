@@ -77,7 +77,7 @@ func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) fl
 
 	weight += getPriceMarginWithUpperBandWeight(result.Bands)
 
-	weight += getPatternWeight(result.Bands)
+	weight += getPatternWeight(result)
 
 	weight += reversalWeight(result)
 
@@ -152,8 +152,8 @@ func crossBandWeight(result *models.BandResult) float32 {
 	return 0.15
 }
 
-func getPatternWeight(bands []models.Band) float32 {
-	listMatchPattern := GetCandlePattern(bands)
+func getPatternWeight(result *models.BandResult) float32 {
+	listMatchPattern := GetCandlePattern(result)
 
 	var weight float32 = 0
 	if len(listMatchPattern) > 0 {
