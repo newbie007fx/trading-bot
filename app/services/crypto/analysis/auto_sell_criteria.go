@@ -42,7 +42,9 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 		}
 	}
 
-	if specialTolerance || (highestChangePercent <= 65 && changesInPercent >= 3 && CalculateTrends(lastFiveData) == models.TREND_DOWN && result.Direction == BAND_DOWN) {
+	condition1 := countDownCandleFromHighest(result.Bands) > 3 && changesInPercent < 3 && changesInPercent > 1
+	condition2 := highestChangePercent <= 65 && changesInPercent >= 3
+	if specialTolerance || ((condition1 || condition2) && CalculateTrends(lastFiveData) == models.TREND_DOWN && result.Direction == BAND_DOWN) {
 
 		secondLastBand := result.Bands[len(result.Bands)-2]
 		if result.Position == models.BELOW_LOWER {

@@ -12,6 +12,7 @@ func CalculateTrends(data []models.Band) int8 {
 
 	var totalFirstData float32 = 0
 	var totalLastData float32 = 0
+	var totalBaseLine float32 = 0
 	for i, val := range data {
 		if data[highestIndex].Candle.Close < val.Candle.Close {
 			highestIndex = i
@@ -22,11 +23,12 @@ func CalculateTrends(data []models.Band) int8 {
 		}
 
 		if i < limit {
-			totalFirstData += (val.Candle.Open + val.Candle.Close) / 2
+			totalFirstData += val.Candle.Close
+			totalBaseLine += (val.Candle.Open + val.Candle.Close) / 2
 		}
 
 		if i >= len(data)-limit {
-			totalLastData += (val.Candle.Open + val.Candle.Close) / 2
+			totalLastData += val.Candle.Close
 		}
 	}
 
@@ -40,15 +42,30 @@ func CalculateTrends(data []models.Band) int8 {
 
 	firstAvg := totalFirstData / float32(limit)
 	lastAvg := totalLastData / float32(limit)
+	baseLinePoint := totalBaseLine / float32(limit)
 
-	var percent float32 = 0
-	if firstAvg > lastAvg {
-		percent = (lastAvg / firstAvg) * 100
+	var lastPointValue float32 = 0
+	var firstPointValue float32 = 0
+	if firstAvg > baseLinePoint {
+		firstPointValue = firstAvg - baseLinePoint
 	} else {
-		percent = (firstAvg / lastAvg) * 100
+		firstPointValue = baseLinePoint - firstAvg
 	}
 
-	if percent >= 99.55 {
+	if lastAvg > baseLinePoint {
+		lastPointValue = lastAvg - baseLinePoint
+	} else {
+		lastPointValue = baseLinePoint - lastAvg
+	}
+
+	var percent float32 = 0
+	if firstPointValue > lastPointValue {
+		percent = (lastPointValue / firstPointValue) * 100
+	} else {
+		percent = (firstPointValue / lastPointValue) * 100
+	}
+
+	if percent >= 96 {
 		return models.TREND_SIDEWAY
 	}
 

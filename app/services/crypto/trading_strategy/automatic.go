@@ -48,7 +48,7 @@ func (ats *AutomaticTradingStrategy) Shutdown() {
 
 func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time) bool {
 	minute := currentTime.Minute()
-	var listMinutes []int = []int{10, 20, 30, 40, 50, 0}
+	var listMinutes []int = []int{15, 30, 45, 0}
 	for _, a := range listMinutes {
 		if a == minute {
 			return true
