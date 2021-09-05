@@ -45,7 +45,7 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 	weightLog += fmt.Sprintf(", priceMarginWeight: %.2f", priceMarginWeight)
 	weight += priceMarginWeight
 
-	patternWeight := getPatternWeight(result.Bands)
+	patternWeight := getPatternWeight(result)
 	weightLog += fmt.Sprintf(", patternWeight: %.2f", patternWeight)
 	weight += patternWeight
 

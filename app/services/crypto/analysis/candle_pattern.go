@@ -9,7 +9,8 @@ const PATTERN_DRAGONFLY_DOJI int8 = 4
 const PATTERN_THREE_WHITE_SOLDIERS int8 = 5
 const PATTERN_TURN int8 = 6
 
-func GetCandlePattern(bands []models.Band) []int8 {
+func GetCandlePattern(bandResult *models.BandResult) []int8 {
+	bands := bandResult.Bands
 	result := []int8{}
 
 	if hammer(bands) {
@@ -32,7 +33,7 @@ func GetCandlePattern(bands []models.Band) []int8 {
 		result = append(result, PATTERN_THREE_WHITE_SOLDIERS)
 	}
 
-	if turnPattern(bands) {
+	if bandResult.Trend == models.TREND_UP && turnPattern(bands) {
 		result = append(result, PATTERN_TURN)
 	}
 
