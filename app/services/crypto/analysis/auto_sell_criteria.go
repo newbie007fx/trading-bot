@@ -8,7 +8,22 @@ import (
 
 var reason string = ""
 
-func IsNeedToSell(result models.BandResult, isCandleComplete bool) bool {
+func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCandleComplete bool) bool {
+	if (isCandleComplete || result.PriceChanges > 1.5) && masterCoin.Trend == models.TREND_DOWN {
+		var masterDown, resultDown, safe = false, false, false
+		for i := len(result.Bands) - 1; i >= len(result.Bands)-2; i-- {
+			masterDown = masterCoin.Bands[i].Candle.Open > masterCoin.Bands[i].Candle.Close
+			resultDown = result.Bands[i].Candle.Open > result.Bands[i].Candle.Close
+			if !(masterDown && resultDown) {
+				safe = true
+				continue
+			}
+		}
+		if !safe {
+			return true
+		}
+	}
+
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
 	if err != nil {
 		log.Panicln(err.Error())
