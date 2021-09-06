@@ -22,7 +22,7 @@ func GenerateBollingerBands(historical []models.CandleData) (bands models.Bands)
 		end++
 	}
 
-	bands.Trend = CalculateTrends(bands.Data[:len(bands.Data)-1])
+	bands.Trend = CalculateTrends(bands.Data)
 	bands.Position = getPosition(bands.Data[len(bands.Data)-1])
 
 	return
