@@ -63,8 +63,11 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 		holdCoin := checkCryptoHoldCoinPrice()
 		msg := ""
 		if len(holdCoin) > 0 {
+
+			waitMasterCoinProcessed()
+
 			for _, coin := range holdCoin {
-				if analysis.IsNeedToSell(coin, ats.isTimeToCheckAltCoinPrice(checkingTime)) {
+				if analysis.IsNeedToSell(coin, *masterCoin, ats.isTimeToCheckAltCoinPrice(checkingTime)) {
 					msg += "coin berikut akan dijual:\n"
 					msg += crypto.GenerateMsg(coin)
 					msg += "\n"
@@ -82,7 +85,6 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 				}
 			}
 
-			waitMasterCoinProcessed()
 			if masterCoin != nil && msg != "" {
 				msg += "untuk master coin:\n"
 				msg += crypto.GenerateMsg(*masterCoin)
