@@ -116,6 +116,21 @@ func reversalWeight(result *models.BandResult) float32 {
 		return 0
 	}
 
+	lastBand := lastFiveData[0]
+	if result.Trend == models.TREND_SIDEWAY {
+		if result.Position == models.ABOVE_UPPER && lastBand.Candle.Open >= float32(lastBand.Upper) {
+			return 0.1
+		}
+
+		if result.Position == models.ABOVE_SMA && lastBand.Candle.Open >= float32(lastBand.SMA) {
+			return 0.1
+		}
+
+		if result.Position == models.BELOW_SMA && lastBand.Candle.Open >= float32(lastBand.Lower) {
+			return 0.1
+		}
+	}
+
 	firstBand := lastFiveData[0]
 	secondBand := lastFiveData[1]
 	thirdBand := lastFiveData[2]
