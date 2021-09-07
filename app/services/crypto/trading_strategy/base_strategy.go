@@ -105,11 +105,7 @@ func checkCryptoAltCoinPrice(baseTime *time.Time) []models.BandResult {
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
-	var masterCoinTrend int8 = 0
 	waitMasterCoinProcessed()
-	if masterCoin != nil {
-		masterCoinTrend = masterCoin.Trend
-	}
 
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
@@ -125,7 +121,7 @@ func checkCryptoAltCoinPrice(baseTime *time.Time) []models.BandResult {
 			continue
 		}
 
-		result.Weight = analysis.CalculateWeight(result, masterCoinTrend)
+		result.Weight = analysis.CalculateWeight(result, *masterCoin)
 		if !analysis.IsIgnored(result) && result.Direction == analysis.BAND_UP && result.Weight > 1.7 {
 			altCoin = append(altCoin, *result)
 		}

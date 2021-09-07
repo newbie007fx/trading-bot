@@ -7,7 +7,7 @@ import (
 
 var weightLog string = ""
 
-func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
+func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) float32 {
 	weightLog = ""
 
 	highest := getHigestPrice(result.Bands)
@@ -18,7 +18,7 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 		return 0
 	}
 
-	if masterTrend == models.TREND_DOWN {
+	if masterCoin.Trend == models.TREND_DOWN {
 		lastFourData := result.Bands[len(result.Bands)-4 : len(result.Bands)]
 		if CalculateTrends(lastFourData) != models.TREND_UP {
 			return 0
@@ -37,7 +37,8 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 		weight += volumeWight
 	}
 
-	positionWeight := getPositionWeight(result.Bands, result.Trend, masterTrend, false)
+	isMasterCoinReversal := isMasterReversal(&masterCoin)
+	positionWeight := getPositionWeight(result.Bands, result.Trend, masterCoin.Trend, false, isMasterCoinReversal)
 	weightLog += fmt.Sprintf(", positionWeight: %.2f", positionWeight)
 	weight += positionWeight
 
@@ -49,23 +50,29 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 	weightLog += fmt.Sprintf(", patternWeight: %.2f", patternWeight)
 	weight += patternWeight
 
-	reversalWeight := reversalWeight(result)
-	weightLog += fmt.Sprintf(", reversalWeight: %.2f", reversalWeight)
-	weight += reversalWeight
+	weightReversal := reversalWeight(result)
+	weightLog += fmt.Sprintf(", reversalWeight: %.2f", weightReversal)
+	weight += weightReversal
 
 	crossBandWeight := crossBandWeight(result)
 	weightLog += fmt.Sprintf(", crossBandWeight: %.2f", crossBandWeight)
 	weight += crossBandWeight
 
-	if masterTrend == models.TREND_UP {
+	if masterCoin.Trend == models.TREND_UP {
 		weight += 0.1
 		weightLog += fmt.Sprintf(", masterTrenWeight: %.2f", 0.1)
 	}
 
 	if result.Trend == models.TREND_UP {
-		weight += 0.1
-		weightLog += fmt.Sprintf(", TrenWeight: %.2f", 0.1)
+		if isMasterCoinReversal {
+			weight += 0.3
+		} else {
+			weight += 0.1
+			weightLog += fmt.Sprintf(", TrenWeight: %.2f", 0.1)
+		}
 	}
+
+	weight += reversalWeight(&masterCoin)
 
 	return weight
 }
@@ -73,7 +80,7 @@ func CalculateWeight(result *models.BandResult, masterTrend int8) float32 {
 func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) float32 {
 	var weight float32 = 0
 
-	weight += getPositionWeight(result.Bands, result.Trend, masterTrend, true)
+	weight += getPositionWeight(result.Bands, result.Trend, masterTrend, true, false)
 
 	weight += getPriceMarginWithUpperBandWeight(result.Bands)
 
@@ -92,6 +99,17 @@ func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) fl
 
 func GetWeightLog() string {
 	return weightLog
+}
+
+func isMasterReversal(master *models.BandResult) bool {
+	trend := CalculateTrends(master.Bands[:len(master.Bands)-1])
+
+	lastFiveData := master.Bands[len(master.Bands)-4:]
+	if trend == models.TREND_UP || CalculateTrends(lastFiveData[1:]) != models.TREND_UP || master.PriceChanges < 0.5 {
+		return false
+	}
+
+	return true
 }
 
 func priceChangeWeight(priceChange float32) float32 {
@@ -229,7 +247,7 @@ func getVolumeAverageChangesWeight(volumeAverageChanges float32) float32 {
 	return 0
 }
 
-func getPositionWeight(bands []models.Band, trend int8, masterTrend int8, isLongInterval bool) float32 {
+func getPositionWeight(bands []models.Band, trend int8, masterTrend int8, isLongInterval bool, isMasterCoinReversal bool) float32 {
 	lastBand := bands[len(bands)-1]
 	secondLastBand := bands[len(bands)-2]
 
@@ -296,7 +314,7 @@ func getPositionWeight(bands []models.Band, trend int8, masterTrend int8, isLong
 		}
 	}
 
-	if masterTrend != models.TREND_DOWN && !isLongInterval {
+	if (masterTrend != models.TREND_DOWN || isMasterCoinReversal) && !isLongInterval {
 
 		// hight menyentuh Upper tp close dibaawh Upper
 		if lastBand.Candle.Hight >= float32(lastBand.Upper) && lastBand.Candle.Close < float32(lastBand.Upper) {
