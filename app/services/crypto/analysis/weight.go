@@ -14,12 +14,12 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	lowest := getLowestPrice(result.Bands)
 	difference := highest - lowest
 	percent := difference / lowest * 100
-	if percent < 2.5 {
+	if percent < 2.1 {
 		return 0
 	}
 
 	if masterCoin.Trend == models.TREND_DOWN {
-		lastFourData := result.Bands[len(result.Bands)-4 : len(result.Bands)]
+		lastFourData := result.Bands[len(result.Bands)-4:]
 		if CalculateTrends(lastFourData) != models.TREND_UP {
 			return 0
 		}
@@ -71,8 +71,6 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 			weightLog += fmt.Sprintf(", TrenWeight: %.2f", 0.1)
 		}
 	}
-
-	weight += reversalWeight(&masterCoin)
 
 	return weight
 }
@@ -281,35 +279,35 @@ func getPositionWeight(bands []models.Band, trend int8, masterTrend int8, isLong
 
 	// low hight dibawah SMA
 	if lastBand.Candle.Hight < float32(lastBand.SMA) {
-		if trend == models.TREND_UP {
+		if trend != models.TREND_DOWN {
 			return 0.325
 		}
 	}
 
 	// hight menyentuh SMA tp close dibaawh SMA
 	if lastBand.Candle.Hight >= float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA) {
-		if trend == models.TREND_UP {
+		if trend != models.TREND_DOWN {
 			return 0.225
 		}
 	}
 
 	// close menyentuh SMA tp open dibaawh SMA
 	if lastBand.Candle.Close >= float32(lastBand.SMA) && lastBand.Candle.Open < float32(lastBand.SMA) {
-		if trend == models.TREND_UP {
+		if trend != models.TREND_DOWN {
 			return 0.4
 		}
 	}
 
 	// open menyentuh SMA tp low dibaawh SMA
 	if lastBand.Candle.Open >= float32(lastBand.SMA) && lastBand.Candle.Low < float32(lastBand.SMA) {
-		if trend == models.TREND_UP {
+		if trend != models.TREND_DOWN {
 			return 0.475
 		}
 	}
 
 	// low hight dibawah Upper
 	if lastBand.Candle.Hight < float32(lastBand.Upper) {
-		if trend == models.TREND_UP {
+		if trend != models.TREND_DOWN {
 			return 0.275
 		}
 	}
