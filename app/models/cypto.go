@@ -48,3 +48,15 @@ type BandResult struct {
 	Position      int8
 	Bands         []Band
 }
+
+type AssetBalance struct {
+	AssetName string
+	Balance   float32
+}
+
+type CreateOrderResponse struct {
+	Symbol   string
+	Price    float32
+	Quantity float32
+	Status   string
+}

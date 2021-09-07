@@ -63,6 +63,12 @@ func UpdateCurrencyNotifConfig(id uint, data map[string]interface{}) error {
 	return result.Error
 }
 
+func UpdateCurrencyNotifConfigBySymbol(symbol string, data map[string]interface{}) error {
+	data["updated_at"] = time.Now()
+	result := db.GetDB().Table("currency_notif_configs").Where("symbol = ?", symbol).Updates(data)
+	return result.Error
+}
+
 func DeleteCurrencyNotifConfig(id uint) error {
 	currencyConfig, err := GetCurrencyNotifConfig(id)
 	if err != nil {

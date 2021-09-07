@@ -11,7 +11,7 @@ import (
 )
 
 func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
-	if getMode() != "manual" {
+	if crypto.GetMode() != "manual" {
 		crypto.Buy(currencyConfig, candleData)
 	}
 
@@ -30,7 +30,7 @@ func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.Cand
 }
 
 func ReleaseCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
-	if getMode() != "manual" {
+	if crypto.GetMode() != "manual" {
 		crypto.Sell(currencyConfig, candleData)
 	}
 
@@ -103,15 +103,4 @@ func holdCoinMessage(config models.CurrencyNotifConfig, result *models.BandResul
 	msg := fmt.Sprintf(format, config.HoldPrice, config.Balance, result.CurrentPrice, changes, (result.CurrentPrice * config.Balance))
 
 	return msg
-}
-
-func getMode() string {
-	mode := "manual"
-
-	result := repositories.GetConfigValueByName("mode")
-	if result != nil {
-		mode = *result
-	}
-
-	return mode
 }

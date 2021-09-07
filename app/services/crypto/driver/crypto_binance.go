@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"telebot-trading/app/models"
 	"telebot-trading/utils"
 
@@ -12,8 +11,9 @@ import (
 )
 
 type BinanceClient struct {
-	klineService   *binance.KlinesService
-	accountService *binance.GetAccountSnapshotService
+	klineService       *binance.KlinesService
+	accountService     *binance.GetAccountSnapshotService
+	createOrderService *binance.CreateOrderService
 }
 
 func (client *BinanceClient) init() {
@@ -22,11 +22,12 @@ func (client *BinanceClient) init() {
 	service := binance.NewClient(apiKey, secretKey)
 	client.klineService = service.NewKlinesService()
 	client.accountService = service.NewGetAccountSnapshotService()
+	client.createOrderService = service.NewCreateOrderService()
 }
 
 func (client *BinanceClient) GetCandlesData(symbol string, limit int, endDate int64, resolution string) ([]models.CandleData, error) {
 	var candlesData []models.CandleData
-	service := client.klineService.Symbol(formatSymbol(symbol)).Limit(limit).Interval(resolution)
+	service := client.klineService.Symbol(symbol).Limit(limit).Interval(resolution)
 	if endDate > 1 {
 		service = service.EndTime(endDate)
 	}
@@ -38,10 +39,41 @@ func (client *BinanceClient) GetCandlesData(symbol string, limit int, endDate in
 	return candlesData, err
 }
 
-func (client *BinanceClient) GetBlanceInfo() (*binance.Snapshot, error) {
+func (client *BinanceClient) GetBlanceInfo() (*[]models.AssetBalance, error) {
+	assetBalances := []models.AssetBalance{}
 	account, err := client.accountService.Type("SPOT").Limit(1).Do(context.Background())
+	if err != nil {
+		return nil, err
+	}
 
-	return account, err
+	balances := account.Snapshot[0].Data.Balances
+	for _, balance := range balances {
+		s, _ := strconv.ParseFloat(balance.Free, 32)
+		assetBalance := models.AssetBalance{AssetName: balance.Asset, Balance: float32(s)}
+		assetBalances = append(assetBalances, assetBalance)
+	}
+
+	return &assetBalances, err
+}
+
+func (client *BinanceClient) CreateBuyOrder(symbol string, quantity float32) (*models.CreateOrderResponse, error) {
+	return client.createOrder(binance.SideTypeBuy, symbol, quantity)
+}
+
+func (client *BinanceClient) CreateSellOrder(symbol string, quantity float32) (*models.CreateOrderResponse, error) {
+	return client.createOrder(binance.SideTypeSell, symbol, quantity)
+}
+
+func (client *BinanceClient) createOrder(sideType binance.SideType, symbol string, quantity float32) (*models.CreateOrderResponse, error) {
+	quoteQty := fmt.Sprintf("%f", quantity)
+	order, err := client.createOrderService.Symbol(symbol).Side(binance.SideTypeBuy).Type(binance.OrderType(sideType)).
+		QuoteOrderQty(quoteQty).Do(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	reponse := convertCreateOrderReponse(order)
+	return &reponse, nil
 }
 
 func (BinanceClient) convertCandleDataMap(cryptoCanldes []*binance.Kline) []models.CandleData {
@@ -64,13 +96,13 @@ func (BinanceClient) convertCandleDataMap(cryptoCanldes []*binance.Kline) []mode
 	return candlesData
 }
 
-func formatSymbol(symbol string) string {
-	result := strings.Split(symbol, ":")
-	if len(result) > 1 {
-		return result[1]
+func convertCreateOrderReponse(response *binance.CreateOrderResponse) models.CreateOrderResponse {
+	return models.CreateOrderResponse{
+		Symbol:   response.Symbol,
+		Price:    convertToFloat32(response.Price),
+		Quantity: convertToFloat32(response.ExecutedQuantity),
+		Status:   string(response.Status),
 	}
-
-	return symbol
 }
 
 func convertToFloat32(data string) float32 {

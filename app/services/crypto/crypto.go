@@ -81,53 +81,6 @@ func checkCounter() {
 	counter++
 }
 
-func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
-	balance := GetBalance()
-	if candleData == nil {
-		currentTime := time.Now()
-		timeInMili := currentTime.Unix() * 1000
-
-		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, timeInMili, "15m")
-		if err != nil {
-			return err
-		}
-		candleData = &candlesData[0]
-	}
-
-	condition := map[string]interface{}{"is_on_hold": true}
-	holdCount := repositories.CountNotifConfig(&condition)
-
-	coinBalance := balance / (float32(MaxHoldCoin) - float32(holdCount))
-
-	totalCoin := coinBalance / candleData.Close
-	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": totalCoin, "hold_price": candleData.Close})
-	SetBalance(balance - (totalCoin * candleData.Close))
-
-	return nil
-}
-
-func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
-	balance := GetBalance()
-	if candleData == nil {
-		currentTime := time.Now()
-		timeInMili := currentTime.Unix() * 1000
-
-		crypto := driver.GetCrypto()
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, timeInMili, "15m")
-		if err != nil {
-			return err
-		}
-		candleData = &candlesData[0]
-	}
-
-	totalBalance := config.Balance * candleData.Close
-	repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": 0})
-	SetBalance(balance + totalBalance)
-
-	return nil
-}
-
 func GetWalletBalance() []map[string]interface{} {
 	data := []map[string]interface{}{}
 	condition := map[string]interface{}{"is_on_hold": true}
@@ -173,4 +126,15 @@ func GetBalance() float32 {
 func SetBalance(balance float32) error {
 	s := fmt.Sprintf("%f", balance)
 	return repositories.SetConfigByName("balance", s)
+}
+
+func GetMode() string {
+	mode := "manual"
+
+	result := repositories.GetConfigValueByName("mode")
+	if result != nil {
+		mode = *result
+	}
+
+	return mode
 }
