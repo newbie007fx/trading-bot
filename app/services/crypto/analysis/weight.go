@@ -14,7 +14,7 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	lowest := getLowestPrice(result.Bands)
 	difference := highest - lowest
 	percent := difference / lowest * 100
-	if percent < 2.1 {
+	if percent < 2.3 {
 		return 0
 	}
 
@@ -129,7 +129,7 @@ func priceChangeWeight(priceChange float32) float32 {
 func reversalWeight(result *models.BandResult) float32 {
 	trend := CalculateTrends(result.Bands[:len(result.Bands)-1])
 
-	lastFiveData := result.Bands[len(result.Bands)-4:]
+	lastFiveData := result.Bands[len(result.Bands)-5:]
 	if trend == models.TREND_UP || CalculateTrends(lastFiveData[1:]) != models.TREND_UP || result.PriceChanges < 1.5 {
 		return 0
 	}

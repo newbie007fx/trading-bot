@@ -16,7 +16,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			resultDown = result.Bands[i].Candle.Open > result.Bands[i].Candle.Close
 			if !(masterDown && resultDown) {
 				safe = true
-				continue
+				break
 			}
 		}
 		if !safe {

@@ -65,7 +65,7 @@ func CalculateTrends(data []models.Band) int8 {
 		percent = (firstPointValue / lastPointValue) * 100
 	}
 
-	if percent >= 2.2 {
+	if percent >= 2.25 {
 		return models.TREND_SIDEWAY
 	}
 

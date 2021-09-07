@@ -111,24 +111,18 @@ func dragonflyDoji(bands []models.Band) bool {
 }
 
 func turnPattern(bands []models.Band) bool {
-	countTemp := 0
-	for i := len(bands) - 1; i >= 0; i-- {
-		if bands[i].Candle.Open > bands[i].Candle.Close {
-			countTemp += 1
+	var tempData float32 = 0
+	numberOfData := len(bands) / 3
+	for i := numberOfData; i < len(bands); i++ {
+		currentValue := (bands[i].Candle.Open + bands[i].Candle.Close) / 2
+		if tempData <= currentValue {
+			tempData = currentValue
 		} else {
-			countTemp = 0
-		}
-
-		if countTemp > 1 || bands[i].Candle.Close >= float32(bands[i].Upper) {
 			return false
-		}
-
-		if i == (2*len(bands)/3)-1 {
-			return true
 		}
 	}
 
-	return false
+	return true
 }
 
 func threeWhiteSoldiers(bands []models.Band) bool {
