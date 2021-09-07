@@ -9,7 +9,6 @@ import (
 	"strings"
 	"telebot-trading/app/helper"
 	"telebot-trading/app/http/requests"
-	"telebot-trading/app/jobs"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services"
 
@@ -70,7 +69,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 				} else {
 					crypto.SetBalance(100)
 					responseMsg = "mode berhasil diset lur"
-					jobs.ChangeStrategy()
+					//jobs.ChangeStrategy()
 				}
 			}
 		}
