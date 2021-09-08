@@ -7,7 +7,7 @@ import (
 
 func CalculateTrends(data []models.Band) int8 {
 	highestIndex, lowestIndex := 0, 0
-	thirtyPercent := float64(len(data)) * float64(30) / float64(100)
+	thirtyPercent := float64(len(data)) * float64(25) / float64(100)
 	limit := int(math.Floor(thirtyPercent))
 
 	var totalFirstData float32 = 0
@@ -122,7 +122,7 @@ func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
 		percent = (firstPointValue / lastPointValue) * 100
 	}
 
-	if percent >= 5 {
+	if percent >= 5.5 {
 		return models.TREND_SIDEWAY
 	}
 
