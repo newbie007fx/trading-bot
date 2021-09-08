@@ -58,7 +58,7 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 		}
 	}
 
-	condition1 := countDownCandleFromHighest(result.Bands) > 3 && changesInPercent < 3 && changesInPercent > 1
+	condition1 := isLastThreeBandDown(result.Bands) && changesInPercent < 3 && changesInPercent > 1
 	condition2 := highestChangePercent <= 65 && changesInPercent >= 3
 	if specialTolerance || ((condition1 || condition2) && CalculateTrends(lastFiveData) == models.TREND_DOWN && result.Direction == BAND_DOWN) {
 
@@ -232,6 +232,16 @@ func countDownCandleFromHighest(bands []models.Band) int {
 		}
 	}
 	return count
+}
+
+func isLastThreeBandDown(bands []models.Band) bool {
+	for _, band := range bands[len(bands)-3:] {
+		if band.Candle.Open < band.Candle.Close {
+			return false
+		}
+	}
+
+	return true
 }
 
 func GetSellReason() string {
