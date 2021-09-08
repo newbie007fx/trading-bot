@@ -14,12 +14,13 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		for i := len(result.Bands) - 1; i >= len(result.Bands)-2; i-- {
 			masterDown = masterCoin.Bands[i].Candle.Open > masterCoin.Bands[i].Candle.Close
 			resultDown = result.Bands[i].Candle.Open > result.Bands[i].Candle.Close
-			if !(masterDown && resultDown) {
+			if !(masterDown && resultDown) && masterCoin.Bands[i].Candle.Close > float32(masterCoin.Bands[i].Lower) {
 				safe = true
 				break
 			}
 		}
 		if !safe {
+			reason = "sell on up with criteria 0"
 			return true
 		}
 	}

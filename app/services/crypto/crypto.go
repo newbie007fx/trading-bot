@@ -26,7 +26,7 @@ type CandleResponse struct {
 
 var canldeRequest chan CandleRequest
 var previousTimeCheck time.Time = time.Now()
-var thresholdPerMinute int64 = 80
+var thresholdPerMinute int64 = 130
 var counter int64 = 0
 var MaxHoldCoin int64 = 3
 

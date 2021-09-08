@@ -101,32 +101,33 @@ func checkCryptoAltCoinPrice(baseTime *time.Time) []models.BandResult {
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 120
+	limit := 110
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
 	waitMasterCoinProcessed()
+	if masterCoin.Trend != models.TREND_DOWN || masterCoin.Direction != analysis.BAND_DOWN {
+		for _, data := range *currency_configs {
+			request := crypto.CandleRequest{
+				Symbol:       data.Symbol,
+				EndDate:      endDate,
+				Limit:        40,
+				Resolution:   "15m",
+				ResponseChan: responseChan,
+			}
 
-	for _, data := range *currency_configs {
-		request := crypto.CandleRequest{
-			Symbol:       data.Symbol,
-			EndDate:      endDate,
-			Limit:        40,
-			Resolution:   "15m",
-			ResponseChan: responseChan,
+			result := crypto.MakeCryptoRequest(data, request)
+			if result == nil {
+				continue
+			}
+
+			result.Weight = analysis.CalculateWeight(result, *masterCoin)
+			if !analysis.IsIgnored(result) && result.Direction == analysis.BAND_UP && result.Weight > 1.75 {
+				altCoin = append(altCoin, *result)
+			}
+
+			//log.Println(analysis.GetWeightLog())
 		}
-
-		result := crypto.MakeCryptoRequest(data, request)
-		if result == nil {
-			continue
-		}
-
-		result.Weight = analysis.CalculateWeight(result, *masterCoin)
-		if !analysis.IsIgnored(result) && result.Direction == analysis.BAND_UP && result.Weight > 1.75 {
-			altCoin = append(altCoin, *result)
-		}
-
-		//log.Println(analysis.GetWeightLog())
 	}
 
 	log.Println("crypto check price worker is done")
