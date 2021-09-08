@@ -42,7 +42,7 @@ func checkCryptoMasterCoinPrice() {
 	request := crypto.CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
 		EndDate:      GetEndDate(nil),
-		Limit:        36,
+		Limit:        40,
 		Resolution:   "15m",
 		ResponseChan: responseChan,
 	}
@@ -73,7 +73,7 @@ func checkCryptoHoldCoinPrice() []models.BandResult {
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
-			Limit:        36,
+			Limit:        40,
 			EndDate:      endDate,
 			Resolution:   "15m",
 			ResponseChan: responseChan,
@@ -111,7 +111,7 @@ func checkCryptoAltCoinPrice(baseTime *time.Time) []models.BandResult {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
 			EndDate:      endDate,
-			Limit:        36,
+			Limit:        40,
 			Resolution:   "15m",
 			ResponseChan: responseChan,
 		}
