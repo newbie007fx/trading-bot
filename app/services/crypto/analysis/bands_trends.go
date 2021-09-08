@@ -121,12 +121,17 @@ func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
 		lastPointValue = baseLine - secondAvg
 	}
 
+	log.Println(firstPointValue)
+	log.Println(lastPointValue)
+
 	var percent float32 = 0
 	if firstPointValue > lastPointValue {
 		percent = (lastPointValue / firstPointValue) * 100
 	} else {
 		percent = (firstPointValue / lastPointValue) * 100
 	}
+
+	log.Println(percent)
 
 	if percent >= 2.1 {
 		return models.TREND_SIDEWAY
