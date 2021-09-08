@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"log"
 	"math"
 	"telebot-trading/app/models"
 )
@@ -54,6 +55,15 @@ func CalculateTrends(data []models.Band) int8 {
 
 	firstToMidleTrend := getTrend(baseLinePoint, firstAvg, midleAvg)
 	midleToLastTrend := getTrend(baseLinePoint, midleAvg, lastAvg)
+
+	log.Println(firstAvg)
+	log.Println(lastAvg)
+	log.Println(midleAvg)
+	log.Println(baseLinePoint)
+
+	log.Println(firstToMidleTrend)
+	log.Println(midleToLastTrend)
+
 	if firstToMidleTrend == models.TREND_SIDEWAY {
 		return midleToLastTrend
 	}
@@ -72,7 +82,7 @@ func CalculateTrends(data []models.Band) int8 {
 
 	if firstToMidleTrend == models.TREND_UP && midleToLastTrend == models.TREND_DOWN {
 		if firstAvg < lastAvg {
-			fourtyFromMidle := 40 * midleAvg / 100
+			fourtyFromMidle := 40 * (midleAvg - firstAvg) / 100
 			if lastAvg > (midleAvg - fourtyFromMidle) {
 				return models.TREND_UP
 			}
@@ -80,9 +90,14 @@ func CalculateTrends(data []models.Band) int8 {
 	}
 
 	if firstToMidleTrend == models.TREND_DOWN && midleToLastTrend == models.TREND_UP {
-		if firstAvg > lastAvg {
-			fourtyFromFirst := 40 * firstAvg / 100
-			if lastAvg > (midleAvg + fourtyFromFirst) {
+		if firstAvg < lastAvg {
+			trend := getTrend(baseLinePoint, firstAvg, lastAvg)
+			if trend == models.TREND_SIDEWAY {
+				return trend
+			}
+
+			sixtyFromFirst := 60 * (firstAvg - midleAvg) / 100
+			if lastAvg > (midleAvg + sixtyFromFirst) {
 				return models.TREND_UP
 			}
 		}
