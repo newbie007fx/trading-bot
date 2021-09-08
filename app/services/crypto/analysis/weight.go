@@ -134,7 +134,7 @@ func reversalWeight(result *models.BandResult) float32 {
 		return 0
 	}
 
-	lastBand := lastFiveData[0]
+	lastBand := lastFiveData[4]
 	if trend == models.TREND_SIDEWAY {
 		if result.Position == models.ABOVE_UPPER && lastBand.Candle.Open >= float32(lastBand.Upper) {
 			return 0.1

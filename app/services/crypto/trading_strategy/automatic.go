@@ -159,7 +159,7 @@ func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandRes
 	request := crypto.CandleRequest{
 		Symbol:       data.Symbol,
 		EndDate:      endDate,
-		Limit:        35,
+		Limit:        36,
 		Resolution:   "1h",
 		ResponseChan: responseChan,
 	}
