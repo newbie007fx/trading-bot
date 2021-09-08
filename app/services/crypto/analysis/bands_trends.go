@@ -14,7 +14,8 @@ func CalculateTrends(data []models.Band) int8 {
 	var totalFirstData float32 = 0
 	var totalLastData float32 = 0
 	var totalMidleData float32 = 0
-	var totalBaseLine float32 = 0
+	var totalBaseLineFirst float32 = 0
+	var totalBaseLineMidle float32 = 0
 
 	middleIndex := (len(data) / 2) - 1
 	for i, val := range data {
@@ -28,11 +29,12 @@ func CalculateTrends(data []models.Band) int8 {
 
 		if i < limit {
 			totalFirstData += val.Candle.Close
-			totalBaseLine += (val.Candle.Open + val.Candle.Close) / 2
+			totalBaseLineFirst += (val.Candle.Open + val.Candle.Close) / 2
 		}
 
 		if i > middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
 			totalMidleData += val.Candle.Close
+			totalBaseLineMidle += (val.Candle.Open + val.Candle.Close) / 2
 		}
 
 		if i >= len(data)-limit {
@@ -51,15 +53,17 @@ func CalculateTrends(data []models.Band) int8 {
 	firstAvg := totalFirstData / float32(limit)
 	lastAvg := totalLastData / float32(limit)
 	midleAvg := totalMidleData / float32(limit)
-	baseLinePoint := totalBaseLine / float32(limit)
+	baseLinePointFirst := totalBaseLineFirst / float32(limit)
+	baseLinePointMidle := totalBaseLineMidle / float32(limit)
 
-	firstToMidleTrend := getTrend(baseLinePoint, firstAvg, midleAvg)
-	midleToLastTrend := getTrend(baseLinePoint, midleAvg, lastAvg)
+	firstToMidleTrend := getTrend(baseLinePointFirst, firstAvg, midleAvg)
+	midleToLastTrend := getTrend(baseLinePointMidle, midleAvg, lastAvg)
 
 	log.Println(firstAvg)
 	log.Println(lastAvg)
 	log.Println(midleAvg)
-	log.Println(baseLinePoint)
+	log.Println(baseLinePointFirst)
+	log.Println(baseLinePointMidle)
 
 	log.Println(firstToMidleTrend)
 	log.Println(midleToLastTrend)
@@ -91,7 +95,7 @@ func CalculateTrends(data []models.Band) int8 {
 
 	if firstToMidleTrend == models.TREND_DOWN && midleToLastTrend == models.TREND_UP {
 		if firstAvg < lastAvg {
-			trend := getTrend(baseLinePoint, firstAvg, lastAvg)
+			trend := getTrend(baseLinePointFirst, firstAvg, lastAvg)
 			if trend == models.TREND_SIDEWAY {
 				return trend
 			}
@@ -133,7 +137,7 @@ func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
 
 	log.Println(percent)
 
-	if percent >= 2.1 {
+	if percent >= 4 {
 		return models.TREND_SIDEWAY
 	}
 
