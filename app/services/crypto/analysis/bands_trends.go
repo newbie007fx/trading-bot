@@ -76,7 +76,7 @@ func CalculateTrends(data []models.Band) int8 {
 
 	if firstToMidleTrend == models.TREND_UP && midleToLastTrend == models.TREND_DOWN {
 		if firstAvg < lastAvg {
-			fourtyFromMidle := 40 * (midleAvg - firstAvg) / 100
+			fourtyFromMidle := 35 * (midleAvg - firstAvg) / 100
 			if lastAvg > (midleAvg - fourtyFromMidle) {
 				return models.TREND_UP
 			}
@@ -90,7 +90,7 @@ func CalculateTrends(data []models.Band) int8 {
 				return trend
 			}
 
-			sixtyFromFirst := 60 * (firstAvg - midleAvg) / 100
+			sixtyFromFirst := 65 * (firstAvg - midleAvg) / 100
 			if lastAvg > (midleAvg + sixtyFromFirst) {
 				return models.TREND_UP
 			}
@@ -122,7 +122,7 @@ func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
 		percent = (firstPointValue / lastPointValue) * 100
 	}
 
-	if percent >= 4.5 {
+	if percent >= 5 {
 		return models.TREND_SIDEWAY
 	}
 
