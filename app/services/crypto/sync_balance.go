@@ -6,6 +6,12 @@ import (
 	"telebot-trading/app/services/crypto/driver"
 )
 
+func StartSyncBalanceService(syncBalanceChan chan bool) {
+	for <-syncBalanceChan {
+		SyncBalance()
+	}
+}
+
 func SyncBalance() {
 	cryptoDriver := driver.GetCrypto()
 
@@ -15,6 +21,10 @@ func SyncBalance() {
 	}
 
 	for _, balance := range *balances {
+		if balance.Balance == 0 {
+			continue
+		}
+
 		if balance.AssetName == "USDT" {
 			SetBalance(balance.Balance)
 		} else {

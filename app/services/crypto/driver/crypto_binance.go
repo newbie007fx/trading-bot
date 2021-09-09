@@ -99,7 +99,7 @@ func (BinanceClient) convertCandleDataMap(cryptoCanldes []*binance.Kline) []mode
 func convertCreateOrderReponse(response *binance.CreateOrderResponse) models.CreateOrderResponse {
 	var totalFillPrice float32 = 0
 	for _, fill := range response.Fills {
-		totalFillPrice = convertToFloat32(fill.Price)
+		totalFillPrice += convertToFloat32(fill.Price)
 	}
 
 	return models.CreateOrderResponse{

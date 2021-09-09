@@ -11,6 +11,7 @@ import (
 )
 
 var updateVolumeChan chan bool
+var syncBalanceChan chan bool
 var checkMasterCoinChan chan bool
 var strategy trading_strategy.TradingStrategy
 
@@ -35,6 +36,10 @@ func StartCryptoWorker() {
 			updateVolumeChan <- true
 		}
 
+		if isTimeToSyncBalance(currentTime) {
+			syncBalanceChan <- true
+		}
+
 		sleep := 60 - currentTime.Second()
 		time.Sleep(time.Duration(sleep) * time.Second)
 	}
@@ -43,10 +48,12 @@ func StartCryptoWorker() {
 func startService() {
 	updateVolumeChan = make(chan bool)
 	checkMasterCoinChan = make(chan bool)
+	syncBalanceChan = make(chan bool)
 
 	go crypto.RequestCandleService()
 	go services.StartUpdateVolumeService(updateVolumeChan)
 	go trading_strategy.StartCheckMasterCoinPriceService(checkMasterCoinChan)
+	go crypto.StartSyncBalanceService(syncBalanceChan)
 
 	setStrategy()
 	strategy.InitService()
@@ -92,6 +99,16 @@ func isTimeToUpdateVolume(time time.Time) bool {
 	minute := time.Minute()
 	hour := time.Hour()
 	if (hour == 5 || hour == 17) && minute == 1 {
+		return true
+	}
+
+	return false
+}
+
+func isTimeToSyncBalance(time time.Time) bool {
+	minute := time.Minute()
+	hour := time.Hour()
+	if hour == 11 && minute == 1 {
 		return true
 	}
 

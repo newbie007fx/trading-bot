@@ -1,6 +1,8 @@
 package crypto
 
 import (
+	"fmt"
+	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto/driver"
@@ -24,11 +26,15 @@ func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 
 	totalBalance := config.Balance * candleData.Close
 	if GetMode() == "automatic" {
-		result, err := crypto.CreateSellOrder(config.Symbol, config.Balance)
+		result, err := crypto.CreateSellOrder(config.Symbol, totalBalance)
 		if err != nil {
 			return err
 		}
+
+		log.Println(fmt.Sprintf("coin sell, symbol %s, balance %f, price %f", result.Symbol, result.Quantity, result.Price))
+
 		SetBalance(balance + (result.Price * result.Quantity))
+		repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": config.Balance - result.Quantity})
 	} else {
 		SetBalance(balance + totalBalance)
 		repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": 0})
