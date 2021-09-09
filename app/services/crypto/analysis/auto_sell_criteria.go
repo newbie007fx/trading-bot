@@ -10,17 +10,21 @@ var reason string = ""
 
 func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCandleComplete bool) bool {
 	if (isCandleComplete || result.PriceChanges > 1.5) && masterCoin.Trend == models.TREND_DOWN {
-		var masterDown, resultDown, safe = false, false, false
+		var masterDown, resultDown, safe, crossLower = false, false, false, false
 		for i := len(result.Bands) - 1; i >= len(result.Bands)-2; i-- {
 			masterDown = masterCoin.Bands[i].Candle.Open > masterCoin.Bands[i].Candle.Close
 			resultDown = result.Bands[i].Candle.Open > result.Bands[i].Candle.Close
-			if !(masterDown && resultDown) && masterCoin.Bands[i].Candle.Close > float32(masterCoin.Bands[i].Lower) {
+			if !(masterDown && resultDown) {
 				safe = true
 				break
 			}
+
+			if masterCoin.Bands[i].Candle.Open >= float32(masterCoin.Bands[i].Lower) && masterCoin.Bands[i].Candle.Close < float32(masterCoin.Bands[i].Lower) {
+				crossLower = true
+			}
 		}
-		if !safe {
-			reason = "sell on up with criteria 0"
+		if !safe && crossLower {
+			reason = "sell with criteria 0"
 			return true
 		}
 	}

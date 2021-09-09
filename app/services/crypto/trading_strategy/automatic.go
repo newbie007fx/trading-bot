@@ -27,7 +27,8 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 		ats.cryptoHoldCoinPriceChan <- true
 	}
 
-	if holdCount < crypto.MaxHoldCoin && ats.isTimeToCheckAltCoinPrice(currentTime) {
+	maxHold := crypto.GetMaxHold()
+	if holdCount < maxHold && ats.isTimeToCheckAltCoinPrice(currentTime) {
 		ats.cryptoAltCoinPriceChan <- true
 	}
 

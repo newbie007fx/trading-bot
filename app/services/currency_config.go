@@ -12,7 +12,10 @@ import (
 
 func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
 	if crypto.GetMode() != "manual" {
-		crypto.Buy(currencyConfig, candleData)
+		err := crypto.Buy(currencyConfig, candleData)
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 
 	if !currencyConfig.IsOnHold {
@@ -31,7 +34,10 @@ func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.Cand
 
 func ReleaseCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
 	if crypto.GetMode() != "manual" {
-		crypto.Sell(currencyConfig, candleData)
+		err := crypto.Sell(currencyConfig, candleData)
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 
 	if currencyConfig.IsOnHold {

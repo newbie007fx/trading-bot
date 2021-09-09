@@ -25,7 +25,8 @@ func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 	condition := map[string]interface{}{"is_on_hold": true}
 	holdCount := repositories.CountNotifConfig(&condition)
 
-	coinBalance := balance / (float32(MaxHoldCoin) - float32(holdCount))
+	maxHold := GetMaxHold()
+	coinBalance := balance / (float32(maxHold) - float32(holdCount))
 	totalCoin := coinBalance / candleData.Close
 
 	if GetMode() == "automatic" {

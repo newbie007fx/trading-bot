@@ -89,6 +89,16 @@ func ProcessTeleWebhook(c echo.Context) error {
 	} else if cmd == "/sync-balance" {
 		crypto.SyncBalance()
 		responseMsg = services.GetBalance()
+	} else if cmd == "/max-hold" {
+		responseMsg = "invalid format lur"
+		if len(msgData) > 1 {
+			err := handlerMaxHold(msgData[1])
+			if err != nil {
+				responseMsg = err.Error()
+			} else {
+				responseMsg = "max hold berhasil diubah lur"
+			}
+		}
 	} else {
 		responseMsg = "command gak valid lur"
 	}
@@ -130,4 +140,13 @@ func handlerStatusCoin(symbol string) (string, error) {
 	}
 
 	return services.GetCurrencyStatus(*currencyConfig), nil
+}
+
+func handlerMaxHold(maxHold string) error {
+	result, err := strconv.ParseInt(maxHold, 10, 64)
+	if err != nil {
+		return errors.New("invalid max hold value")
+	}
+	crypto.SetMaxHold(result)
+	return nil
 }

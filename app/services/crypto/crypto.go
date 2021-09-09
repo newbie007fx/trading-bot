@@ -28,7 +28,6 @@ var canldeRequest chan CandleRequest
 var previousTimeCheck time.Time = time.Now()
 var thresholdPerMinute int64 = 130
 var counter int64 = 0
-var MaxHoldCoin int64 = 1
 
 func DispatchRequestJob(request CandleRequest) {
 	canldeRequest <- request
@@ -126,6 +125,25 @@ func GetBalance() float32 {
 func SetBalance(balance float32) error {
 	s := fmt.Sprintf("%f", balance)
 	return repositories.SetConfigByName("balance", s)
+}
+
+func GetMaxHold() int64 {
+	var maxHold int64 = 1
+
+	result := repositories.GetConfigValueByName("max_hold")
+	if result != nil {
+		result, err := strconv.ParseInt(*result, 10, 64)
+		if err == nil {
+			maxHold = result
+		}
+	}
+
+	return maxHold
+}
+
+func SetMaxHold(maxHold int64) error {
+	s := fmt.Sprintf("%d", maxHold)
+	return repositories.SetConfigByName("max_hold", s)
 }
 
 func GetMode() string {
