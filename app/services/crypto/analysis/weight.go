@@ -65,7 +65,7 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 
 	if result.Trend == models.TREND_UP {
 		if isMasterCoinReversal {
-			weight += 0.3
+			weight += 0.2
 		} else {
 			weight += 0.1
 			weightLog += fmt.Sprintf(", TrenWeight: %.2f", 0.1)
@@ -152,7 +152,8 @@ func reversalWeight(result *models.BandResult) float32 {
 		}
 	}
 
-	if countUpBand(lastFiveData[1:]) < 2 {
+	highUpNotInterested := CalculateTrends(lastFiveData[:4]) != models.TREND_UP && lastBand.Candle.Close > float32(lastBand.Upper) && lastFiveData[3].Candle.Close < lastFiveData[3].Candle.Open
+	if countUpBand(lastFiveData[1:]) < 2 || highUpNotInterested {
 		return 0.102
 	}
 
