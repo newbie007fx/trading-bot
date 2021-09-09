@@ -12,7 +12,7 @@ import (
 
 type BinanceClient struct {
 	klineService       *binance.KlinesService
-	accountService     *binance.GetAccountSnapshotService
+	accountService     *binance.GetAccountService
 	createOrderService *binance.CreateOrderService
 }
 
@@ -21,7 +21,7 @@ func (client *BinanceClient) init() {
 	secretKey := utils.Env("BINANCE_SECRET_KEY", "")
 	service := binance.NewClient(apiKey, secretKey)
 	client.klineService = service.NewKlinesService()
-	client.accountService = service.NewGetAccountSnapshotService()
+	client.accountService = service.NewGetAccountService()
 	client.createOrderService = service.NewCreateOrderService()
 }
 
@@ -41,12 +41,12 @@ func (client *BinanceClient) GetCandlesData(symbol string, limit int, endDate in
 
 func (client *BinanceClient) GetBlanceInfo() (*[]models.AssetBalance, error) {
 	assetBalances := []models.AssetBalance{}
-	account, err := client.accountService.Type("SPOT").Limit(1).Do(context.Background())
+	account, err := client.accountService.Do(context.Background())
 	if err != nil {
 		return nil, err
 	}
 
-	balances := account.Snapshot[0].Data.Balances
+	balances := account.Balances
 	for _, balance := range balances {
 		s, _ := strconv.ParseFloat(balance.Free, 32)
 		assetBalance := models.AssetBalance{AssetName: balance.Asset, Balance: float32(s)}
@@ -97,9 +97,14 @@ func (BinanceClient) convertCandleDataMap(cryptoCanldes []*binance.Kline) []mode
 }
 
 func convertCreateOrderReponse(response *binance.CreateOrderResponse) models.CreateOrderResponse {
+	var totalFillPrice float32 = 0
+	for _, fill := range response.Fills {
+		totalFillPrice = convertToFloat32(fill.Price)
+	}
+
 	return models.CreateOrderResponse{
 		Symbol:   response.Symbol,
-		Price:    convertToFloat32(response.Price),
+		Price:    totalFillPrice / float32(len(response.Fills)),
 		Quantity: convertToFloat32(response.ExecutedQuantity),
 		Status:   string(response.Status),
 	}
