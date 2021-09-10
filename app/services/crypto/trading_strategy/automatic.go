@@ -67,22 +67,27 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 
 			waitMasterCoinProcessed()
 
+			tmpMsg := ""
 			for _, coin := range holdCoin {
 				if analysis.IsNeedToSell(coin, *masterCoin, ats.isTimeToCheckAltCoinPrice(checkingTime)) {
-					msg += "coin berikut akan dijual:\n"
-					msg += crypto.GenerateMsg(coin)
-					msg += "\n"
-					msg += "alasan dijual: " + analysis.GetSellReason() + "\n\n"
+					tmpMsg = "coin berikut akan dijual:\n"
+					tmpMsg += crypto.GenerateMsg(coin)
+					tmpMsg += "\n"
+					tmpMsg += "alasan dijual: " + analysis.GetSellReason() + "\n\n"
+
+					balance := crypto.GetBalance()
+					tmpMsg += fmt.Sprintf("saldo saat ini: %f\n", balance)
 
 					currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
 					if err == nil {
 						bands := coin.Bands
 						lastBand := bands[len(bands)-1]
-						services.ReleaseCoin(*currencyConfig, lastBand.Candle)
+						err = services.ReleaseCoin(*currencyConfig, lastBand.Candle)
+						if err != nil {
+							tmpMsg = err.Error()
+						}
 					}
-
-					balance := crypto.GetBalance()
-					msg += fmt.Sprintf("saldo saat ini: %f\n", balance)
+					msg += tmpMsg
 				}
 			}
 
@@ -121,7 +126,10 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 			if err == nil {
 				bands := coin.Bands
 				lastBand := bands[len(bands)-1]
-				services.HoldCoin(*currencyConfig, lastBand.Candle)
+				err = services.HoldCoin(*currencyConfig, lastBand.Candle)
+				if err != nil {
+					msg = err.Error()
+				}
 			}
 		}
 

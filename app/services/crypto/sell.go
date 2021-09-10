@@ -28,7 +28,7 @@ func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 	if GetMode() == "automatic" {
 		result, err := crypto.CreateSellOrder(config.Symbol, config.Balance)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error when try to sell coin %s with amount %.2f, msg: %s", config.Symbol, config.Balance, err.Error())
 		}
 
 		log.Println(fmt.Sprintf("coin sell, symbol %s, balance %f, price %f", result.Symbol, result.Quantity, result.Price))

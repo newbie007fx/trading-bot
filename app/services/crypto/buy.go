@@ -34,7 +34,7 @@ func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 	if GetMode() == "automatic" {
 		result, err := crypto.CreateBuyOrder(config.Symbol, coinBalance)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error when try to buy coin %s with amount %.2f, msg: %s", config.Symbol, coinBalance, err.Error())
 		}
 
 		log.Println(fmt.Sprintf("coin buy, symbol %s, balance %f, price %f", result.Symbol, result.Quantity, result.Price))

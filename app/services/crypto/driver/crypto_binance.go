@@ -66,7 +66,7 @@ func (client *BinanceClient) CreateSellOrder(symbol string, quantity float32) (*
 
 func (client *BinanceClient) createOrder(sideType binance.SideType, symbol string, quantity float32) (*models.CreateOrderResponse, error) {
 	quoteQty := fmt.Sprintf("%f", quantity)
-	order, err := client.createOrderService.Symbol(symbol).Side(sideType).Type(binance.OrderTypeMarket).
+	order, err := client.createOrderService.Symbol(symbol).Side(sideType).Type(binance.OrderTypeMarket).TimeInForce(binance.TimeInForceTypeFOK).
 		QuoteOrderQty(quoteQty).Do(context.Background())
 	if err != nil {
 		return nil, err

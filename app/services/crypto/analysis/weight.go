@@ -148,7 +148,7 @@ func reversalWeight(result *models.BandResult) float32 {
 	trend := CalculateTrends(result.Bands[:len(result.Bands)-1])
 
 	lastFiveData := result.Bands[len(result.Bands)-5:]
-	if trend == models.TREND_UP || CalculateTrends(lastFiveData[1:]) != models.TREND_UP || result.PriceChanges < 1.5 {
+	if trend == models.TREND_UP || CalculateTrends(lastFiveData[1:]) != models.TREND_UP || result.PriceChanges < 1.25 {
 		weight = 0
 	} else {
 		weight = 0.15
@@ -169,8 +169,8 @@ func reversalWeight(result *models.BandResult) float32 {
 		}
 	}
 
-	highUpNotInterested := CalculateTrends(lastFiveData[:4]) != models.TREND_UP && lastBand.Candle.Close > float32(lastBand.Upper) && lastFiveData[3].Candle.Close < lastFiveData[3].Candle.Open
-	if countUpBand(lastFiveData[1:]) < 2 || highUpNotInterested {
+	highUpNotInterested := CalculateTrends(lastFiveData[:4]) != models.TREND_UP && lastBand.Candle.Close > float32(lastBand.Upper)
+	if countUpBand(lastFiveData[1:]) < 2 && highUpNotInterested {
 		return 0.102
 	}
 

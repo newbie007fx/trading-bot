@@ -1,6 +1,9 @@
 package analysis
 
-import "telebot-trading/app/models"
+import (
+	"fmt"
+	"telebot-trading/app/models"
+)
 
 const PATTERN_HAMMER int8 = 1
 const PATTERN_INVERTED_HAMMER int8 = 2
@@ -35,6 +38,10 @@ func GetCandlePattern(bandResult *models.BandResult) []int8 {
 
 	if bandResult.Trend == models.TREND_UP && turnPattern(bands) {
 		result = append(result, PATTERN_TURN)
+	}
+
+	if len(result) > 0 {
+		fmt.Println(result)
 	}
 
 	return result

@@ -16,6 +16,7 @@ func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.Cand
 		err := crypto.Buy(currencyConfig, candleData)
 		if err != nil {
 			log.Println(err.Error())
+			return err
 		}
 	}
 
@@ -38,6 +39,7 @@ func ReleaseCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.C
 		err := crypto.Sell(currencyConfig, candleData)
 		if err != nil {
 			log.Println(err.Error())
+			return err
 		}
 	}
 
