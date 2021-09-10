@@ -1,14 +1,14 @@
 package analysis
 
 import (
-	"fmt"
 	"telebot-trading/app/models"
 )
 
-var weightLog string = ""
+var weightLogData map[string]float32
+var longIntervalWeightLogData map[string]float32
 
 func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) float32 {
-	weightLog = ""
+	weightLogData = map[string]float32{}
 
 	highest := getHigestPrice(result.Bands)
 	lowest := getLowestPrice(result.Bands)
@@ -26,49 +26,50 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	}
 
 	weight := priceChangeWeight(result.PriceChanges)
-	weightLog += fmt.Sprintf("priceWeight: %.2f", weight)
+	weightLogData["priceWeight"] = weight
 	if weight == 0 {
 		return 0
 	}
 
 	if result.VolumeChanges > 0 {
 		volumeWight := getVolumeAverageChangesWeight(result.VolumeChanges)
-		weightLog += fmt.Sprintf(", volumeWeight: %.2f", volumeWight)
+		weightLogData["volumeWeight"] = volumeWight
 		weight += volumeWight
 	}
 
 	isMasterCoinReversal := isMasterReversal(&masterCoin)
 	positionWeight := getPositionWeight(result.Bands, result.Trend, masterCoin.Trend, false, isMasterCoinReversal)
-	weightLog += fmt.Sprintf(", positionWeight: %.2f", positionWeight)
+	weightLogData["positionWeight"] = positionWeight
 	weight += positionWeight
 
 	priceMarginWeight := getPriceMarginWithUpperBandWeight(result.Bands)
-	weightLog += fmt.Sprintf(", priceMarginWeight: %.2f", priceMarginWeight)
+	weightLogData["priceMarginWeight"] = priceMarginWeight
 	weight += priceMarginWeight
 
 	patternWeight := getPatternWeight(result)
-	weightLog += fmt.Sprintf(", patternWeight: %.2f", patternWeight)
+	weightLogData["patternWeight"] = patternWeight
 	weight += patternWeight
 
 	weightReversal := reversalWeight(result)
-	weightLog += fmt.Sprintf(", reversalWeight: %.2f", weightReversal)
+	weightLogData["reversalWeight"] = weightReversal
 	weight += weightReversal
 
 	crossBandWeight := crossBandWeight(result)
-	weightLog += fmt.Sprintf(", crossBandWeight: %.2f", crossBandWeight)
+	weightLogData["crossBandWeight"] = crossBandWeight
 	weight += crossBandWeight
 
 	if masterCoin.Trend == models.TREND_UP {
 		weight += 0.1
-		weightLog += fmt.Sprintf(", masterTrenWeight: %.2f", 0.1)
+		weightLogData["masterTrenWeight"] = 0.1
 	}
 
 	if result.Trend == models.TREND_UP {
 		if isMasterCoinReversal {
 			weight += 0.2
+			weightLogData["TrenWeight"] = 0.2
 		} else {
 			weight += 0.1
-			weightLog += fmt.Sprintf(", TrenWeight: %.2f", 0.1)
+			weightLogData["TrenWeight"] = 0.1
 		}
 	}
 
@@ -76,27 +77,43 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 }
 
 func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) float32 {
+	longIntervalWeightLogData = map[string]float32{}
 	var weight float32 = 0
 
-	weight += getPositionWeight(result.Bands, result.Trend, masterTrend, true, false)
+	positionWeight := getPositionWeight(result.Bands, result.Trend, masterTrend, true, false)
+	weight += positionWeight
+	longIntervalWeightLogData["PositionWeight"] = positionWeight
 
-	weight += getPriceMarginWithUpperBandWeight(result.Bands)
+	priceMarginWeight := getPriceMarginWithUpperBandWeight(result.Bands)
+	weight += priceMarginWeight
+	longIntervalWeightLogData["PriceMargin"] = priceMarginWeight
 
-	weight += getPatternWeight(result)
+	patternWeight := getPatternWeight(result)
+	weight += patternWeight
+	longIntervalWeightLogData["PatternWeight"] = patternWeight
 
-	weight += reversalWeight(result)
+	weightReseversal := reversalWeight(result)
+	weight += weightReseversal
+	longIntervalWeightLogData["weightReversal"] = weightReseversal
 
-	weight += crossBandWeight(result)
+	weightCrossBand := crossBandWeight(result)
+	weight += weightCrossBand
+	longIntervalWeightLogData["weightCrossBand"] = weightCrossBand
 
 	if result.Trend == models.TREND_UP {
 		weight += 0.2
+		longIntervalWeightLogData["trendWeight"] = 0.2
 	}
 
 	return weight
 }
 
-func GetWeightLog() string {
-	return weightLog
+func GetWeightLogData() map[string]float32 {
+	return weightLogData
+}
+
+func GetLongIntervalWeightLogData() map[string]float32 {
+	return longIntervalWeightLogData
 }
 
 func isMasterReversal(master *models.BandResult) bool {
@@ -232,7 +249,7 @@ func getPriceMarginWithUpperBandPercentWeight(percent float32) float32 {
 		return 0.225
 	}
 
-	return 0.3
+	return 0.2
 }
 
 func getVolumeAverageChangesWeight(volumeAverageChanges float32) float32 {

@@ -26,7 +26,7 @@ func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 
 	totalBalance := config.Balance * candleData.Close
 	if GetMode() == "automatic" {
-		result, err := crypto.CreateSellOrder(config.Symbol, totalBalance)
+		result, err := crypto.CreateSellOrder(config.Symbol, config.Balance)
 		if err != nil {
 			return err
 		}

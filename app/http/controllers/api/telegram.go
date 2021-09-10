@@ -11,6 +11,7 @@ import (
 	"telebot-trading/app/http/requests"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services"
+	"time"
 
 	"telebot-trading/app/services/crypto"
 
@@ -99,6 +100,16 @@ func ProcessTeleWebhook(c echo.Context) error {
 				responseMsg = "max hold berhasil diubah lur"
 			}
 		}
+	} else if cmd == "/weight-log" {
+		responseMsg = "invalid format lur"
+		if len(msgData) > 2 {
+			msg, err := handlerWeightLog(msgData[1], msgData[2])
+			if err != nil {
+				responseMsg = err.Error()
+			} else {
+				responseMsg = msg
+			}
+		}
 	} else {
 		responseMsg = "command gak valid lur"
 	}
@@ -149,4 +160,19 @@ func handlerMaxHold(maxHold string) error {
 	}
 	crypto.SetMaxHold(result)
 	return nil
+}
+
+func handlerWeightLog(symbol, date string) (string, error) {
+	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
+	if err != nil {
+		log.Println(err.Error())
+		return "", errors.New("invalid symbol lur")
+	}
+	i, err := strconv.ParseInt(date, 10, 64)
+	if err != nil {
+		return "", errors.New("invalid log date value")
+	}
+	tm := time.Unix(i, 0)
+	msg := services.GetWeightLog(*currencyConfig, tm)
+	return msg, nil
 }

@@ -98,8 +98,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 
 func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
-		newTime := getTimeSubstractOneSecond()
-		altCoins := checkCryptoAltCoinPrice(&newTime)
+		altCoins := checkCryptoAltCoinPrice(&checkingTime)
 		msg := ""
 		if len(altCoins) > 0 {
 
@@ -111,6 +110,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 			msg = "coin berikut telah dihold:\n"
 			msg += crypto.GenerateMsg(*coin)
 			msg += "\n"
+			msg += fmt.Sprintf("weight: %.2f", coin.Weight)
 
 			if masterCoin != nil {
 				msg += "untuk master coin:\n"
@@ -131,8 +131,10 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *models.BandResult {
 	results := []models.BandResult{}
+	timeInMilli := GetEndDate(&checkingTime)
 	for i := range altCoins {
-		altCoins[i].Weight += ats.getOnLongIntervalWeight(altCoins[i])
+		waitMasterCoinProcessed()
+		altCoins[i].Weight += crypto.GetOnLongIntervalWeight(altCoins[i], *masterCoin, timeInMilli)
 		if altCoins[i].Weight > 3.05 {
 			results = append(results, altCoins[i])
 		}
@@ -144,48 +146,4 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 		return &results[0]
 	}
 	return nil
-}
-
-func (ats *AutomaticTradingStrategy) getOnLongIntervalWeight(coin models.BandResult) float32 {
-	responseChan := make(chan crypto.CandleResponse)
-
-	newTime := getTimeSubstractOneSecond()
-	endDate := GetEndDate(&newTime)
-
-	data, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
-	if err != nil {
-		return 0
-	}
-
-	request := crypto.CandleRequest{
-		Symbol:       data.Symbol,
-		EndDate:      endDate,
-		Limit:        40,
-		Resolution:   "1h",
-		ResponseChan: responseChan,
-	}
-
-	result := crypto.MakeCryptoRequest(*data, request)
-	if result == nil {
-		return 0
-	}
-
-	waitMasterCoinProcessed()
-	trendChecking := true
-	if masterCoin.Trend == models.TREND_DOWN || (masterCoin.Trend == models.TREND_SIDEWAY && masterCoin.Direction == analysis.BAND_DOWN) {
-		lastBand := result.Bands[len(result.Bands)-1]
-		trendChecking = result.Trend == models.TREND_UP || (lastBand.Candle.Close < float32(lastBand.Upper) && result.Trend != models.TREND_DOWN)
-	}
-	weight := analysis.CalculateWeightLongInterval(result, masterCoin.Trend)
-	if analysis.IsIgnored(result) || result.Direction == analysis.BAND_DOWN || !trendChecking {
-		return 0
-	}
-
-	return weight
-}
-
-func getTimeSubstractOneSecond() time.Time {
-	cloneTime := checkingTime.Add(-1 * time.Second)
-
-	return cloneTime
 }

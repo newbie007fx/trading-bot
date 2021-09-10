@@ -9,6 +9,11 @@ import (
 var reason string = ""
 
 func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCandleComplete bool) bool {
+	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
+	if err != nil {
+		log.Panicln(err.Error())
+	}
+
 	if (isCandleComplete || result.PriceChanges > 1.5) && masterCoin.Trend == models.TREND_DOWN {
 		var masterDown, resultDown, safe, crossLower = false, false, false, false
 		for i := len(result.Bands) - 1; i >= len(result.Bands)-2; i-- {
@@ -23,15 +28,13 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 				crossLower = true
 			}
 		}
-		if !safe && crossLower {
+
+		changes := result.CurrentPrice - currencyConfig.HoldPrice
+		changesInPercent := changes / currencyConfig.HoldPrice * 100
+		if !safe && crossLower && changesInPercent >= 3 {
 			reason = "sell with criteria 0"
 			return true
 		}
-	}
-
-	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
-	if err != nil {
-		log.Panicln(err.Error())
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]

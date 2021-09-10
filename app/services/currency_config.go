@@ -7,6 +7,7 @@ import (
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto"
+	"telebot-trading/app/services/crypto/analysis"
 	"time"
 )
 
@@ -62,7 +63,7 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig) string {
 	request := crypto.CandleRequest{
 		Symbol:       config.Symbol,
 		EndDate:      timeInMili,
-		Limit:        35,
+		Limit:        40,
 		Resolution:   "15m",
 		ResponseChan: responseChan,
 	}
@@ -72,6 +73,48 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig) string {
 	msg := crypto.GenerateMsg(*result)
 	if config.IsOnHold {
 		msg += holdCoinMessage(config, result)
+	}
+
+	return msg
+}
+
+func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string {
+	timeInMili := datetime.Unix() * 1000
+
+	responseChan := make(chan crypto.CandleResponse)
+	request := crypto.CandleRequest{
+		Symbol:       config.Symbol,
+		EndDate:      timeInMili,
+		Limit:        40,
+		Resolution:   "15m",
+		ResponseChan: responseChan,
+	}
+
+	result := crypto.MakeCryptoRequest(config, request)
+
+	masterCoinConfig, _ := repositories.GetMasterCoinConfig()
+	request = crypto.CandleRequest{
+		Symbol:       masterCoinConfig.Symbol,
+		EndDate:      timeInMili,
+		Limit:        40,
+		Resolution:   "15m",
+		ResponseChan: responseChan,
+	}
+
+	masterCoin := crypto.MakeCryptoRequest(*masterCoinConfig, request)
+	weight := analysis.CalculateWeight(result, *masterCoin)
+	msg := fmt.Sprintf("weight log %s for coin %s: %.2f", datetime.Format("January 2, 2006 15:04:05"), config.Symbol, weight)
+	msg += "\n"
+	msg += "detail weight: \n"
+	for key, val := range analysis.GetWeightLogData() {
+		msg += fmt.Sprintf("%s: %.2f\n", key, val)
+	}
+	weightLongInterval := crypto.GetOnLongIntervalWeight(*result, *masterCoin, timeInMili)
+	msg += fmt.Sprintf("weight on long interval : %.2f", weightLongInterval)
+	msg += "\n"
+	msg += "detail weight: \n"
+	for key, val := range analysis.GetLongIntervalWeightLogData() {
+		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
 
 	return msg

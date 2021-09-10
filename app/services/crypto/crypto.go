@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
+	"telebot-trading/app/services/crypto/analysis"
 	"telebot-trading/app/services/crypto/driver"
 	"telebot-trading/utils"
 	"time"
@@ -155,4 +156,38 @@ func GetMode() string {
 	}
 
 	return mode
+}
+
+func GetOnLongIntervalWeight(coin models.BandResult, masterCoinLocal models.BandResult, timeInMili int64) float32 {
+	responseChan := make(chan CandleResponse)
+
+	data, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
+	if err != nil {
+		return 0
+	}
+
+	request := CandleRequest{
+		Symbol:       data.Symbol,
+		EndDate:      timeInMili,
+		Limit:        40,
+		Resolution:   "1h",
+		ResponseChan: responseChan,
+	}
+
+	result := MakeCryptoRequest(*data, request)
+	if result == nil {
+		return 0
+	}
+
+	trendChecking := true
+	if masterCoinLocal.Trend == models.TREND_DOWN || (masterCoinLocal.Trend == models.TREND_SIDEWAY && masterCoinLocal.Direction == analysis.BAND_DOWN) {
+		lastBand := result.Bands[len(result.Bands)-1]
+		trendChecking = result.Trend == models.TREND_UP || (lastBand.Candle.Close < float32(lastBand.Upper) && result.Trend != models.TREND_DOWN)
+	}
+	weight := analysis.CalculateWeightLongInterval(result, masterCoinLocal.Trend)
+	if analysis.IsIgnored(result) || result.Direction == analysis.BAND_DOWN || !trendChecking {
+		return 0
+	}
+
+	return weight
 }
