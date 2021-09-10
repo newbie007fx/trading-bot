@@ -38,7 +38,7 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	}
 
 	isMasterCoinReversal := isMasterReversal(&masterCoin)
-	positionWeight := getPositionWeight(result.Bands, result.Trend, masterCoin.Trend, false, isMasterCoinReversal)
+	positionWeight := getPositionWeight(result.Bands, masterCoin.Trend, false, isMasterCoinReversal)
 	weightLogData["positionWeight"] = positionWeight
 	weight += positionWeight
 
@@ -80,7 +80,7 @@ func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) fl
 	longIntervalWeightLogData = map[string]float32{}
 	var weight float32 = 0
 
-	positionWeight := getPositionWeight(result.Bands, result.Trend, masterTrend, true, false)
+	positionWeight := getPositionWeight(result.Bands, masterTrend, true, false)
 	weight += positionWeight
 	longIntervalWeightLogData["PositionWeight"] = positionWeight
 
@@ -270,9 +270,11 @@ func getVolumeAverageChangesWeight(volumeAverageChanges float32) float32 {
 	return 0
 }
 
-func getPositionWeight(bands []models.Band, trend int8, masterTrend int8, isLongInterval bool, isMasterCoinReversal bool) float32 {
+func getPositionWeight(bands []models.Band, masterTrend int8, isLongInterval bool, isMasterCoinReversal bool) float32 {
 	lastBand := bands[len(bands)-1]
 	secondLastBand := bands[len(bands)-2]
+
+	lastFiveTrend := CalculateTrends(bands[len(bands)-5:])
 
 	// low hight dibawah lower
 	if lastBand.Candle.Hight < float32(lastBand.Lower) {
@@ -304,35 +306,35 @@ func getPositionWeight(bands []models.Band, trend int8, masterTrend int8, isLong
 
 	// low hight dibawah SMA
 	if lastBand.Candle.Hight < float32(lastBand.SMA) {
-		if trend != models.TREND_DOWN {
+		if lastFiveTrend == models.TREND_UP {
 			return 0.325
 		}
 	}
 
 	// hight menyentuh SMA tp close dibaawh SMA
 	if lastBand.Candle.Hight >= float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA) {
-		if trend != models.TREND_DOWN {
+		if lastFiveTrend == models.TREND_UP {
 			return 0.225
 		}
 	}
 
 	// close menyentuh SMA tp open dibaawh SMA
 	if lastBand.Candle.Close >= float32(lastBand.SMA) && lastBand.Candle.Open < float32(lastBand.SMA) {
-		if trend != models.TREND_DOWN {
+		if lastFiveTrend == models.TREND_UP {
 			return 0.4
 		}
 	}
 
 	// open menyentuh SMA tp low dibaawh SMA
 	if lastBand.Candle.Open >= float32(lastBand.SMA) && lastBand.Candle.Low < float32(lastBand.SMA) {
-		if trend != models.TREND_DOWN {
+		if lastFiveTrend == models.TREND_UP {
 			return 0.475
 		}
 	}
 
 	// low hight dibawah Upper
 	if lastBand.Candle.Hight < float32(lastBand.Upper) {
-		if trend != models.TREND_DOWN {
+		if lastFiveTrend == models.TREND_UP {
 			return 0.275
 		}
 	}

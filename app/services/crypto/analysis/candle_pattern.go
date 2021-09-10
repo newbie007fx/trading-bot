@@ -16,24 +16,26 @@ func GetCandlePattern(bandResult *models.BandResult) []int8 {
 	bands := bandResult.Bands
 	result := []int8{}
 
-	if hammer(bands) {
-		result = append(result, PATTERN_HAMMER)
-	}
+	if bandResult.Trend == models.TREND_DOWN {
+		if hammer(bands) {
+			result = append(result, PATTERN_HAMMER)
+		}
 
-	if invertedHammer(bands) {
-		result = append(result, PATTERN_INVERTED_HAMMER)
-	}
+		if invertedHammer(bands) {
+			result = append(result, PATTERN_INVERTED_HAMMER)
+		}
 
-	if bullishHarami(bands) {
-		result = append(result, PATTERN_BULLISH_HARAMI)
-	}
+		if bullishHarami(bands) {
+			result = append(result, PATTERN_BULLISH_HARAMI)
+		}
 
-	if dragonflyDoji(bands) {
-		result = append(result, PATTERN_DRAGONFLY_DOJI)
-	}
+		if dragonflyDoji(bands) {
+			result = append(result, PATTERN_DRAGONFLY_DOJI)
+		}
 
-	if threeWhiteSoldiers(bands) {
-		result = append(result, PATTERN_THREE_WHITE_SOLDIERS)
+		if threeWhiteSoldiers(bands) {
+			result = append(result, PATTERN_THREE_WHITE_SOLDIERS)
+		}
 	}
 
 	if bandResult.Trend == models.TREND_UP && turnPattern(bands) {
@@ -91,6 +93,11 @@ func bullishHarami(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	secondLastBand := bands[len(bands)-2]
 	if secondLastBand.Candle.Open > secondLastBand.Candle.Close {
+		differenceSecondLast := secondLastBand.Candle.Open - secondLastBand.Candle.Close
+		differenceLast := lastBand.Candle.Close - lastBand.Candle.Open
+		if differenceLast > differenceSecondLast {
+			return false
+		}
 		return lastBand.Candle.Low > secondLastBand.Candle.Close || secondLastBand.Candle.Hight < secondLastBand.Candle.Open
 	}
 
