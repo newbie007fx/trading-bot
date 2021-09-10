@@ -29,19 +29,20 @@ func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 
 	maxHold := GetMaxHold()
 	coinBalance := balance / (float32(maxHold) - float32(holdCount))
-	totalCoin := coinBalance / candleData.Close
 
 	if GetMode() == "automatic" {
 		result, err := crypto.CreateBuyOrder(config.Symbol, coinBalance)
 		if err != nil {
-			return fmt.Errorf("Error when try to buy coin %s with amount %.2f, msg: %s", config.Symbol, coinBalance, err.Error())
+			return fmt.Errorf("error when try to buy coin %s with amount %.2f, msg: %s", config.Symbol, coinBalance, err.Error())
 		}
 
-		log.Println(fmt.Sprintf("coin buy, symbol %s, balance %f, price %f", result.Symbol, result.Quantity, result.Price))
+		log.Println(fmt.Sprintf("coin buy, symbol %s, balance %f, price %f, status %s", result.Symbol, result.Quantity, result.Price, result.Status))
 
 		repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": config.Balance + result.Quantity, "hold_price": result.Price})
 		SetBalance(balance - (result.Quantity * result.Price))
 	} else {
+		totalCoin := coinBalance / candleData.Close
+
 		SetBalance(balance - (totalCoin * candleData.Close))
 		repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": totalCoin, "hold_price": candleData.Close})
 	}
