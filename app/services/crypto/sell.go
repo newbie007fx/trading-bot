@@ -26,7 +26,7 @@ func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 
 	totalBalance := config.Balance * candleData.Close
 	if GetMode() == "automatic" {
-		result, err := crypto.CreateSellOrder(config.Symbol, config.Balance)
+		result, err := crypto.CreateSellOrder(config.Symbol, (totalBalance - 0.1))
 		if err != nil {
 			log.Println(err.Error())
 			return fmt.Errorf("error when try to sell coin %s with amount %.2f", config.Symbol, config.Balance)
@@ -36,7 +36,7 @@ func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 
 		SetBalance(balance + (result.Price * result.Quantity))
 		repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": config.Balance - result.Quantity})
-		SyncBalance()
+		RequestSyncBalance()
 	} else {
 		SetBalance(balance + totalBalance)
 		repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": 0})

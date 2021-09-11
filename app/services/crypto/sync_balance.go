@@ -6,10 +6,17 @@ import (
 	"telebot-trading/app/services/crypto/driver"
 )
 
-func StartSyncBalanceService(syncBalanceChan chan bool) {
+var syncBalanceChan chan bool
+
+func StartSyncBalanceService() {
+	syncBalanceChan = make(chan bool, 10)
 	for <-syncBalanceChan {
 		SyncBalance()
 	}
+}
+
+func RequestSyncBalance() {
+	syncBalanceChan <- true
 }
 
 func SyncBalance() {

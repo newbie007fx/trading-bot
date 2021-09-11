@@ -26,6 +26,9 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	}
 
 	weight := priceChangeWeight(result.PriceChanges)
+	if weight == 0 {
+		return 0
+	}
 	weightLogData["priceWeight"] = weight
 
 	if result.VolumeChanges > 0 {
@@ -136,7 +139,7 @@ func priceChangeWeight(priceChange float32) float32 {
 		return 0.1
 	}
 
-	return 0.02
+	return 0
 }
 
 func reversalWeight(result *models.BandResult) float32 {
