@@ -114,8 +114,8 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 			msg = "coin berikut telah dihold:\n"
 			msg += crypto.GenerateMsg(*coin)
+			msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
 			msg += "\n"
-			msg += fmt.Sprintf("weight: %.2f", coin.Weight)
 
 			if masterCoin != nil {
 				msg += "untuk master coin:\n"

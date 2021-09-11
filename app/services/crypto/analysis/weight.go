@@ -38,7 +38,7 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	}
 
 	isMasterCoinReversal := isMasterReversal(&masterCoin)
-	positionWeight := getPositionWeight(result.Bands, result.Trend, masterCoin.Trend, false, isMasterCoinReversal)
+	positionWeight := getPositionWeight(result.Bands, result.Trend, masterCoin.Trend, false, isMasterCoinReversal, masterCoin.Direction)
 	weightLogData["positionWeight"] = positionWeight
 	weight += positionWeight
 
@@ -79,7 +79,7 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) float32 {
 	longIntervalWeightLogData = map[string]float32{}
 
-	positionWeight := getPositionWeight(result.Bands, result.Trend, masterTrend, true, false)
+	positionWeight := getPositionWeight(result.Bands, result.Trend, masterTrend, true, false, BAND_DOWN)
 	weight := positionWeight
 	longIntervalWeightLogData["PositionWeight"] = positionWeight
 
@@ -269,7 +269,7 @@ func getVolumeAverageChangesWeight(volumeAverageChanges float32) float32 {
 	return 0
 }
 
-func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInterval bool, isMasterCoinReversal bool) float32 {
+func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInterval bool, isMasterCoinReversal bool, masterDirection int8) float32 {
 	lastBand := bands[len(bands)-1]
 	secondLastBand := bands[len(bands)-2]
 
@@ -338,7 +338,7 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 		}
 	}
 
-	if (masterTrend != models.TREND_DOWN || isMasterCoinReversal) && !isLongInterval {
+	if ((masterTrend != models.TREND_DOWN && masterDirection == BAND_UP) || isMasterCoinReversal) && !isLongInterval {
 
 		// hight menyentuh Upper tp close dibaawh Upper
 		if lastBand.Candle.Hight >= float32(lastBand.Upper) && lastBand.Candle.Close < float32(lastBand.Upper) {
