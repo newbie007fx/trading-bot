@@ -122,7 +122,7 @@ func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
 		percent = (firstPointValue / lastPointValue) * 100
 	}
 
-	if percent >= 5.1 {
+	if percent >= 4.7 {
 		return models.TREND_SIDEWAY
 	}
 

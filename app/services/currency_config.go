@@ -105,7 +105,8 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 
 	masterCoin := crypto.MakeCryptoRequest(*masterCoinConfig, request)
 	weight := analysis.CalculateWeight(result, *masterCoin)
-	msg := fmt.Sprintf("weight log %s for coin %s: %.2f", datetime.Format("January 2, 2006 15:04:05"), config.Symbol, weight)
+	msg := crypto.GenerateMsg(*result)
+	msg += fmt.Sprintf("\nweight log %s for coin %s: %.2f", datetime.Format("January 2, 2006 15:04:05"), config.Symbol, weight)
 	msg += "\n"
 	msg += "detail weight: \n"
 	for key, val := range analysis.GetWeightLogData() {
