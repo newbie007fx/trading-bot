@@ -26,6 +26,7 @@ func ServeCommand() *cobra.Command {
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		go crypto.RequestCandleService()
+		go crypto.StartSyncBalanceService()
 		port, _ := cmd.Flags().GetInt("port")
 		server := httpserver.GetRouteService()
 		server.Start(port)
