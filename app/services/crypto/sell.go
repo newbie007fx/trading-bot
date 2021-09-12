@@ -52,6 +52,8 @@ func sellWithRetry(symbol string, baseBalance float32) (result *models.CreateOrd
 		result, err = cryptoDriver.CreateSellOrder(symbol, (totalBalance))
 		if err != nil {
 			log.Println("error when try to sell coin, msg: ", err.Error())
+		} else {
+			break
 		}
 	}
 

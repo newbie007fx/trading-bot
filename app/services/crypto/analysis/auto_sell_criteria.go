@@ -244,16 +244,6 @@ func countDownCandleFromHighest(bands []models.Band) int {
 	return count
 }
 
-func isLastThreeBandDown(bands []models.Band) bool {
-	for _, band := range bands[len(bands)-4 : len(bands)-1] {
-		if band.Candle.Open < band.Candle.Close {
-			return false
-		}
-	}
-
-	return true
-}
-
 func GetSellReason() string {
 	return reason
 }
