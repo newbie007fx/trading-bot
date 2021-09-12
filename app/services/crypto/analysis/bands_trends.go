@@ -9,12 +9,17 @@ func CalculateTrends(data []models.Band) int8 {
 	highestIndex, lowestIndex := 0, 0
 	thirtyPercent := float64(len(data)) * float64(19) / float64(100)
 	limit := int(math.Floor(thirtyPercent))
+	if limit < 1 {
+		limit = 1
+	}
 
 	var totalFirstData float32 = 0
 	var totalLastData float32 = 0
 	var totalMidleData float32 = 0
 	var totalBaseLineFirst float32 = 0
 	var totalBaseLineMidle float32 = 0
+
+	var midle_counter int = 0
 
 	middleIndex := (len(data) / 2) - 1
 	for i, val := range data {
@@ -34,6 +39,7 @@ func CalculateTrends(data []models.Band) int8 {
 		if i > middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
 			totalMidleData += val.Candle.Close
 			totalBaseLineMidle += (val.Candle.Open + val.Candle.Close) / 2
+			midle_counter++
 		}
 
 		if i >= len(data)-limit {
@@ -51,9 +57,9 @@ func CalculateTrends(data []models.Band) int8 {
 
 	firstAvg := totalFirstData / float32(limit)
 	lastAvg := totalLastData / float32(limit)
-	midleAvg := totalMidleData / float32(limit)
+	midleAvg := totalMidleData / float32(midle_counter)
 	baseLinePointFirst := totalBaseLineFirst / float32(limit)
-	baseLinePointMidle := totalBaseLineMidle / float32(limit)
+	baseLinePointMidle := totalBaseLineMidle / float32(midle_counter)
 
 	firstToMidleTrend := getTrend(baseLinePointFirst, firstAvg, midleAvg)
 	midleToLastTrend := getTrend(baseLinePointMidle, midleAvg, lastAvg)
@@ -122,7 +128,7 @@ func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
 		percent = (firstPointValue / lastPointValue) * 100
 	}
 
-	if percent >= 4.6 {
+	if percent >= 4.7 {
 		return models.TREND_SIDEWAY
 	}
 
