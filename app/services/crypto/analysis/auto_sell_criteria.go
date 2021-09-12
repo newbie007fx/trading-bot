@@ -14,7 +14,10 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		log.Panicln(err.Error())
 	}
 
-	if (isCandleComplete || result.PriceChanges > 1.5) && masterCoin.Trend == models.TREND_DOWN {
+	changes := result.CurrentPrice - currencyConfig.HoldPrice
+	changesInPercent := changes / currencyConfig.HoldPrice * 100
+
+	if (isCandleComplete || result.PriceChanges > 1.3) && masterCoin.Trend == models.TREND_DOWN {
 		var masterDown, resultDown, safe, crossLower = false, false, false, false
 		for i := len(result.Bands) - 1; i >= len(result.Bands)-2; i-- {
 			masterDown = masterCoin.Bands[i].Candle.Open > masterCoin.Bands[i].Candle.Close
@@ -29,8 +32,6 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			}
 		}
 
-		changes := result.CurrentPrice - currencyConfig.HoldPrice
-		changesInPercent := changes / currencyConfig.HoldPrice * 100
 		if !safe && crossLower && changesInPercent >= 3 {
 			reason = "sell with criteria 0"
 			return true
@@ -40,6 +41,10 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 	lastBand := result.Bands[len(result.Bands)-1]
 	if currencyConfig.HoldPrice > result.CurrentPrice {
 		return sellOnDown(result, currencyConfig, lastBand)
+	}
+
+	if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN {
+		return true
 	}
 
 	return sellOnUp(result, currencyConfig, lastBand, isCandleComplete)
@@ -58,7 +63,6 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 	lastFiveData := result.Bands[len(result.Bands)-5 : len(result.Bands)]
 
 	specialTolerance := changesInPercent > 10 && highestHightChangePercent <= 70
-
 	if !specialTolerance {
 		if changesInPercent > 3.5 && !isCandleComplete && highestChangePercent > 55 && countDownCandleFromHighest(result.Bands) < 4 {
 			return false

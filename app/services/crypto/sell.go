@@ -10,14 +10,14 @@ import (
 )
 
 func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
-	crypto := driver.GetCrypto()
+	cryptoDriver := driver.GetCrypto()
 	balance := GetBalance()
 
 	if candleData == nil {
 		currentTime := time.Now()
 		timeInMili := currentTime.Unix() * 1000
 
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, timeInMili, "15m")
+		candlesData, err := cryptoDriver.GetCandlesData(config.Symbol, 1, timeInMili, "15m")
 		if err != nil {
 			return err
 		}
@@ -26,9 +26,8 @@ func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 
 	totalBalance := config.Balance * candleData.Close
 	if GetMode() == "automatic" {
-		result, err := crypto.CreateSellOrder(config.Symbol, (totalBalance - 0.1))
+		result, err := sellWithRetry(config.Symbol, totalBalance)
 		if err != nil {
-			log.Println(err.Error())
 			return fmt.Errorf("error when try to sell coin %s with amount %.2f", config.Symbol, config.Balance)
 		}
 
@@ -43,4 +42,18 @@ func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 	}
 
 	return nil
+}
+
+func sellWithRetry(symbol string, baseBalance float32) (result *models.CreateOrderResponse, err error) {
+	cryptoDriver := driver.GetCrypto()
+	totalBalance := baseBalance
+	for i := 0; i < 3; i++ {
+		totalBalance -= 0.1
+		result, err = cryptoDriver.CreateSellOrder(symbol, (totalBalance))
+		if err != nil {
+			log.Println("error when try to sell coin, msg: ", err.Error())
+		}
+	}
+
+	return result, err
 }
