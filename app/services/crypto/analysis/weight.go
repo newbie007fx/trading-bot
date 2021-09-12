@@ -36,12 +36,6 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	}
 	weightLogData["priceWeight"] = weight
 
-	if result.VolumeChanges > 0 {
-		volumeWight := getVolumeAverageChangesWeight(result.VolumeChanges)
-		weightLogData["volumeWeight"] = volumeWight
-		weight += volumeWight
-	}
-
 	isMasterCoinReversal := isMasterReversal(&masterCoin)
 	positionWeight := getPositionWeight(result.Bands, result.Trend, masterCoin.Trend, false, isMasterCoinReversal, masterCoin.Direction)
 	weightLogData["positionWeight"] = positionWeight
@@ -251,24 +245,6 @@ func getPriceMarginWithUpperBandPercentWeight(percent float32) float32 {
 	}
 
 	return 0.2
-}
-
-func getVolumeAverageChangesWeight(volumeAverageChanges float32) float32 {
-	if volumeAverageChanges >= 101 {
-		return 0.35
-	} else if volumeAverageChanges >= 81 {
-		return 0.3
-	} else if volumeAverageChanges >= 61 {
-		return 0.25
-	} else if volumeAverageChanges >= 41 {
-		return 0.2
-	} else if volumeAverageChanges >= 21 {
-		return 0.15
-	} else if volumeAverageChanges >= 1 {
-		return 0.1
-	}
-
-	return 0.05
 }
 
 func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInterval bool, isMasterCoinReversal bool, masterDirection int8) float32 {
