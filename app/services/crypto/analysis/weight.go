@@ -153,7 +153,7 @@ func reversalWeight(result *models.BandResult) float32 {
 
 	lastFiveData := result.Bands[len(result.Bands)-5:]
 	if trend == models.TREND_UP || CalculateTrends(lastFiveData[1:]) != models.TREND_UP || result.PriceChanges < 1.25 {
-		weight = 0
+		weight = 0.05
 	} else {
 		weight = 0.13
 	}
@@ -169,7 +169,7 @@ func reversalWeight(result *models.BandResult) float32 {
 		}
 
 		if result.Position == models.BELOW_SMA && lastBand.Candle.Open >= float32(lastBand.Lower) {
-			return 0.101
+			return 0.11
 		}
 	}
 
@@ -185,11 +185,11 @@ func reversalWeight(result *models.BandResult) float32 {
 	isBandCrossWithSMA := firstBand.Candle.Low <= float32(firstBand.SMA) || secondBand.Candle.Low <= float32(secondBand.SMA) || thirdBand.Candle.Low <= float32(thirdBand.SMA)
 	isBandCrossWithUpper := firstBand.Candle.Low <= float32(firstBand.Upper) || secondBand.Candle.Low <= float32(secondBand.Upper) || thirdBand.Candle.Low <= float32(thirdBand.Upper)
 	if isBandCrossWithLower && float64(lastFiveData[4].Candle.Low) > lastFiveData[4].Lower {
-		weight += 0.2
-	} else if isBandCrossWithSMA && float64(lastFiveData[4].Candle.Low) > lastFiveData[4].SMA {
-		weight += 0.15
-	} else if isBandCrossWithUpper && float64(lastFiveData[4].Candle.Low) > lastFiveData[4].Upper {
 		weight += 0.1
+	} else if isBandCrossWithSMA && float64(lastFiveData[4].Candle.Low) > lastFiveData[4].SMA {
+		weight += 0.08
+	} else if isBandCrossWithUpper && float64(lastFiveData[4].Candle.Low) > lastFiveData[4].Upper {
+		weight += 0.06
 	}
 
 	return weight
