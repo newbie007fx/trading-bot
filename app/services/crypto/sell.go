@@ -11,7 +11,7 @@ import (
 
 func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) error {
 	cryptoDriver := driver.GetCrypto()
-	balance := GetBalance()
+	balance := GetBalanceFromConfig()
 
 	if candleData == nil {
 		currentTime := time.Now()

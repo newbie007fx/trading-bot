@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"telebot-trading/app/services/crypto"
+	"telebot-trading/app/services/external"
 
 	"github.com/labstack/echo/v4"
 )
@@ -35,7 +36,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 	} else if cmd == "/hold" {
 		responseMsg = "invalid format lur"
 		if len(msgData) > 1 {
-			balance := crypto.GetBalance()
+			balance := crypto.GetBalanceFromConfig()
 			err := handlerHoldCoin(msgData[1])
 			if err != nil {
 				responseMsg = err.Error()
@@ -50,7 +51,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 			if err != nil {
 				responseMsg = err.Error()
 			} else {
-				balance := crypto.GetBalance()
+				balance := crypto.GetBalanceFromConfig()
 				responseMsg = fmt.Sprintf("release berhasil lur, saldo: %f", balance)
 			}
 		}
@@ -86,10 +87,10 @@ func ProcessTeleWebhook(c echo.Context) error {
 			}
 		}
 	} else if cmd == "/balance" {
-		responseMsg = services.GetBalance()
+		responseMsg = crypto.GetBalances()
 	} else if cmd == "/sync-balance" {
 		crypto.SyncBalance()
-		responseMsg = services.GetBalance()
+		responseMsg = crypto.GetBalances()
 	} else if cmd == "/max-hold" {
 		responseMsg = "invalid format lur"
 		if len(msgData) > 1 {
@@ -114,7 +115,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 		responseMsg = "command gak valid lur"
 	}
 
-	err := services.SendToTelegram(req.Message.Chat.ID, responseMsg)
+	err := external.SendToTelegram(req.Message.Chat.ID, responseMsg)
 	if err != nil {
 		log.Println(err)
 	}
@@ -130,7 +131,7 @@ func handlerHoldCoin(symbol string) error {
 		return errors.New("invalid symbol lur")
 	}
 
-	return services.HoldCoin(*currencyConfig, nil)
+	return crypto.HoldCoin(*currencyConfig, nil)
 }
 
 func handlerReleaseCoin(symbol string) error {
@@ -140,7 +141,7 @@ func handlerReleaseCoin(symbol string) error {
 		return errors.New("invalid symbol lur")
 	}
 
-	return services.ReleaseCoin(*currencyConfig, nil)
+	return crypto.ReleaseCoin(*currencyConfig, nil)
 }
 
 func handlerStatusCoin(symbol string) (string, error) {
@@ -150,7 +151,7 @@ func handlerStatusCoin(symbol string) (string, error) {
 		return "", errors.New("invalid symbol lur")
 	}
 
-	return services.GetCurrencyStatus(*currencyConfig), nil
+	return crypto.GetCurrencyStatus(*currencyConfig), nil
 }
 
 func handlerMaxHold(maxHold string) error {
@@ -173,6 +174,6 @@ func handlerWeightLog(symbol, date string) (string, error) {
 		return "", errors.New("invalid log date value")
 	}
 	tm := time.Unix(i, 0)
-	msg := services.GetWeightLog(*currencyConfig, tm)
+	msg := crypto.GetWeightLog(*currencyConfig, tm)
 	return msg, nil
 }

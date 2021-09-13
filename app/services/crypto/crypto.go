@@ -109,7 +109,7 @@ func GetWalletBalance() []map[string]interface{} {
 	return data
 }
 
-func GetBalance() float32 {
+func GetBalanceFromConfig() float32 {
 	var balance float32 = 0
 
 	result := repositories.GetConfigValueByName("balance")

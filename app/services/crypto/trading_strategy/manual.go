@@ -73,7 +73,7 @@ func (ManualTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan 
 			}
 		}
 
-		sendNotif(msg)
+		crypto.SendNotif(msg)
 	}
 }
 
@@ -98,7 +98,7 @@ func (ManualTradingStrategy) startCheckAltCoinPriceService(checkPriceChan chan b
 			}
 		}
 
-		sendNotif(msg)
+		crypto.SendNotif(msg)
 	}
 }
 

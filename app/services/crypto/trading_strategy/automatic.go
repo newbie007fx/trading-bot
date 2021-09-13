@@ -5,7 +5,6 @@ import (
 	"sort"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
-	"telebot-trading/app/services"
 	"telebot-trading/app/services/crypto"
 	"telebot-trading/app/services/crypto/analysis"
 	"time"
@@ -70,21 +69,21 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 			tmpMsg := ""
 			for _, coin := range holdCoin {
 				if analysis.IsNeedToSell(coin, *masterCoin, ats.isTimeToCheckAltCoinPrice(checkingTime)) {
-					tmpMsg = "coin berikut akan dijual:\n"
-					tmpMsg += crypto.GenerateMsg(coin)
-					tmpMsg += "\n"
-					tmpMsg += "alasan dijual: " + analysis.GetSellReason() + "\n\n"
-
-					balance := crypto.GetBalance()
-					tmpMsg += fmt.Sprintf("saldo saat ini: %f\n", balance)
-
 					currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
 					if err == nil {
 						bands := coin.Bands
 						lastBand := bands[len(bands)-1]
-						err = services.ReleaseCoin(*currencyConfig, lastBand.Candle)
+						err = crypto.ReleaseCoin(*currencyConfig, lastBand.Candle)
 						if err != nil {
 							tmpMsg = err.Error()
+						} else {
+							tmpMsg = "coin berikut akan dijual:\n"
+							tmpMsg += crypto.HoldCoinMessage(*currencyConfig, &coin)
+							tmpMsg += "\n"
+							tmpMsg += "alasan dijual: " + analysis.GetSellReason() + "\n\n"
+
+							balance := crypto.GetBalanceFromConfig()
+							tmpMsg += fmt.Sprintf("saldo saat ini: %f\n", balance)
 						}
 					}
 					msg += tmpMsg
@@ -97,7 +96,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 			}
 		}
 
-		sendNotif(msg)
+		crypto.SendNotif(msg)
 	}
 }
 
@@ -112,28 +111,30 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 				continue
 			}
 
-			msg = "coin berikut telah dihold:\n"
-			msg += crypto.GenerateMsg(*coin)
-			msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
-			msg += "\n"
-
-			if masterCoin != nil {
-				msg += "untuk master coin:\n"
-				msg += crypto.GenerateMsg(*masterCoin)
-			}
-
 			currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
 			if err == nil {
 				bands := coin.Bands
 				lastBand := bands[len(bands)-1]
-				err = services.HoldCoin(*currencyConfig, lastBand.Candle)
+				err = crypto.HoldCoin(*currencyConfig, lastBand.Candle)
 				if err != nil {
 					msg = err.Error()
+				} else {
+					msg = "coin berikut telah dihold:\n"
+					msg += crypto.GenerateMsg(*coin)
+					msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
+					msg += "\n"
+
+					if masterCoin != nil {
+						msg += "untuk master coin:\n"
+						msg += crypto.GenerateMsg(*masterCoin)
+					}
+
+					sendHoldMsg(coin)
 				}
 			}
 		}
 
-		sendNotif(msg)
+		crypto.SendNotif(msg)
 	}
 }
 
@@ -154,4 +155,12 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 		return &results[0]
 	}
 	return nil
+}
+
+func sendHoldMsg(result *models.BandResult) {
+	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
+	if err != nil {
+		msg := crypto.HoldCoinMessage(*currencyConfig, result)
+		crypto.SendNotifWithDelay(msg, 300)
+	}
 }

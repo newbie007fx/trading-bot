@@ -1,4 +1,4 @@
-package services
+package crypto
 
 import (
 	"errors"
@@ -6,14 +6,13 @@ import (
 	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
-	"telebot-trading/app/services/crypto"
 	"telebot-trading/app/services/crypto/analysis"
 	"time"
 )
 
 func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
-	if crypto.GetMode() != "manual" {
-		err := crypto.Buy(currencyConfig, candleData)
+	if GetMode() != "manual" {
+		err := Buy(currencyConfig, candleData)
 		if err != nil {
 			log.Println(err.Error())
 			return err
@@ -35,8 +34,8 @@ func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.Cand
 }
 
 func ReleaseCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
-	if crypto.GetMode() != "manual" {
-		err := crypto.Sell(currencyConfig, candleData)
+	if GetMode() != "manual" {
+		err := Sell(currencyConfig, candleData)
 		if err != nil {
 			log.Println(err.Error())
 			return err
@@ -61,8 +60,8 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig) string {
 	currentTime := time.Now()
 	timeInMili := currentTime.Unix() * 1000
 
-	responseChan := make(chan crypto.CandleResponse)
-	request := crypto.CandleRequest{
+	responseChan := make(chan CandleResponse)
+	request := CandleRequest{
 		Symbol:       config.Symbol,
 		EndDate:      timeInMili,
 		Limit:        40,
@@ -70,11 +69,11 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig) string {
 		ResponseChan: responseChan,
 	}
 
-	result := crypto.MakeCryptoRequest(config, request)
+	result := MakeCryptoRequest(config, request)
 
-	msg := crypto.GenerateMsg(*result)
+	msg := GenerateMsg(*result)
 	if config.IsOnHold {
-		msg += holdCoinMessage(config, result)
+		msg += HoldCoinMessage(config, result)
 	}
 
 	return msg
@@ -83,8 +82,8 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig) string {
 func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 	timeInMili := datetime.Unix() * 1000
 
-	responseChan := make(chan crypto.CandleResponse)
-	request := crypto.CandleRequest{
+	responseChan := make(chan CandleResponse)
+	request := CandleRequest{
 		Symbol:       config.Symbol,
 		EndDate:      timeInMili,
 		Limit:        40,
@@ -92,10 +91,10 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		ResponseChan: responseChan,
 	}
 
-	result := crypto.MakeCryptoRequest(config, request)
+	result := MakeCryptoRequest(config, request)
 
 	masterCoinConfig, _ := repositories.GetMasterCoinConfig()
-	request = crypto.CandleRequest{
+	request = CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
 		EndDate:      timeInMili,
 		Limit:        40,
@@ -103,16 +102,16 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		ResponseChan: responseChan,
 	}
 
-	masterCoin := crypto.MakeCryptoRequest(*masterCoinConfig, request)
+	masterCoin := MakeCryptoRequest(*masterCoinConfig, request)
 	weight := analysis.CalculateWeight(result, *masterCoin)
-	msg := crypto.GenerateMsg(*result)
+	msg := GenerateMsg(*result)
 	msg += fmt.Sprintf("\nweight log %s for coin %s: %.2f", datetime.Format("January 2, 2006 15:04:05"), config.Symbol, weight)
 	msg += "\n"
 	msg += "detail weight: \n"
 	for key, val := range analysis.GetWeightLogData() {
 		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
-	weightLongInterval := crypto.GetOnLongIntervalWeight(*result, *masterCoin, timeInMili)
+	weightLongInterval := GetOnLongIntervalWeight(*result, *masterCoin, timeInMili)
 	msg += fmt.Sprintf("weight on long interval : %.2f", weightLongInterval)
 	msg += "\n"
 	msg += "detail weight: \n"
@@ -123,36 +122,21 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	return msg
 }
 
-func GetBalance() string {
+func GetBalances() string {
 	msg := "Balance status: \nWallet Balance:\n"
 	format := "Symbol: <b>%s</b> \nBalance: <b>%f</b> \nEstimation In USDT: <b>%f</b> \n"
 
-	walletBalances := crypto.GetWalletBalance()
+	walletBalances := GetWalletBalance()
 	var totalWalletBalance float32 = 0
 	for _, walb := range walletBalances {
 		msg += fmt.Sprintf(format, walb["symbol"], walb["balance"], walb["estimation_usdt"])
 		totalWalletBalance += walb["estimation_usdt"].(float32)
 	}
 
-	currentBalance := crypto.GetBalance()
+	currentBalance := GetBalanceFromConfig()
 	msg += fmt.Sprintf("\n\nCurrent Balance: <b>%f</b>", currentBalance)
 
 	msg += fmt.Sprintf("\n\nTotal Estimation Balance: <b>%f</b>", currentBalance+totalWalletBalance)
-
-	return msg
-}
-
-func holdCoinMessage(config models.CurrencyNotifConfig, result *models.BandResult) string {
-	var changes float32
-
-	if config.HoldPrice < result.CurrentPrice {
-		changes = (result.CurrentPrice - config.HoldPrice) / config.HoldPrice * 100
-	} else {
-		changes = (config.HoldPrice - result.CurrentPrice) / config.HoldPrice * 100
-	}
-
-	format := "Hold status: \nHold price: <b>%f</b> \nBalance: <b>%f</b> \nCurrent price: <b>%f</b> \nChanges: <b>%.2f%%</b> \nEstimation in USDT: <b>%f</b> \n"
-	msg := fmt.Sprintf(format, config.HoldPrice, config.Balance, result.CurrentPrice, changes, (result.CurrentPrice * config.Balance))
 
 	return msg
 }

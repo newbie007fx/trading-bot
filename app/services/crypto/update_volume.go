@@ -1,10 +1,9 @@
-package services
+package crypto
 
 import (
 	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
-	"telebot-trading/app/services/crypto"
 )
 
 func StartUpdateVolumeService(updateVolumeChan chan bool) {
@@ -16,18 +15,18 @@ func StartUpdateVolumeService(updateVolumeChan chan bool) {
 func updateVolume() {
 	log.Println("starting update volume worker ")
 
-	responseChan := make(chan crypto.CandleResponse)
+	responseChan := make(chan CandleResponse)
 
 	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil)
 	for _, data := range *currency_configs {
-		request := crypto.CandleRequest{
+		request := CandleRequest{
 			Symbol:       data.Symbol,
 			Limit:        12,
 			Resolution:   "1h",
 			ResponseChan: responseChan,
 		}
 
-		crypto.DispatchRequestJob(request)
+		DispatchRequestJob(request)
 
 		response := <-responseChan
 		if response.Err != nil {

@@ -2,10 +2,8 @@ package trading_strategy
 
 import (
 	"log"
-	"strconv"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
-	"telebot-trading/app/services"
 	"telebot-trading/app/services/crypto"
 	"telebot-trading/app/services/crypto/analysis"
 	"time"
@@ -154,24 +152,5 @@ func GetEndDate(baseTime *time.Time) int64 {
 func waitMasterCoinProcessed() {
 	for waitMasterCoin {
 		time.Sleep(1 * time.Second)
-	}
-}
-
-func sendNotif(msg string) {
-	if msg == "" {
-		return
-	}
-
-	clintIDString := services.GetConfigValueByName("chat_id")
-	if clintIDString == nil {
-		log.Println("client id belum diset")
-		return
-	}
-
-	clientID, _ := strconv.ParseInt(*clintIDString, 10, 64)
-
-	err := services.SendToTelegram(clientID, msg)
-	if err != nil {
-		log.Println(err.Error())
 	}
 }

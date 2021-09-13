@@ -12,6 +12,21 @@ func GenerateMsg(coinResult models.BandResult) string {
 	return msg
 }
 
+func HoldCoinMessage(config models.CurrencyNotifConfig, result *models.BandResult) string {
+	var changes float32
+
+	if config.HoldPrice < result.CurrentPrice {
+		changes = (result.CurrentPrice - config.HoldPrice) / config.HoldPrice * 100
+	} else {
+		changes = (config.HoldPrice - result.CurrentPrice) / config.HoldPrice * 100
+	}
+
+	format := "Hold status: \nHold price: <b>%f</b> \nBalance: <b>%f</b> \nCurrent price: <b>%f</b> \nChanges: <b>%.2f%%</b> \nEstimation in USDT: <b>%f</b> \n"
+	msg := fmt.Sprintf(format, config.HoldPrice, config.Balance, result.CurrentPrice, changes, (result.CurrentPrice * config.Balance))
+
+	return msg
+}
+
 func TrendString(trend int8) string {
 	if trend == models.TREND_UP {
 		return "trend up"
