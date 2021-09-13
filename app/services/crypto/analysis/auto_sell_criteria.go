@@ -9,6 +9,7 @@ import (
 var reason string = ""
 
 func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCandleComplete bool, masterCoinLongTrend int8) bool {
+	reason = ""
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
 	if err != nil {
 		log.Panicln(err.Error())
@@ -44,6 +45,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 	}
 
 	if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN {
+		reason = "sell with criteria x0"
 		return true
 	}
 
@@ -63,6 +65,7 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 	lastFiveData := result.Bands[len(result.Bands)-5 : len(result.Bands)]
 
 	if checkOnTrendDown(result, masterCoinTrend, masterCoinLongTrend, changesInPercent, isCandleComplete) {
+		reason = "sell with criteria x1"
 		return true
 	}
 
@@ -255,7 +258,7 @@ func GetSellReason() string {
 func checkOnTrendDown(result models.BandResult, masterCoinTrend, masterCoinLongIntervalTrend int8, priceChange float32, isCandleComplete bool) bool {
 	if masterCoinTrend != models.TREND_UP && masterCoinLongIntervalTrend == models.TREND_DOWN {
 		if result.Direction == BAND_DOWN {
-			if priceChange <= 3.3 || isCandleComplete {
+			if (priceChange >= 3 && priceChange <= 3.5) || isCandleComplete {
 				return true
 			}
 		}

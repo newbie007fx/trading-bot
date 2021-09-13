@@ -47,7 +47,6 @@ func startService() {
 	go crypto.StartUpdateVolumeService(updateVolumeChan)
 	go trading_strategy.StartCheckMasterCoinPriceService(checkMasterCoinChan)
 	go crypto.StartSyncBalanceService()
-	go crypto.StartSendNotifService()
 
 	setStrategy()
 	strategy.InitService()

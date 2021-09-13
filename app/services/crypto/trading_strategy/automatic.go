@@ -204,13 +204,13 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 					msg += crypto.GenerateMsg(coin)
 					msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
 					msg += "\n"
+					msg += sendHoldMsg(&coin)
+					msg += "\n"
 
 					if masterCoin != nil {
 						msg += "untuk master coin:\n"
 						msg += crypto.GenerateMsg(*masterCoin)
 					}
-
-					sendHoldMsg(&coin)
 				}
 			}
 		}
@@ -238,10 +238,10 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	return nil
 }
 
-func sendHoldMsg(result *models.BandResult) {
+func sendHoldMsg(result *models.BandResult) string {
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
 	if err == nil {
-		msg := crypto.HoldCoinMessage(*currencyConfig, result)
-		crypto.SendNotifWithDelay(msg, 300)
+		return crypto.HoldCoinMessage(*currencyConfig, result)
 	}
+	return ""
 }
