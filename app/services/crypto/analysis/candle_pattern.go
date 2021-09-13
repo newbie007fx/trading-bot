@@ -125,13 +125,10 @@ func dragonflyDoji(bands []models.Band) bool {
 }
 
 func turnPattern(bands []models.Band) bool {
-	var tempData float32 = 0
-	numberOfData := len(bands) / 3
+	numberOfData := len(bands) / 4
 	for i := numberOfData; i >= 0; i-- {
 		currentValue := (bands[i].Candle.Open + bands[i].Candle.Close) / 2
-		if tempData <= currentValue {
-			tempData = currentValue
-		} else {
+		if !(float32(bands[i].SMA) < currentValue && currentValue < float32(bands[i].Upper)) {
 			return false
 		}
 	}
