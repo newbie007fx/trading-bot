@@ -37,6 +37,7 @@ func MakeCryptoRequest(data models.CurrencyNotifConfig, request CandleRequest) *
 		CurrentPrice:  lastBand.Candle.Close,
 		CurrentVolume: lastBand.Candle.Volume,
 		Trend:         bands.Trend,
+		AllTrend:      bands.AllTrend,
 		PriceChanges:  bands.PriceChanges,
 		VolumeChanges: bands.VolumeAverageChanges,
 		Position:      bands.Position,

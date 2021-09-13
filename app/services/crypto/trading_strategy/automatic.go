@@ -180,8 +180,12 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 				continue
 			}
 
-			result.Weight = analysis.CalculateWeightOnDown(result)
-			altCoins = append(altCoins, *result)
+			if result.AllTrend.FirstTrend != models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_SIDEWAY {
+				result.Weight = analysis.CalculateWeightOnDown(result)
+				if result.Weight != 0 {
+					altCoins = append(altCoins, *result)
+				}
+			}
 		}
 		msg := ""
 		if len(altCoins) > 0 {
@@ -236,7 +240,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 
 func sendHoldMsg(result *models.BandResult) {
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
-	if err != nil {
+	if err == nil {
 		msg := crypto.HoldCoinMessage(*currencyConfig, result)
 		crypto.SendNotifWithDelay(msg, 300)
 	}

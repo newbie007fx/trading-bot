@@ -42,6 +42,7 @@ type BandResult struct {
 	CurrentPrice  float32
 	CurrentVolume float32
 	Trend         int8
+	AllTrend      TrendDetail
 	PriceChanges  float32
 	VolumeChanges float32
 	Weight        float32

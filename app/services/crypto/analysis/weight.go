@@ -121,7 +121,13 @@ func CalculateWeightOnDown(result *models.BandResult) float32 {
 		return 0
 	}
 
-	return getPriceMarginWithUpperBandWeight(result.Bands) + result.PriceChanges
+	marginUpper := getPriceMarginWithUpperBandWeight(result.Bands)
+
+	if marginUpper*3 < 3.2 {
+		return 0
+	}
+
+	return marginUpper + result.PriceChanges
 }
 
 func GetWeightLogData() map[string]float32 {
