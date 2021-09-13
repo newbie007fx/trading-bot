@@ -60,11 +60,14 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 
 func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
+		waitMasterCoinProcessed()
+		if masterCoin.Trend == models.TREND_DOWN && masterCoinLongInterval.Trend == models.TREND_DOWN {
+			continue
+		}
+
 		holdCoin := checkCryptoHoldCoinPrice()
 		msg := ""
 		if len(holdCoin) > 0 {
-
-			waitMasterCoinProcessed()
 
 			tmpMsg := ""
 			for _, coin := range holdCoin {
@@ -78,6 +81,8 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 							tmpMsg = err.Error()
 						} else {
 							tmpMsg = "coin berikut akan dijual:\n"
+							tmpMsg += crypto.GenerateMsg(coin)
+							tmpMsg += "\n"
 							tmpMsg += crypto.HoldCoinMessage(*currencyConfig, &coin)
 							tmpMsg += "\n"
 							tmpMsg += "alasan dijual: " + analysis.GetSellReason() + "\n\n"

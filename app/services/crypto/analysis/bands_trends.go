@@ -64,6 +64,79 @@ func CalculateTrends(data []models.Band) int8 {
 	firstToMidleTrend := getTrend(baseLinePointFirst, firstAvg, midleAvg)
 	midleToLastTrend := getTrend(baseLinePointMidle, midleAvg, lastAvg)
 
+	return getConclusionTrend(firstToMidleTrend, midleToLastTrend, firstAvg, midleAvg, lastAvg, baseLinePointFirst)
+}
+
+func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
+	trend := models.TrendDetail{}
+	highestIndex, lowestIndex := 0, 0
+	thirtyPercent := float64(len(data)) * float64(19) / float64(100)
+	limit := int(math.Floor(thirtyPercent))
+	if limit < 1 {
+		limit = 1
+	}
+
+	var totalFirstData float32 = 0
+	var totalLastData float32 = 0
+	var totalMidleData float32 = 0
+	var totalBaseLineFirst float32 = 0
+	var totalBaseLineMidle float32 = 0
+
+	var midle_counter int = 0
+
+	middleIndex := (len(data) / 2) - 1
+	for i, val := range data {
+		if data[highestIndex].Candle.Close < val.Candle.Close {
+			highestIndex = i
+		}
+
+		if data[lowestIndex].Candle.Close > val.Candle.Close {
+			lowestIndex = i
+		}
+
+		if i < limit {
+			totalFirstData += val.Candle.Close
+			totalBaseLineFirst += (val.Candle.Open + val.Candle.Close) / 2
+		}
+
+		if i > middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
+			totalMidleData += val.Candle.Close
+			totalBaseLineMidle += (val.Candle.Open + val.Candle.Close) / 2
+			midle_counter++
+		}
+
+		if i >= len(data)-limit {
+			totalLastData += val.Candle.Close
+		}
+	}
+
+	if highestIndex == len(data)-1 {
+		trend.Trend = models.TREND_UP
+	}
+
+	if lowestIndex == len(data)-1 {
+		trend.Trend = models.TREND_DOWN
+	}
+
+	firstAvg := totalFirstData / float32(limit)
+	lastAvg := totalLastData / float32(limit)
+	midleAvg := totalMidleData / float32(midle_counter)
+	baseLinePointFirst := totalBaseLineFirst / float32(limit)
+	baseLinePointMidle := totalBaseLineMidle / float32(midle_counter)
+
+	firstToMidleTrend := getTrend(baseLinePointFirst, firstAvg, midleAvg)
+	midleToLastTrend := getTrend(baseLinePointMidle, midleAvg, lastAvg)
+	trend.FirstTrend = firstToMidleTrend
+	trend.SecondTrend = midleToLastTrend
+
+	if trend.Trend == 0 {
+		trend.Trend = getConclusionTrend(firstToMidleTrend, midleToLastTrend, firstAvg, midleAvg, lastAvg, baseLinePointFirst)
+	}
+
+	return trend
+}
+
+func getConclusionTrend(firstToMidleTrend, midleToLastTrend int8, firstAvg, midleAvg, lastAvg, baseLinePointFirst float32) int8 {
 	if firstToMidleTrend == models.TREND_SIDEWAY {
 		return midleToLastTrend
 	}

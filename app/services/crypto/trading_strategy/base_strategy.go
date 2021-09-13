@@ -16,6 +16,7 @@ type TradingStrategy interface {
 }
 
 var masterCoin *models.BandResult
+var masterCoinLongInterval *models.BandResult
 var waitMasterCoin bool
 
 func StartCheckMasterCoinPriceService(checkPriceChan chan bool) {
@@ -34,6 +35,7 @@ func checkCryptoMasterCoinPrice() {
 	masterCoinConfig, err := repositories.GetMasterCoinConfig()
 	if err != nil {
 		log.Println("error: ", err.Error())
+		waitMasterCoin = false
 		return
 	}
 
@@ -46,11 +48,20 @@ func checkCryptoMasterCoinPrice() {
 	}
 
 	result := crypto.MakeCryptoRequest(*masterCoinConfig, request)
-	if result == nil {
-		return
-	}
 
 	masterCoin = result
+
+	request = crypto.CandleRequest{
+		Symbol:       masterCoinConfig.Symbol,
+		EndDate:      GetEndDate(nil),
+		Limit:        40,
+		Resolution:   "1h",
+		ResponseChan: responseChan,
+	}
+
+	result = crypto.MakeCryptoRequest(*masterCoinConfig, request)
+
+	masterCoinLongInterval = result
 
 	log.Println("crypto check price worker is done")
 	waitMasterCoin = false

@@ -30,6 +30,7 @@ type Band struct {
 type Bands struct {
 	Data                 []Band
 	Trend                int8
+	AllTrend             TrendDetail
 	PriceChanges         float32
 	VolumeAverageChanges float32
 	Position             int8
@@ -59,4 +60,10 @@ type CreateOrderResponse struct {
 	Price    float32
 	Quantity float32
 	Status   string
+}
+
+type TrendDetail struct {
+	FirstTrend  int8
+	SecondTrend int8
+	Trend       int8
 }
