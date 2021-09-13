@@ -8,7 +8,7 @@ import (
 
 var reason string = ""
 
-func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCandleComplete bool) bool {
+func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCandleComplete bool, masterCoinLongTrend int8) bool {
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
 	if err != nil {
 		log.Panicln(err.Error())
@@ -47,10 +47,10 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		return true
 	}
 
-	return sellOnUp(result, currencyConfig, lastBand, isCandleComplete)
+	return sellOnUp(result, currencyConfig, lastBand, isCandleComplete, masterCoin.Trend, masterCoinLongTrend)
 }
 
-func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConfig, lastBand models.Band, isCandleComplete bool) bool {
+func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConfig, lastBand models.Band, isCandleComplete bool, masterCoinTrend, masterCoinLongTrend int8) bool {
 	changes := result.CurrentPrice - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
 
@@ -61,6 +61,10 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 	highestHightChangePercent := changes / (highestHight - currencyConfig.HoldPrice) * 100
 
 	lastFiveData := result.Bands[len(result.Bands)-5 : len(result.Bands)]
+
+	if checkOnTrendDown(result, masterCoinTrend, masterCoinLongTrend, changesInPercent, isCandleComplete) {
+		return true
+	}
 
 	specialTolerance := changesInPercent > 10 && highestHightChangePercent <= 70
 	if !specialTolerance {
@@ -246,4 +250,16 @@ func countDownCandleFromHighest(bands []models.Band) int {
 
 func GetSellReason() string {
 	return reason
+}
+
+func checkOnTrendDown(result models.BandResult, masterCoinTrend, masterCoinLongIntervalTrend int8, priceChange float32, isCandleComplete bool) bool {
+	if masterCoinTrend != models.TREND_UP && masterCoinLongIntervalTrend == models.TREND_DOWN {
+		if result.Direction == BAND_DOWN {
+			if priceChange <= 3.3 || isCandleComplete {
+				return true
+			}
+		}
+	}
+
+	return false
 }

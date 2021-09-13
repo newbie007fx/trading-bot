@@ -31,11 +31,11 @@ func GenerateBollingerBands(historical []models.CandleData) (bands models.Bands)
 
 func getPosition(band models.Band) int8 {
 	position := models.BELOW_LOWER
-	if band.Candle.Close >= float32(band.Upper) {
+	if band.Candle.Close > float32(band.Upper) {
 		position = models.ABOVE_UPPER
-	} else if band.Candle.Close >= float32(band.SMA) {
+	} else if band.Candle.Close > float32(band.SMA) {
 		position = models.ABOVE_SMA
-	} else if band.Candle.Close >= float32(band.Lower) {
+	} else if band.Candle.Close > float32(band.Lower) {
 		position = models.BELOW_SMA
 	}
 

@@ -115,28 +115,26 @@ func checkCryptoAltCoinPrice(baseTime *time.Time) []models.BandResult {
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
 	waitMasterCoinProcessed()
-	if masterCoin.Trend != models.TREND_DOWN || masterCoin.Direction != analysis.BAND_DOWN {
-		for _, data := range *currency_configs {
-			request := crypto.CandleRequest{
-				Symbol:       data.Symbol,
-				EndDate:      endDate,
-				Limit:        40,
-				Resolution:   "15m",
-				ResponseChan: responseChan,
-			}
-
-			result := crypto.MakeCryptoRequest(data, request)
-			if result == nil || result.Direction == analysis.BAND_DOWN {
-				continue
-			}
-
-			result.Weight = analysis.CalculateWeight(result, *masterCoin)
-			if !analysis.IsIgnored(result) && result.Weight > 1.5 {
-				altCoin = append(altCoin, *result)
-			}
-
-			//log.Println(analysis.GetWeightLog())
+	for _, data := range *currency_configs {
+		request := crypto.CandleRequest{
+			Symbol:       data.Symbol,
+			EndDate:      endDate,
+			Limit:        40,
+			Resolution:   "15m",
+			ResponseChan: responseChan,
 		}
+
+		result := crypto.MakeCryptoRequest(data, request)
+		if result == nil || result.Direction == analysis.BAND_DOWN {
+			continue
+		}
+
+		result.Weight = analysis.CalculateWeight(result, *masterCoin)
+		if !analysis.IsIgnored(result) && result.Weight > 1.5 {
+			altCoin = append(altCoin, *result)
+		}
+
+		//log.Println(analysis.GetWeightLog())
 	}
 
 	log.Println("crypto check price worker is done")

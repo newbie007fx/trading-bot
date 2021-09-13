@@ -106,6 +106,24 @@ func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) fl
 	return weight
 }
 
+func CalculateWeightOnDown(result *models.BandResult) float32 {
+	lastFour := result.Bands[len(result.Bands)-4:]
+
+	crossLowerBand := false
+	for _, data := range lastFour {
+		if data.Candle.Low < float32(data.Lower) {
+			crossLowerBand = true
+			break
+		}
+	}
+
+	if !crossLowerBand {
+		return 0
+	}
+
+	return getPriceMarginWithUpperBandWeight(result.Bands) + result.PriceChanges
+}
+
 func GetWeightLogData() map[string]float32 {
 	return weightLogData
 }
