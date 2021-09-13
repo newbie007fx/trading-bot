@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-var mutex *sync.Mutex
-var listNotifData []notifData
+var mutex *sync.Mutex = &sync.Mutex{}
+var listNotifData []notifData = []notifData{}
 
 type notifData struct {
 	msg           string
@@ -18,8 +18,6 @@ type notifData struct {
 }
 
 func StartSendNotifService() {
-	mutex = &sync.Mutex{}
-	listNotifData = []notifData{}
 	for {
 		currentTime := time.Now()
 
