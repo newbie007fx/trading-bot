@@ -375,11 +375,11 @@ func weightUpSquential(bands []models.Band) float32 {
 	counter := countSquentialUpBand(bands)
 	var weight float32 = 0.05
 	if counter >= 5 {
-		weight = 0.1
-	} else if counter == 4 {
-		weight = 0.15
-	} else if counter == 3 {
 		weight = 0.2
+	} else if counter == 4 {
+		weight = 0.175
+	} else if counter == 3 {
+		weight = 0.15
 	} else if counter == 2 {
 		weight = 0.1
 	}
