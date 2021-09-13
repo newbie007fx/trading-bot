@@ -149,27 +149,27 @@ func reversalWeight(result *models.BandResult) float32 {
 	if trend == models.TREND_UP || CalculateTrends(lastFiveData[1:]) != models.TREND_UP || ((result.PriceChanges < 1 && countSquentialUpBand(lastFiveData) < 3) || result.PriceChanges < 1.3) {
 		weight = 0.05
 	} else {
-		weight = 0.13
+		weight = 0.1
 	}
 
 	lastBand := lastFiveData[4]
 	if trend == models.TREND_SIDEWAY {
 		if result.Position == models.ABOVE_UPPER && lastBand.Candle.Open >= float32(lastBand.Upper) {
-			return 0.09
+			return 0.08
 		}
 
 		if result.Position == models.ABOVE_SMA && lastBand.Candle.Open >= float32(lastBand.SMA) {
-			return 0.1
+			return 0.09
 		}
 
 		if result.Position == models.BELOW_SMA && lastBand.Candle.Open >= float32(lastBand.Lower) {
-			return 0.11
+			return 0.1
 		}
 	}
 
 	highUpNotInterested := CalculateTrends(lastFiveData[:4]) != models.TREND_UP && lastBand.Candle.Close > float32(lastBand.Upper)
 	if countUpBand(lastFiveData[1:]) < 2 && highUpNotInterested {
-		return 0.102
+		return 0.9
 	}
 
 	firstBand := lastFiveData[0]
@@ -190,19 +190,16 @@ func reversalWeight(result *models.BandResult) float32 {
 }
 
 func crossBandWeight(result *models.BandResult) float32 {
-	lastFourData := result.Bands[len(result.Bands)-4 : len(result.Bands)]
-
-	lastBand := lastFourData[3]
-	secondLastBand := lastFourData[2]
-	if lastBand.Candle.Close > float32(lastBand.Upper) && secondLastBand.Candle.Open < float32(lastBand.Upper) {
-		return 0.2
-	} else if lastBand.Candle.Close > float32(lastBand.SMA) && secondLastBand.Candle.Open < float32(lastBand.SMA) {
-		return 0.25
-	} else if lastBand.Candle.Close > float32(lastBand.Lower) && secondLastBand.Candle.Open < float32(lastBand.Lower) {
-		return 0.3
+	lastBand := result.Bands[len(result.Bands)-1]
+	secondLastBand := result.Bands[len(result.Bands)-1]
+	if lastBand.Candle.Open > float32(lastBand.SMA) && lastBand.Candle.Close > float32(lastBand.SMA) {
+		if secondLastBand.Candle.Open < float32(secondLastBand.SMA) && (secondLastBand.Candle.Hight > float32(secondLastBand.SMA) || secondLastBand.Candle.Close > float32(secondLastBand.SMA)) {
+			if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
+				return 0.1
+			}
+		}
 	}
-
-	return 0.15
+	return 0
 }
 
 func getPatternWeight(result *models.BandResult) float32 {
