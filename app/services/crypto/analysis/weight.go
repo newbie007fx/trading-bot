@@ -176,6 +176,7 @@ func reversalWeight(result *models.BandResult) float32 {
 		weight = 0.1
 	}
 
+	lastBand := lastFiveData[4]
 	highUpNotInterested := CalculateTrends(lastFiveData[:4]) != models.TREND_UP || lastBand.Candle.Close > float32(lastBand.Upper)
 	if countUpBand(lastFiveData[1:]) < 2 || highUpNotInterested {
 		return 0.9
