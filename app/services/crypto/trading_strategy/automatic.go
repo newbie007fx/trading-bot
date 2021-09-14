@@ -2,6 +2,7 @@ package trading_strategy
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
@@ -34,7 +35,7 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 		}
 
 		waitMasterCoinProcessed()
-		if masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN {
+		if (masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN) || checkMasterDown() {
 			ats.cryptoAltCoinDownChan <- true
 		}
 	}
@@ -180,7 +181,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 				continue
 			}
 
-			if result.AllTrend.FirstTrend != models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_SIDEWAY {
+			if result.AllTrend.SecondTrend != models.TREND_UP {
 				result.Weight = analysis.CalculateWeightOnDown(result)
 				if result.Weight != 0 {
 					altCoins = append(altCoins, *result)
@@ -240,8 +241,21 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 
 func sendHoldMsg(result *models.BandResult) string {
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
-	if err == nil {
-		return crypto.HoldCoinMessage(*currencyConfig, result)
+	if err != nil {
+		log.Println(err.Error())
+		return ""
 	}
-	return ""
+	return crypto.HoldCoinMessage(*currencyConfig, result)
+}
+
+func checkMasterDown() bool {
+	masterSecondLastBand := masterCoin.Bands[len(masterCoin.Bands)-2]
+	if masterSecondLastBand.Candle.Open > masterSecondLastBand.Candle.Close {
+		secondLastBandPriceChanges := (masterSecondLastBand.Candle.Open - masterSecondLastBand.Candle.Close) / masterSecondLastBand.Candle.Open * 100
+		if secondLastBandPriceChanges >= 0.6 {
+			return masterCoin.Direction == analysis.BAND_UP && masterCoin.PriceChanges > 0.26
+		}
+	}
+
+	return false
 }

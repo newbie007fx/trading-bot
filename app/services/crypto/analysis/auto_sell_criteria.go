@@ -34,7 +34,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		}
 
 		if !safe && crossLower && changesInPercent >= 3 {
-			reason = "sell with criteria 0"
+			reason = "sell on up with criteria 0"
 			return true
 		}
 	}
@@ -44,8 +44,8 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		return sellOnDown(result, currencyConfig, lastBand)
 	}
 
-	if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN {
-		reason = "sell with criteria x0"
+	if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN && masterCoinLongTrend != models.TREND_UP {
+		reason = "sell up with criteria x0"
 		return true
 	}
 
@@ -69,7 +69,9 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 		return true
 	}
 
-	specialTolerance := changesInPercent > 10 && highestHightChangePercent <= 70
+	lastBandPercentChanges := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
+	lastHightChangePercent := (lastBand.Candle.Close - lastBand.Candle.Open) / (lastBand.Candle.Hight - lastBand.Candle.Open)
+	specialTolerance := (changesInPercent > 10 && highestHightChangePercent <= 70) || (lastBandPercentChanges > 5 && lastHightChangePercent <= 60)
 	if !specialTolerance {
 		if changesInPercent > 3.5 && !isCandleComplete && highestChangePercent > 55 && countDownCandleFromHighest(result.Bands) < 4 {
 			return false

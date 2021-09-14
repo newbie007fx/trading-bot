@@ -64,8 +64,8 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 
 	if result.Trend == models.TREND_UP {
 		if isMasterCoinReversal {
-			weight += 0.2
-			weightLogData["TrenWeight"] = 0.2
+			weight += 0.15
+			weightLogData["TrenWeight"] = 0.15
 		} else {
 			weight += 0.1
 			weightLogData["TrenWeight"] = 0.1
@@ -99,8 +99,8 @@ func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) fl
 	longIntervalWeightLogData["weightCrossBand"] = weightCrossBand
 
 	if result.Trend == models.TREND_UP {
-		weight += 0.2
-		longIntervalWeightLogData["trendWeight"] = 0.2
+		weight += 0.15
+		longIntervalWeightLogData["trendWeight"] = 0.15
 	}
 
 	return weight
@@ -123,10 +123,6 @@ func CalculateWeightOnDown(result *models.BandResult) float32 {
 
 	marginUpper := getPriceMarginWithUpperBandWeight(result.Bands)
 
-	if marginUpper*3 < 3.2 {
-		return 0
-	}
-
 	return marginUpper + result.PriceChanges
 }
 
@@ -142,7 +138,7 @@ func isMasterReversal(master *models.BandResult) bool {
 	trend := CalculateTrends(master.Bands[:len(master.Bands)-1])
 
 	lastFiveData := master.Bands[len(master.Bands)-4:]
-	if trend == models.TREND_UP || CalculateTrends(lastFiveData[1:]) != models.TREND_UP || master.PriceChanges < 0.5 {
+	if trend == models.TREND_UP || CalculateTrends(lastFiveData[1:]) != models.TREND_UP || master.PriceChanges < 0.3 {
 		return false
 	}
 
@@ -217,7 +213,7 @@ func getPatternWeight(result *models.BandResult) float32 {
 
 	var weight float32 = 0
 	if len(listMatchPattern) > 0 {
-		weight += 0.35 * float32(len(listMatchPattern))
+		weight += 0.2 * float32(len(listMatchPattern))
 	}
 
 	return weight
