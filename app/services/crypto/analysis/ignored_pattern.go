@@ -7,8 +7,21 @@ func IsIgnored(result *models.BandResult) bool {
 }
 
 func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
-	lastBand := result.Bands[len(result.Bands)-1]
-	lastFourData := result.Bands[len(result.Bands)-4 : len(result.Bands)]
+	lastFiveData := result.Bands[len(result.Bands)-5:]
 
-	return float64(lastBand.Candle.Low) > lastBand.Upper && CalculateTrends(lastFourData) == models.TREND_DOWN
+	return isHeighestOnHalfEndAndAboveUpper(result) && CalculateTrends(lastFiveData) == models.TREND_DOWN
+}
+
+func isHeighestOnHalfEndAndAboveUpper(result *models.BandResult) bool {
+	hiIndex := 0
+	for i, band := range result.Bands {
+		if result.Bands[hiIndex].Candle.Close < band.Candle.Close {
+			hiIndex = i
+		}
+	}
+	if hiIndex < len(result.Bands)-5 {
+		return false
+	}
+
+	return result.Bands[hiIndex].Candle.Close > float32(result.Bands[hiIndex].Upper)
 }
