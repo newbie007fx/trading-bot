@@ -38,7 +38,7 @@ func GetCandlePattern(bandResult *models.BandResult) []int8 {
 		}
 	}
 
-	if bandResult.Trend == models.TREND_UP && turnPattern(bands) {
+	if bandResult.AllTrend.SecondTrend == models.TREND_UP && turnPattern(bands) {
 		result = append(result, PATTERN_TURN)
 	}
 
