@@ -33,8 +33,8 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			}
 		}
 
-		if !safe && crossLower && changesInPercent >= 3 {
-			reason = "sell on up with criteria 0"
+		if !safe && crossLower && changesInPercent >= 1.5 {
+			reason = "sell with criteria 0"
 			return true
 		}
 	}
@@ -46,6 +46,11 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 
 	if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN && masterCoinLongTrend != models.TREND_UP {
 		reason = "sell up with criteria x0"
+		return true
+	}
+
+	if SellPattern(&result) && changesInPercent > 1 {
+		reason = "sell up with criteria x1"
 		return true
 	}
 

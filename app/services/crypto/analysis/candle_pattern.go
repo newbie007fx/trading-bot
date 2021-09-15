@@ -49,6 +49,29 @@ func GetCandlePattern(bandResult *models.BandResult) []int8 {
 	return result
 }
 
+func SellPattern(bandResult *models.BandResult) bool {
+	if bandResult.AllTrend.SecondTrend == models.TREND_UP && bandResult.Direction == BAND_DOWN {
+		if bearishEngulfing(bandResult) {
+			return true
+		}
+	}
+	return false
+}
+
+func bearishEngulfing(result *models.BandResult) bool {
+	if result.Position == models.ABOVE_SMA || result.Position == models.ABOVE_UPPER {
+		firstBand := result.Bands[len(result.Bands)-1]
+		secondBand := result.Bands[len(result.Bands)-2]
+		if secondBand.Candle.Open < secondBand.Candle.Close {
+			firstDifferent := firstBand.Candle.Open - firstBand.Candle.Close
+			secondDifferent := secondBand.Candle.Close - secondBand.Candle.Open
+			return firstDifferent > secondDifferent
+		}
+	}
+
+	return false
+}
+
 func hammer(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	secondLastBand := bands[len(bands)-2]
@@ -128,7 +151,7 @@ func turnPattern(bands []models.Band) bool {
 	numberOfData := len(bands) / 4
 	for i := numberOfData; i >= 0; i-- {
 		currentValue := (bands[i].Candle.Open + bands[i].Candle.Close) / 2
-		if !(float32(bands[i].SMA) < currentValue && currentValue < float32(bands[i].Upper)) {
+		if !(currentValue > float32(bands[i].SMA)) {
 			return false
 		}
 	}
