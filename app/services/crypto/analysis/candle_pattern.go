@@ -50,26 +50,32 @@ func GetCandlePattern(bandResult *models.BandResult) []int8 {
 }
 
 func SellPattern(bandResult *models.BandResult) bool {
-	if bandResult.AllTrend.SecondTrend == models.TREND_UP && bandResult.Direction == BAND_DOWN {
-		if bearishEngulfing(bandResult) {
-			return true
+	if bandResult.AllTrend.SecondTrend == models.TREND_UP {
+		if bandResult.Position == models.ABOVE_SMA || bandResult.Position == models.ABOVE_UPPER {
+			if BearishEngulfing(bandResult.Bands[len(bandResult.Bands)-2:]) {
+				return true
+			}
 		}
 	}
 	return false
 }
 
-func bearishEngulfing(result *models.BandResult) bool {
-	if result.Position == models.ABOVE_SMA || result.Position == models.ABOVE_UPPER {
-		firstBand := result.Bands[len(result.Bands)-1]
-		secondBand := result.Bands[len(result.Bands)-2]
-		if secondBand.Candle.Open < secondBand.Candle.Close {
+func BearishEngulfing(bands []models.Band) bool {
+	isContainBearishEngulfing := false
+	for i := 0; i < len(bands)-1; i++ {
+		firstBand := bands[i]
+		secondBand := bands[i+1]
+		if firstBand.Candle.Open > firstBand.Candle.Close && secondBand.Candle.Open < secondBand.Candle.Close {
 			firstDifferent := firstBand.Candle.Open - firstBand.Candle.Close
 			secondDifferent := secondBand.Candle.Close - secondBand.Candle.Open
-			return firstDifferent > secondDifferent
+			isContainBearishEngulfing = firstDifferent > secondDifferent
+		}
+		if isContainBearishEngulfing {
+			return true
 		}
 	}
 
-	return false
+	return isContainBearishEngulfing
 }
 
 func hammer(bands []models.Band) bool {

@@ -4,6 +4,7 @@ import (
 	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
+	"time"
 )
 
 var reason string = ""
@@ -54,6 +55,11 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		return true
 	}
 
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && changesInPercent > 2.5 {
+		reason = "sell up with criteria x2"
+		return true
+	}
+
 	return sellOnUp(result, currencyConfig, lastBand, isCandleComplete, masterCoin.Trend, masterCoinLongTrend)
 }
 
@@ -76,7 +82,7 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 
 	lastBandPercentChanges := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
 	lastHightChangePercent := (lastBand.Candle.Close - lastBand.Candle.Open) / (lastBand.Candle.Hight - lastBand.Candle.Open)
-	specialTolerance := (changesInPercent > 10 && highestHightChangePercent <= 70) || (lastBandPercentChanges > 5 && lastHightChangePercent <= 60)
+	specialTolerance := (changesInPercent > 10 && highestHightChangePercent <= 65) || (lastBandPercentChanges > 5 && lastHightChangePercent <= 55 && isTimeBelowTenMinute())
 	if !specialTolerance {
 		if changesInPercent > 3.5 && !isCandleComplete && highestChangePercent > 55 && countDownCandleFromHighest(result.Bands) < 4 {
 			return false
@@ -272,4 +278,10 @@ func checkOnTrendDown(result models.BandResult, masterCoinTrend, masterCoinLongI
 	}
 
 	return false
+}
+
+func isTimeBelowTenMinute() bool {
+	currentTime := time.Now()
+
+	return currentTime.Minute()%15 <= 10
 }
