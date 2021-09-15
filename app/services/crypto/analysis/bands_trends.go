@@ -171,11 +171,12 @@ func getConclusionTrend(firstToMidleTrend, midleToLastTrend int8, firstAvg, midl
 			if trend == models.TREND_SIDEWAY {
 				return trend
 			}
+			return models.TREND_UP
+		}
 
-			sixtyFromFirst := 65 * (firstAvg - midleAvg) / 100
-			if lastAvg > (midleAvg + sixtyFromFirst) {
-				return models.TREND_UP
-			}
+		sixtyFromFirst := 65 * (firstAvg - midleAvg) / 100
+		if lastAvg > (midleAvg + sixtyFromFirst) {
+			return models.TREND_UP
 		}
 	}
 
