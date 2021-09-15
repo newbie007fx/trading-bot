@@ -261,5 +261,5 @@ func checkMasterDown() bool {
 	}
 
 	lastBandPercentChanges := (masterLastBand.Candle.Close - masterLastBand.Candle.Open) / masterLastBand.Candle.Open * 100
-	return lastBandPercentChanges > 3.5 && checkingTime.Minute()/15 >= 10
+	return lastBandPercentChanges > 3.3 && checkingTime.Minute()/15 >= 10
 }

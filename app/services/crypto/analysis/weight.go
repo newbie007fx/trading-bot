@@ -46,11 +46,11 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	weightLogData["patternWeight"] = patternWeight
 	weight += patternWeight
 
-	weightReversal := reversalWeight(result)
+	weightReversal := reversalWeight(result, masterCoin.Trend)
 	weightLogData["reversalWeight"] = weightReversal
 	weight += weightReversal
 
-	crossBandWeight := crossBandWeight(result)
+	crossBandWeight := crossBandWeight(result, masterCoin.Trend)
 	weightLogData["crossBandWeight"] = crossBandWeight
 	weight += crossBandWeight
 
@@ -87,11 +87,11 @@ func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) fl
 	weight += patternWeight
 	longIntervalWeightLogData["PatternWeight"] = patternWeight
 
-	weightReseversal := reversalWeight(result)
+	weightReseversal := reversalWeight(result, masterTrend)
 	weight += weightReseversal
 	longIntervalWeightLogData["weightReversal"] = weightReseversal
 
-	weightCrossBand := crossBandWeight(result)
+	weightCrossBand := crossBandWeight(result, masterTrend)
 	weight += weightCrossBand
 	longIntervalWeightLogData["weightCrossBand"] = weightCrossBand
 
@@ -160,7 +160,7 @@ func priceChangeWeight(priceChange float32) float32 {
 	return 0.15
 }
 
-func reversalWeight(result *models.BandResult) float32 {
+func reversalWeight(result *models.BandResult, masterTrend int8) float32 {
 	var weight float32 = 0
 	trend := CalculateTrends(result.Bands[:len(result.Bands)-1])
 
@@ -191,7 +191,7 @@ func reversalWeight(result *models.BandResult) float32 {
 	isBandCrossWithUpper := firstBand.Candle.Low <= float32(firstBand.Upper) || secondBand.Candle.Low <= float32(secondBand.Upper) || thirdBand.Candle.Low <= float32(thirdBand.Upper) || fourthBand.Candle.Low <= float32(fourthBand.Upper)
 	if isBandCrossWithLower && float64(lastBand.Candle.Open) > lastBand.Lower {
 		weight += 0.12
-		if result.Trend == models.TREND_SIDEWAY {
+		if result.Trend == models.TREND_SIDEWAY && masterTrend == models.TREND_UP {
 			weight += 0.3
 		}
 	} else if isBandCrossWithSMA && float64(lastBand.Candle.Open) > lastBand.SMA {
@@ -203,7 +203,7 @@ func reversalWeight(result *models.BandResult) float32 {
 	return weight
 }
 
-func crossBandWeight(result *models.BandResult) float32 {
+func crossBandWeight(result *models.BandResult, masterTrend int8) float32 {
 	lastBand := result.Bands[len(result.Bands)-1]
 	secondLastBand := result.Bands[len(result.Bands)-2]
 	if lastBand.Candle.Open > float32(lastBand.SMA) && lastBand.Candle.Close > float32(lastBand.SMA) {
@@ -216,7 +216,7 @@ func crossBandWeight(result *models.BandResult) float32 {
 	if lastBand.Candle.Open > float32(lastBand.Lower) && lastBand.Candle.Close > float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < float32(secondLastBand.Lower) {
 			if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-				if result.Trend == models.TREND_SIDEWAY {
+				if result.Trend == models.TREND_SIDEWAY && masterTrend == models.TREND_UP {
 					return 0.3
 				}
 
