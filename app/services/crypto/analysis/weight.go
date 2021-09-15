@@ -157,7 +157,7 @@ func priceChangeWeight(priceChange float32) float32 {
 		return 0.2
 	}
 
-	return 0
+	return 0.15
 }
 
 func reversalWeight(result *models.BandResult) float32 {
@@ -189,11 +189,14 @@ func reversalWeight(result *models.BandResult) float32 {
 	isBandCrossWithLower := firstBand.Candle.Low <= float32(firstBand.Lower) || secondBand.Candle.Low <= float32(secondBand.Lower) || thirdBand.Candle.Low <= float32(thirdBand.Lower) || fourthBand.Candle.Low <= float32(fourthBand.Lower)
 	isBandCrossWithSMA := firstBand.Candle.Low <= float32(firstBand.SMA) || secondBand.Candle.Low <= float32(secondBand.SMA) || thirdBand.Candle.Low <= float32(thirdBand.SMA) || fourthBand.Candle.Low <= float32(fourthBand.SMA)
 	isBandCrossWithUpper := firstBand.Candle.Low <= float32(firstBand.Upper) || secondBand.Candle.Low <= float32(secondBand.Upper) || thirdBand.Candle.Low <= float32(thirdBand.Upper) || fourthBand.Candle.Low <= float32(fourthBand.Upper)
-	if isBandCrossWithLower && float64(lastBand.Candle.Low) > lastBand.Lower {
+	if isBandCrossWithLower && float64(lastBand.Candle.Open) > lastBand.Lower {
 		weight += 0.12
-	} else if isBandCrossWithSMA && float64(lastBand.Candle.Low) > lastBand.SMA {
+		if result.Trend == models.TREND_SIDEWAY {
+			weight += 0.3
+		}
+	} else if isBandCrossWithSMA && float64(lastBand.Candle.Open) > lastBand.SMA {
 		weight += 0.1
-	} else if isBandCrossWithUpper && float64(lastBand.Candle.Low) > lastBand.Upper {
+	} else if isBandCrossWithUpper && float64(lastBand.Candle.Open) > lastBand.Upper {
 		weight += 0.08
 	}
 
@@ -202,11 +205,22 @@ func reversalWeight(result *models.BandResult) float32 {
 
 func crossBandWeight(result *models.BandResult) float32 {
 	lastBand := result.Bands[len(result.Bands)-1]
-	secondLastBand := result.Bands[len(result.Bands)-1]
+	secondLastBand := result.Bands[len(result.Bands)-2]
 	if lastBand.Candle.Open > float32(lastBand.SMA) && lastBand.Candle.Close > float32(lastBand.SMA) {
-		if secondLastBand.Candle.Open < float32(secondLastBand.SMA) && (secondLastBand.Candle.Hight > float32(secondLastBand.SMA) || secondLastBand.Candle.Close > float32(secondLastBand.SMA)) {
+		if secondLastBand.Candle.Open < float32(secondLastBand.SMA) {
 			if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
 				return 0.1
+			}
+		}
+	}
+	if lastBand.Candle.Open > float32(lastBand.Lower) && lastBand.Candle.Close > float32(lastBand.Lower) {
+		if secondLastBand.Candle.Open < float32(secondLastBand.Lower) {
+			if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
+				if result.Trend == models.TREND_SIDEWAY {
+					return 0.3
+				}
+
+				return 0.2
 			}
 		}
 	}
