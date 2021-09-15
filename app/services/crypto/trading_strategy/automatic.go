@@ -2,7 +2,6 @@ package trading_strategy
 
 import (
 	"fmt"
-	"log"
 	"sort"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
@@ -139,13 +138,13 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 					msg += crypto.GenerateMsg(*coin)
 					msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
 					msg += "\n"
+					msg += sendHoldMsg(coin)
+					msg += "\n"
 
 					if masterCoin != nil {
 						msg += "untuk master coin:\n"
 						msg += crypto.GenerateMsg(*masterCoin)
 					}
-
-					sendHoldMsg(coin)
 				}
 			}
 		}
@@ -242,7 +241,6 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 func sendHoldMsg(result *models.BandResult) string {
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
 	if err != nil {
-		log.Println(err.Error())
 		return ""
 	}
 	return crypto.HoldCoinMessage(*currencyConfig, result)
