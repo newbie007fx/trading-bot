@@ -31,9 +31,6 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	}
 
 	weight := priceChangeWeight(result.PriceChanges)
-	if weight == 0 {
-		return 0
-	}
 	weightLogData["priceWeight"] = weight
 
 	isMasterCoinReversal := isMasterReversal(&masterCoin)
