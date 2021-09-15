@@ -19,7 +19,7 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	lowest := getLowestPrice(result.Bands)
 	difference := highest - lowest
 	percent := difference / lowest * 100
-	if percent < 2.3 {
+	if percent < 2 {
 		return 0
 	}
 
