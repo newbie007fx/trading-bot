@@ -269,28 +269,28 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 	// low hight dibawah lower
 	if lastBand.Candle.Hight < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.46
+			return 0.46 + weightUpCounter
 		}
 	}
 
 	// hight menyentuh lower tp close dibaawh lower
 	if lastBand.Candle.Hight >= float32(lastBand.Lower) && lastBand.Candle.Close < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.42
+			return 0.42 + weightUpCounter
 		}
 	}
 
 	// close menyentuh lower tp open dibaawh lower
 	if lastBand.Candle.Close >= float32(lastBand.Lower) && lastBand.Candle.Open < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.48
+			return 0.48 + weightUpCounter
 		}
 	}
 
 	// open menyentuh lower tp low dibaawh lower
 	if lastBand.Candle.Open >= float32(lastBand.Lower) && lastBand.Candle.Low < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.5
+			return 0.5 + weightUpCounter
 		}
 	}
 
@@ -348,7 +348,7 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 				val += 0.17
 			}
 
-			return val
+			return val + weightUpCounter
 		}
 
 	}
