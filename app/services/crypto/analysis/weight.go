@@ -156,6 +156,8 @@ func priceChangeWeight(priceChange float32) float32 {
 		return 0.35
 	} else if priceChange >= 0.5 {
 		return 0.3
+	} else if priceChange >= 0.3 {
+		return 0.2
 	}
 
 	return 0
