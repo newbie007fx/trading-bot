@@ -12,6 +12,10 @@ func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
 		return true
 	}
 
+	if lastBandHeadDoubleBody(result) {
+		return true
+	}
+
 	return isContaineBearishEngulfing(result)
 }
 
@@ -42,4 +46,14 @@ func getHighestIndex(result *models.BandResult) int {
 	}
 
 	return hiIndex
+}
+
+func lastBandHeadDoubleBody(result *models.BandResult) bool {
+	lastBand := result.Bands[len(result.Bands)-1]
+	if lastBand.Candle.Close > lastBand.Candle.Open {
+		head := lastBand.Candle.Hight - lastBand.Candle.Close
+		body := lastBand.Candle.Close - lastBand.Candle.Open
+		return (head / body) > 2
+	}
+	return false
 }

@@ -11,7 +11,7 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	weightLogData = map[string]float32{}
 
 	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Low <= float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.Upper) {
+	if lastBand.Candle.Low <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.Upper) {
 		return 0
 	}
 

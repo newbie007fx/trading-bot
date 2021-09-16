@@ -151,7 +151,12 @@ func GetEndDate(baseTime *time.Time) int64 {
 	}
 	unixTime := endTime.Unix()
 
-	return unixTime * 1000
+	milliTime := unixTime * 1000
+	if endTime.Minute()%15 == 0 {
+		milliTime -= 1
+	}
+
+	return milliTime
 }
 
 func waitMasterCoinProcessed() {
