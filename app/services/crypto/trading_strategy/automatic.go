@@ -71,7 +71,7 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
 		waitMasterCoinProcessed()
-		holdCoin := checkCryptoHoldCoinPrice()
+		holdCoin := checkCryptoHoldCoinPrice(checkingTime)
 		msg := ""
 		if len(holdCoin) > 0 {
 
@@ -117,7 +117,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 		if masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN {
 			continue
 		}
-		altCoins := checkCryptoAltCoinPrice(&checkingTime)
+		altCoins := checkCryptoAltCoinPrice(checkingTime)
 		msg := ""
 		if len(altCoins) > 0 {
 
@@ -134,7 +134,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 				if err != nil {
 					msg = err.Error()
 				} else {
-					msg = fmt.Sprintf("coin berikut telah dihold on %d:\n", GetEndDate(&checkingTime))
+					msg = fmt.Sprintf("coin berikut telah dihold on %d:\n", checkingTime.Unix())
 					msg += crypto.GenerateMsg(*coin)
 					msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
 					msg += "\n"
@@ -157,7 +157,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 	for <-checkPriceChan {
 		altCoins := []models.BandResult{}
 
-		endDate := GetEndDate(&checkingTime)
+		startDate := GetStartDate(checkingTime, 15)
 
 		responseChan := make(chan crypto.CandleResponse)
 
@@ -169,7 +169,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 		for _, data := range *currency_configs {
 			request := crypto.CandleRequest{
 				Symbol:       data.Symbol,
-				EndDate:      endDate,
+				StartDate:    startDate,
 				Limit:        40,
 				Resolution:   "15m",
 				ResponseChan: responseChan,
@@ -200,7 +200,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 				if err != nil {
 					msg = err.Error()
 				} else {
-					msg = fmt.Sprintf("coin berikut telah dihold on %d:\n", endDate)
+					msg = fmt.Sprintf("coin berikut telah dihold on %d:\n", checkingTime.Unix())
 					msg += crypto.GenerateMsg(coin)
 					msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
 					msg += "\n"
@@ -221,7 +221,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 
 func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *models.BandResult {
 	results := []models.BandResult{}
-	timeInMilli := GetEndDate(&checkingTime)
+	timeInMilli := GetStartDate(checkingTime, 60)
 	for i := range altCoins {
 		waitMasterCoinProcessed()
 		altCoins[i].Weight += crypto.GetOnLongIntervalWeight(altCoins[i], *masterCoin, timeInMilli)

@@ -17,7 +17,7 @@ func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 		currentTime := time.Now()
 		timeInMili := currentTime.Unix() * 1000
 
-		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, timeInMili, "15m")
+		candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, timeInMili, "15m")
 		if err != nil {
 			return err
 		}

@@ -50,7 +50,7 @@ func (ManualTradingStrategy) isTimeToCheckAltCoinPrice(time time.Time) bool {
 
 func (ManualTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
-		holdCoin := checkCryptoHoldCoinPrice()
+		holdCoin := checkCryptoHoldCoinPrice(checkingTime)
 		msg := ""
 		if len(holdCoin) > 0 {
 			msg = "List coin yang dihold:\n"
@@ -79,7 +79,7 @@ func (ManualTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan 
 
 func (ManualTradingStrategy) startCheckAltCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
-		altCoin := checkCryptoAltCoinPrice(nil)
+		altCoin := checkCryptoAltCoinPrice(checkingTime)
 		msg := ""
 		if len(altCoin) > 0 {
 			if len(altCoin) > 5 {

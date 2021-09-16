@@ -25,9 +25,12 @@ func (client *BinanceClient) init() {
 	client.createOrderService = service.NewCreateOrderService()
 }
 
-func (client *BinanceClient) GetCandlesData(symbol string, limit int, endDate int64, resolution string) ([]models.CandleData, error) {
+func (client *BinanceClient) GetCandlesData(symbol string, limit int, startDate, endDate int64, resolution string) ([]models.CandleData, error) {
 	var candlesData []models.CandleData
 	service := client.klineService.Symbol(symbol).Limit(limit).Interval(resolution)
+	if startDate > 1 {
+		service = service.StartTime(startDate)
+	}
 	if endDate > 1 {
 		service = service.EndTime(endDate)
 	}

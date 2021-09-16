@@ -16,6 +16,7 @@ type CandleRequest struct {
 	Symbol       string
 	Limit        int
 	EndDate      int64
+	StartDate    int64
 	Resolution   string
 	ResponseChan chan CandleResponse
 }
@@ -29,6 +30,7 @@ var canldeRequest chan CandleRequest
 var previousTimeCheck time.Time = time.Now()
 var thresholdPerMinute int64 = 160
 var counter int64 = 0
+var CandleLimit int64 = 40
 
 func DispatchRequestJob(request CandleRequest) {
 	canldeRequest <- request
@@ -42,7 +44,7 @@ func RequestCandleService() {
 		checkCounter()
 
 		response := CandleResponse{}
-		response.CandleData, response.Err = crypto.GetCandlesData(request.Symbol, request.Limit, request.EndDate, request.Resolution)
+		response.CandleData, response.Err = crypto.GetCandlesData(request.Symbol, request.Limit, request.StartDate, request.EndDate, request.Resolution)
 
 		request.ResponseChan <- response
 	}
@@ -91,7 +93,7 @@ func GetWalletBalance() []map[string]interface{} {
 
 		for _, config := range *currency_configs {
 			crypto := driver.GetCrypto()
-			candlesData, err := crypto.GetCandlesData(config.Symbol, 1, timeInMili, "15m")
+			candlesData, err := crypto.GetCandlesData(config.Symbol, 1, 0, timeInMili, "15m")
 			if err != nil {
 				continue
 			}
@@ -168,8 +170,8 @@ func GetOnLongIntervalWeight(coin models.BandResult, masterCoinLocal models.Band
 
 	request := CandleRequest{
 		Symbol:       data.Symbol,
-		EndDate:      timeInMili,
-		Limit:        40,
+		StartDate:    timeInMili,
+		Limit:        int(CandleLimit),
 		Resolution:   "1h",
 		ResponseChan: responseChan,
 	}

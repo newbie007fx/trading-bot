@@ -17,7 +17,7 @@ func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 		currentTime := time.Now()
 		timeInMili := currentTime.Unix() * 1000
 
-		candlesData, err := cryptoDriver.GetCandlesData(config.Symbol, 1, timeInMili, "15m")
+		candlesData, err := cryptoDriver.GetCandlesData(config.Symbol, 1, 0, timeInMili, "15m")
 		if err != nil {
 			return err
 		}
