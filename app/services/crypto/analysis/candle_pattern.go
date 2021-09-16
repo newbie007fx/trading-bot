@@ -66,8 +66,8 @@ func BearishEngulfing(bands []models.Band) bool {
 		firstBand := bands[i]
 		secondBand := bands[i+1]
 		if firstBand.Candle.Open < firstBand.Candle.Close && secondBand.Candle.Open > secondBand.Candle.Close {
-			firstDifferent := firstBand.Candle.Open - firstBand.Candle.Close
-			secondDifferent := secondBand.Candle.Close - secondBand.Candle.Open
+			firstDifferent := firstBand.Candle.Close - firstBand.Candle.Open
+			secondDifferent := secondBand.Candle.Open - secondBand.Candle.Close
 			isContainBearishEngulfing = secondDifferent > firstDifferent
 		}
 		if isContainBearishEngulfing {

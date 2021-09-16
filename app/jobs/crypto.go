@@ -24,6 +24,9 @@ func StartCryptoWorker() {
 
 	for {
 		currentTime := time.Now()
+		if currentTime.Minute()%15 == 0 {
+			time.Sleep(1 * time.Second)
+		}
 		if !isMuted() {
 			checkMasterCoinChan <- true
 

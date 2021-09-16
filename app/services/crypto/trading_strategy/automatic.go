@@ -134,7 +134,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 				if err != nil {
 					msg = err.Error()
 				} else {
-					msg = "coin berikut telah dihold:\n"
+					msg = fmt.Sprintf("coin berikut telah dihold on %d:\n", GetEndDate(&checkingTime))
 					msg += crypto.GenerateMsg(*coin)
 					msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
 					msg += "\n"
