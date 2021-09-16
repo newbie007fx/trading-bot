@@ -34,7 +34,7 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 		}
 
 		waitMasterCoinProcessed()
-		if (masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN) || checkMasterDown() {
+		if (masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN && masterCoin.Direction == analysis.BAND_UP) || checkMasterDown() {
 			ats.cryptoAltCoinDownChan <- true
 		}
 	}
@@ -251,7 +251,7 @@ func checkMasterDown() bool {
 		return false
 	}
 
-	masterLastBand := masterCoin.Bands[len(masterCoin.Bands)-2]
+	masterLastBand := masterCoin.Bands[len(masterCoin.Bands)-1]
 	masterSecondLastBand := masterCoin.Bands[len(masterCoin.Bands)-2]
 	if masterSecondLastBand.Candle.Open > masterSecondLastBand.Candle.Close {
 		secondLastBandPriceChanges := (masterSecondLastBand.Candle.Open - masterSecondLastBand.Candle.Close) / masterSecondLastBand.Candle.Open * 100
