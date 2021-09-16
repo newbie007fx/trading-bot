@@ -85,6 +85,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	responseChan := make(chan CandleResponse)
 	request := CandleRequest{
 		Symbol:       config.Symbol,
+		StartDate:    0,
 		EndDate:      timeInMili,
 		Limit:        int(CandleLimit),
 		Resolution:   "15m",
@@ -96,6 +97,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	masterCoinConfig, _ := repositories.GetMasterCoinConfig()
 	request = CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
+		StartDate:    0,
 		EndDate:      timeInMili,
 		Limit:        int(CandleLimit),
 		Resolution:   "15m",
