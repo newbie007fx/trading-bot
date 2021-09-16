@@ -18,6 +18,10 @@ func MakeCryptoRequest(data models.CurrencyNotifConfig, request CandleRequest) *
 		return nil
 	}
 
+	if len(response.CandleData) < 20 {
+		log.Println("invalid candle data value")
+	}
+
 	bands := analysis.GetCurrentBollingerBands(response.CandleData)
 	if len(bands.Data) < 13 {
 		log.Println("invalid number of band, skipped")

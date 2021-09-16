@@ -50,7 +50,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		return true
 	}
 
-	if SellPattern(&result) && changesInPercent > 1 {
+	if SellPattern(&result) && changesInPercent > 1 && isCandleComplete {
 		reason = "sell up with criteria x1"
 		return true
 	}
