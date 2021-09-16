@@ -30,7 +30,7 @@ func isHeighestOnHalfEndAndAboveUpper(result *models.BandResult) bool {
 
 func isContaineBearishEngulfing(result *models.BandResult) bool {
 	hiIndex := getHighestIndex(result)
-	if hiIndex >= len(result.Bands)/3 {
+	if hiIndex >= len(result.Bands)/4 {
 		return BearishEngulfing(result.Bands[hiIndex:])
 	}
 
@@ -50,7 +50,7 @@ func getHighestIndex(result *models.BandResult) int {
 
 func lastBandHeadDoubleBody(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Close > lastBand.Candle.Open {
+	if lastBand.Candle.Close > lastBand.Candle.Open && result.Position == models.ABOVE_UPPER {
 		head := lastBand.Candle.Hight - lastBand.Candle.Close
 		body := lastBand.Candle.Close - lastBand.Candle.Open
 		return (head / body) > 2
