@@ -113,7 +113,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	for key, val := range analysis.GetWeightLogData() {
 		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
-	weightLongInterval := GetOnLongIntervalWeight(*result, *masterCoin, timeInMili)
+	weightLongInterval := GetOnLongIntervalWeight(*result, *masterCoin, 0, timeInMili)
 	msg += fmt.Sprintf("weight on long interval : %.2f", weightLongInterval)
 	msg += "\n"
 	msg += "detail weight: \n"

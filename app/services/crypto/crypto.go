@@ -160,7 +160,7 @@ func GetMode() string {
 	return mode
 }
 
-func GetOnLongIntervalWeight(coin models.BandResult, masterCoinLocal models.BandResult, timeInMili int64) float32 {
+func GetOnLongIntervalWeight(coin models.BandResult, masterCoinLocal models.BandResult, startDate, endDate int64) float32 {
 	responseChan := make(chan CandleResponse)
 
 	data, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
@@ -170,7 +170,8 @@ func GetOnLongIntervalWeight(coin models.BandResult, masterCoinLocal models.Band
 
 	request := CandleRequest{
 		Symbol:       data.Symbol,
-		StartDate:    timeInMili,
+		StartDate:    startDate,
+		EndDate:      endDate,
 		Limit:        int(CandleLimit),
 		Resolution:   "1h",
 		ResponseChan: responseChan,

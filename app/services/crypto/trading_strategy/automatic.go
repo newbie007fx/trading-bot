@@ -224,7 +224,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	timeInMilli := GetStartDate(checkingTime, 60)
 	for i := range altCoins {
 		waitMasterCoinProcessed()
-		altCoins[i].Weight += crypto.GetOnLongIntervalWeight(altCoins[i], *masterCoin, timeInMilli)
+		altCoins[i].Weight += crypto.GetOnLongIntervalWeight(altCoins[i], *masterCoin, timeInMilli, 0)
 		if altCoins[i].Weight > 2.8 {
 			results = append(results, altCoins[i])
 		}
