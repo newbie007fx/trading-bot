@@ -16,10 +16,13 @@ type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
 	cryptoAltCoinPriceChan  chan bool
 	cryptoAltCoinDownChan   chan bool
+	masterCoinChan          chan bool
 }
 
 func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	checkingTime = currentTime
+
+	ats.masterCoinChan <- true
 
 	condition := map[string]interface{}{"is_on_hold": true}
 	holdCount := repositories.CountNotifConfig(&condition)
@@ -45,10 +48,12 @@ func (ats *AutomaticTradingStrategy) InitService() {
 	ats.cryptoHoldCoinPriceChan = make(chan bool)
 	ats.cryptoAltCoinPriceChan = make(chan bool)
 	ats.cryptoAltCoinDownChan = make(chan bool)
+	ats.masterCoinChan = make(chan bool)
 
 	go ats.startCheckHoldCoinPriceService(ats.cryptoHoldCoinPriceChan)
 	go ats.startCheckAltCoinPriceService(ats.cryptoAltCoinPriceChan)
 	go ats.startCheckAltCoinOnDownService(ats.cryptoAltCoinDownChan)
+	go StartCheckMasterCoinPriceService(ats.masterCoinChan)
 }
 
 func (ats *AutomaticTradingStrategy) Shutdown() {
@@ -114,7 +119,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
 		waitMasterCoinProcessed()
-		if masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN {
+		if skippedProcess() {
 			continue
 		}
 		altCoins := checkCryptoAltCoinPrice(checkingTime)
@@ -176,13 +181,13 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 			}
 
 			result := crypto.MakeCryptoRequest(data, request)
-			if result == nil || result.Direction == analysis.BAND_DOWN || !(result.Position == models.BELOW_LOWER || result.Position == models.BELOW_SMA) {
+			if result == nil || result.Direction == analysis.BAND_DOWN {
 				continue
 			}
 
 			if result.AllTrend.SecondTrend != models.TREND_UP {
 				result.Weight = analysis.CalculateWeightOnDown(result)
-				if result.Weight != 0 {
+				if result.Weight != 0 && analysis.IsIgnoredMasterDown(result, masterCoin) {
 					altCoins = append(altCoins, *result)
 				}
 			}
@@ -247,7 +252,8 @@ func sendHoldMsg(result *models.BandResult) string {
 }
 
 func checkMasterDown() bool {
-	if masterCoin.Direction == analysis.BAND_DOWN {
+	minuteLeft := checkingTime.Minute() % 15
+	if masterCoin.Direction == analysis.BAND_DOWN && (minuteLeft > 0 && minuteLeft <= 5) {
 		return false
 	}
 
@@ -261,5 +267,17 @@ func checkMasterDown() bool {
 	}
 
 	lastBandPercentChanges := (masterLastBand.Candle.Close - masterLastBand.Candle.Open) / masterLastBand.Candle.Open * 100
-	return lastBandPercentChanges > 3.3 && checkingTime.Minute()/15 >= 10
+	return lastBandPercentChanges > 0.33
+}
+
+func skippedProcess() bool {
+	if masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN {
+		return true
+	}
+
+	if masterCoin.Trend != models.TREND_SIDEWAY && masterCoinLongInterval.Trend == models.TREND_SIDEWAY && masterCoin.Direction == analysis.BAND_DOWN {
+		return true
+	}
+
+	return false
 }

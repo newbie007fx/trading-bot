@@ -10,7 +10,6 @@ import (
 )
 
 var updateVolumeChan chan bool
-var checkMasterCoinChan chan bool
 var strategy trading_strategy.TradingStrategy
 
 func StartCryptoWorker() {
@@ -19,13 +18,11 @@ func StartCryptoWorker() {
 	defer func() {
 		strategy.Shutdown()
 		close(updateVolumeChan)
-		close(checkMasterCoinChan)
 	}()
 
 	for {
 		currentTime := time.Now()
 		if !isMuted() {
-			checkMasterCoinChan <- true
 
 			strategy.Execute(currentTime)
 		}
@@ -41,11 +38,9 @@ func StartCryptoWorker() {
 
 func startService() {
 	updateVolumeChan = make(chan bool)
-	checkMasterCoinChan = make(chan bool)
 
 	go crypto.RequestCandleService()
 	go crypto.StartUpdateVolumeService(updateVolumeChan)
-	go trading_strategy.StartCheckMasterCoinPriceService(checkMasterCoinChan)
 	go crypto.StartSyncBalanceService()
 
 	setStrategy()

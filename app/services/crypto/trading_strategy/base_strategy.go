@@ -21,7 +21,7 @@ var waitMasterCoin bool
 
 func StartCheckMasterCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
-		checkCryptoMasterCoinPrice(time.Now())
+		checkCryptoMasterCoinPrice(checkingTime)
 	}
 }
 
@@ -130,7 +130,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 		}
 
 		result.Weight = analysis.CalculateWeight(result, *masterCoin)
-		if !analysis.IsIgnored(result) && result.Weight > 1.49 {
+		if !analysis.IsIgnored(result, masterCoin) && result.Weight > 1.49 {
 			altCoin = append(altCoin, *result)
 		}
 
@@ -148,7 +148,7 @@ func GetStartDate(baseTime time.Time, duration int) int64 {
 	unixTime := baseTime.Unix() - totalDuration
 
 	if baseTime.Minute()%15 == 0 {
-		unixTime -= 1
+		unixTime -= 30
 	}
 
 	return unixTime * 1000

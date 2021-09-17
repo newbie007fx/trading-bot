@@ -10,26 +10,6 @@ var longIntervalWeightLogData map[string]float32
 func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) float32 {
 	weightLogData = map[string]float32{}
 
-	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Low <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.Upper) {
-		return 0
-	}
-
-	highest := getHigestPrice(result.Bands)
-	lowest := getLowestPrice(result.Bands)
-	difference := highest - lowest
-	percent := difference / lowest * 100
-	if percent < 2 {
-		return 0
-	}
-
-	if masterCoin.Trend == models.TREND_DOWN {
-		lastFourData := result.Bands[len(result.Bands)-4:]
-		if CalculateTrends(lastFourData) != models.TREND_UP {
-			return 0
-		}
-	}
-
 	weight := priceChangeWeight(result.PriceChanges)
 	weightLogData["priceWeight"] = weight
 
