@@ -34,11 +34,11 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	if holdCount < maxHold {
 		if ats.isTimeToCheckAltCoinPrice(currentTime) {
 			ats.cryptoAltCoinPriceChan <- true
-		}
-
-		waitMasterCoinProcessed()
-		if (masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN && masterCoin.Direction == analysis.BAND_UP) || checkMasterDown() {
-			ats.cryptoAltCoinDownChan <- true
+		} else {
+			waitMasterCoinProcessed()
+			if (masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN && masterCoin.Direction == analysis.BAND_UP) || checkMasterDown() {
+				ats.cryptoAltCoinDownChan <- true
+			}
 		}
 	}
 
@@ -59,6 +59,8 @@ func (ats *AutomaticTradingStrategy) InitService() {
 func (ats *AutomaticTradingStrategy) Shutdown() {
 	close(ats.cryptoHoldCoinPriceChan)
 	close(ats.cryptoAltCoinPriceChan)
+	close(ats.cryptoAltCoinDownChan)
+	close(ats.masterCoinChan)
 }
 
 func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time) bool {
@@ -271,11 +273,15 @@ func checkMasterDown() bool {
 }
 
 func skippedProcess() bool {
-	if masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN {
+	if masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN && masterCoin.Direction == analysis.BAND_DOWN {
 		return true
 	}
 
 	if masterCoin.Trend != models.TREND_SIDEWAY && masterCoinLongInterval.Trend == models.TREND_SIDEWAY && masterCoin.Direction == analysis.BAND_DOWN {
+		return true
+	}
+
+	if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) {
 		return true
 	}
 

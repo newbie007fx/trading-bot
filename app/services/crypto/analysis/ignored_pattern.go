@@ -39,11 +39,20 @@ func IsIgnoredLongInterval(result *models.BandResult) bool {
 
 func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 	if result.Position != models.BELOW_LOWER && result.Position != models.BELOW_SMA {
-		if result.Position == models.ABOVE_SMA && masterCoin.PriceChanges > 0.33 {
-			return false
-		}
-
 		return true
+	}
+
+	lastBand := result.Bands[len(result.Bands)-1]
+	if haveEverBandAboveSMA(result.Bands) {
+		marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
+		if marginFromUpper < 2.8 {
+			return true
+		}
+	} else {
+		marginFromSMA := (lastBand.SMA - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
+		if marginFromSMA < 2.8 {
+			return true
+		}
 	}
 
 	return false
@@ -130,6 +139,16 @@ func whenHeadCrossBandAndMasterDown(result, masterCoin *models.BandResult) bool 
 	crossUpper := lastBand.Candle.Close < float32(lastBand.Upper) && lastBand.Candle.Hight > float32(lastBand.Upper)
 	if (crossSMA || crossUpper) && CalculateTrends(masterCoin.Bands[len(masterCoin.Bands)-5:]) == models.TREND_DOWN {
 		return true
+	}
+
+	return false
+}
+
+func haveEverBandAboveSMA(bands []models.Band) bool {
+	for _, band := range bands {
+		if band.Candle.Low >= float32(band.SMA) {
+			return true
+		}
 	}
 
 	return false

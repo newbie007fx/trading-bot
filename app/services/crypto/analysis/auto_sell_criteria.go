@@ -40,6 +40,11 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		}
 	}
 
+	if BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) && result.Direction == BAND_DOWN && isCandleComplete {
+		reason = "sell with criteria 00"
+		return true
+	}
+
 	lastBand := result.Bands[len(result.Bands)-1]
 	if currencyConfig.HoldPrice > result.CurrentPrice {
 		return sellOnDown(result, currencyConfig, lastBand)
@@ -76,7 +81,7 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 	lastFiveData := result.Bands[len(result.Bands)-5 : len(result.Bands)]
 
 	if checkOnTrendDown(result, masterCoinTrend, masterCoinLongTrend, changesInPercent, isCandleComplete) {
-		reason = "sell with criteria x1"
+		reason = "sell with criteria y1"
 		return true
 	}
 
@@ -271,7 +276,7 @@ func GetSellReason() string {
 func checkOnTrendDown(result models.BandResult, masterCoinTrend, masterCoinLongIntervalTrend int8, priceChange float32, isCandleComplete bool) bool {
 	if masterCoinTrend != models.TREND_UP && masterCoinLongIntervalTrend == models.TREND_DOWN {
 		if result.Direction == BAND_DOWN {
-			if (priceChange >= 3 && priceChange <= 3.5) || isCandleComplete {
+			if (priceChange >= 1.5 && priceChange <= 3.5) || isCandleComplete {
 				return true
 			}
 		}
