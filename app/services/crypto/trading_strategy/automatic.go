@@ -189,7 +189,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 
 			if result.AllTrend.SecondTrend != models.TREND_UP {
 				result.Weight = analysis.CalculateWeightOnDown(result)
-				if result.Weight != 0 && analysis.IsIgnoredMasterDown(result, masterCoin) {
+				if result.Weight != 0 && !analysis.IsIgnoredMasterDown(result, masterCoin) {
 					altCoins = append(altCoins, *result)
 				}
 			}

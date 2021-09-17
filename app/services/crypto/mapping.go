@@ -7,8 +7,8 @@ import (
 )
 
 func GenerateMsg(coinResult models.BandResult) string {
-	format := "Coin name: <b>%s</b> \nDirection: <b>%s</b> \nPrice: <b>%f</b> \nVolume: <b>%f</b> \nTrend: <b>%s</b> \nPrice Changes: <b>%.2f%%</b> \nVolume Average Changes: <b>%.2f%%</b> \nNotes: <b>%s</b> \nPosition: <b>%s</b> \n"
-	msg := fmt.Sprintf(format, coinResult.Symbol, DirectionString(coinResult.Direction), coinResult.CurrentPrice, coinResult.CurrentVolume, TrendString(coinResult.Trend), coinResult.PriceChanges, coinResult.VolumeChanges, coinResult.Note, PositionString(coinResult.Position))
+	format := "Coin name: <b>%s</b> \nDirection: <b>%s</b> \nPrice: <b>%f</b> \nVolume: <b>%f</b> \nTrend: <b>%s (%s+%s)</b> \nPrice Changes: <b>%.2f%%</b> \nVolume Average Changes: <b>%.2f%%</b> \nNotes: <b>%s</b> \nPosition: <b>%s</b> \n"
+	msg := fmt.Sprintf(format, coinResult.Symbol, DirectionString(coinResult.Direction), coinResult.CurrentPrice, coinResult.CurrentVolume, TrendString(coinResult.Trend), TrendString(coinResult.AllTrend.FirstTrend), TrendString(coinResult.AllTrend.SecondTrend), coinResult.PriceChanges, coinResult.VolumeChanges, coinResult.Note, PositionString(coinResult.Position))
 	return msg
 }
 
