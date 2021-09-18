@@ -13,4 +13,5 @@ func init() {
 	db.RegistMigration(migrations.AddVolumeColumnCurrencyNotifTable())
 	db.RegistMigration(migrations.AddBalanceColumnCurrencyNotifTable())
 	db.RegistMigration(migrations.AddHoldPriceColumnCurrencyNotifTable())
+	db.RegistMigration(migrations.AddHoldedAtColumnCurrencyNotifTable())
 }
