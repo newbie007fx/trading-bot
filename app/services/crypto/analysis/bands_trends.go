@@ -138,6 +138,12 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 
 func getConclusionTrend(firstToMidleTrend, midleToLastTrend int8, firstAvg, midleAvg, lastAvg, baseLinePointFirst float32) int8 {
 	if firstToMidleTrend == models.TREND_SIDEWAY {
+		if midleToLastTrend == models.TREND_SIDEWAY {
+			trend := getTrend(baseLinePointFirst, firstAvg, lastAvg)
+			if trend == models.TREND_SIDEWAY {
+				return trend
+			}
+		}
 		return midleToLastTrend
 	}
 
