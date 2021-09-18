@@ -60,7 +60,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		return true
 	}
 
-	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && changesInPercent > 2.5 {
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && changesInPercent > 2.5 && isCandleComplete && result.Direction == BAND_DOWN {
 		reason = "sell up with criteria x2"
 		return true
 	}
