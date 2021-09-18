@@ -38,7 +38,7 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 }
 
 func IsIgnoredLongInterval(result *models.BandResult) bool {
-	if isInAboveUpperBandAndDownTrend(result) {
+	if isInAboveUpperBandAndDownTrend(result) && result.Direction == BAND_DOWN {
 		return true
 	}
 
