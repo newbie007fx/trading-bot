@@ -140,9 +140,7 @@ func getConclusionTrend(firstToMidleTrend, midleToLastTrend int8, firstAvg, midl
 	if firstToMidleTrend == models.TREND_SIDEWAY {
 		if midleToLastTrend == models.TREND_SIDEWAY {
 			trend := getTrend(baseLinePointFirst, firstAvg, lastAvg)
-			if trend == models.TREND_SIDEWAY {
-				return trend
-			}
+			return trend
 		}
 		return midleToLastTrend
 	}
