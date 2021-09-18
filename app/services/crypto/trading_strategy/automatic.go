@@ -31,12 +31,13 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	}
 
 	maxHold := crypto.GetMaxHold()
+	minuteLeft := checkingTime.Minute() % 15
 	if holdCount < maxHold {
 		if ats.isTimeToCheckAltCoinPrice(currentTime) {
 			ats.cryptoAltCoinPriceChan <- true
-		} else {
+		} else if masterCoin.Direction == analysis.BAND_UP && (minuteLeft > 5 && minuteLeft <= 14) {
 			waitMasterCoinProcessed()
-			if (masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN && masterCoin.Direction == analysis.BAND_UP) || checkMasterDown() {
+			if checkMasterDown() {
 				ats.cryptoAltCoinDownChan <- true
 			}
 		}
@@ -254,9 +255,8 @@ func sendHoldMsg(result *models.BandResult) string {
 }
 
 func checkMasterDown() bool {
-	minuteLeft := checkingTime.Minute() % 15
-	if masterCoin.Direction == analysis.BAND_DOWN && (minuteLeft > 0 && minuteLeft <= 5) {
-		return false
+	if masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN {
+		return true
 	}
 
 	masterLastBand := masterCoin.Bands[len(masterCoin.Bands)-1]

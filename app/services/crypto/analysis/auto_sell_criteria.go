@@ -276,7 +276,13 @@ func GetSellReason() string {
 func checkOnTrendDown(result models.BandResult, masterCoinTrend, masterCoinLongIntervalTrend int8, priceChange float32, isCandleComplete bool) bool {
 	if masterCoinTrend != models.TREND_UP && masterCoinLongIntervalTrend == models.TREND_DOWN {
 		if result.Direction == BAND_DOWN {
-			if (priceChange >= 1.5 && priceChange <= 3.5) || isCandleComplete {
+			lastBand := result.Bands[len(result.Bands)-1]
+			secondLastBand := result.Bands[len(result.Bands)-2]
+			lastBandOnSMA := lastBand.Candle.Low <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.SMA)
+			lastBandOnUpper := lastBand.Candle.Low <= float32(lastBand.Upper) && lastBand.Candle.Hight >= float32(lastBand.Upper)
+			secondLastBandOnSMA := secondLastBand.Candle.Low <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
+			secondLastBandOnUpper := secondLastBand.Candle.Low <= float32(secondLastBand.Upper) && secondLastBand.Candle.Hight >= float32(secondLastBand.Upper)
+			if ((priceChange >= 1.5 && priceChange <= 3.5) || isCandleComplete) && (lastBandOnSMA || lastBandOnUpper || secondLastBandOnSMA || secondLastBandOnUpper) {
 				return true
 			}
 		}

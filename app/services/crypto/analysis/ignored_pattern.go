@@ -22,6 +22,14 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
+	if isPosititionBellowUpperMarginBellowThreshold(result) {
+		return true
+	}
+
+	if isBellowSMAAndUpJustOneBand(result) {
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -53,6 +61,27 @@ func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 		if marginFromSMA < 2.8 {
 			return true
 		}
+	}
+
+	return false
+}
+
+func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) bool {
+	lastBand := result.Bands[len(result.Bands)-1]
+	if lastBand.Candle.Hight < float32(lastBand.Upper) {
+		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
+
+		return margin < 2.8
+	}
+
+	return false
+}
+
+func isBellowSMAAndUpJustOneBand(result *models.BandResult) bool {
+	lastBand := result.Bands[len(result.Bands)-1]
+	secondLastBand := result.Bands[len(result.Bands)-2]
+	if lastBand.Candle.Hight < float32(lastBand.SMA) {
+		return secondLastBand.Candle.Open > secondLastBand.Candle.Close
 	}
 
 	return false
@@ -146,7 +175,7 @@ func whenHeadCrossBandAndMasterDown(result, masterCoin *models.BandResult) bool 
 
 func haveEverBandAboveSMA(bands []models.Band) bool {
 	for _, band := range bands {
-		if band.Candle.Low >= float32(band.SMA) {
+		if band.Candle.Low >= float32(band.SMA) && band.Candle.Hight >= float32(band.Upper) {
 			return true
 		}
 	}

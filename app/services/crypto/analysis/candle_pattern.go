@@ -154,7 +154,7 @@ func dragonflyDoji(bands []models.Band) bool {
 }
 
 func turnPattern(bands []models.Band) bool {
-	numberOfData := len(bands) / 4
+	numberOfData := len(bands) / 3
 	countDown := 0
 	for i := numberOfData; i >= 0; i-- {
 		currentValue := (bands[i].Candle.Open + bands[i].Candle.Close) / 2
@@ -166,11 +166,7 @@ func turnPattern(bands []models.Band) bool {
 		}
 	}
 
-	if countDown >= numberOfData/2 {
-		return false
-	}
-
-	return true
+	return countDown < numberOfData/2
 }
 
 func threeWhiteSoldiers(bands []models.Band) bool {
