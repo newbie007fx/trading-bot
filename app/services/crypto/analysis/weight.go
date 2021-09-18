@@ -145,7 +145,7 @@ func reversalWeight(result *models.BandResult, masterTrend int8) float32 {
 	trend := CalculateTrends(result.Bands[:len(result.Bands)-1])
 
 	lastSixData := result.Bands[len(result.Bands)-6:]
-	if trend == models.TREND_UP || CalculateTrends(lastSixData[1:]) == models.TREND_DOWN || ((result.PriceChanges < 1 && countSquentialUpBand(lastSixData) < 2) || result.PriceChanges < 1.3) {
+	if trend == models.TREND_UP || CalculateTrends(lastSixData[2:]) != models.TREND_UP || ((result.PriceChanges < 1 && countSquentialUpBand(lastSixData) < 2) || result.PriceChanges < 1.3) {
 		lastSixDataTrend := CalculateTrendsDetail(lastSixData)
 		if lastSixDataTrend.FirstTrend == models.TREND_DOWN && lastSixDataTrend.SecondTrend == models.TREND_UP {
 			weight = 0.08
