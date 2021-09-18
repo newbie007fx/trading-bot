@@ -200,10 +200,10 @@ func crossBandWeight(result *models.BandResult, masterTrend int8) float32 {
 		if secondLastBand.Candle.Open < float32(secondLastBand.Lower) {
 			if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
 				if (result.AllTrend.FirstTrend != models.TREND_DOWN || result.AllTrend.SecondTrend != models.TREND_DOWN) && masterTrend == models.TREND_UP {
-					return 0.3
+					return 0.2
 				}
 
-				return 0.2
+				return 0.15
 			}
 		}
 	}
@@ -215,7 +215,7 @@ func getPatternWeight(result *models.BandResult) float32 {
 
 	var weight float32 = 0
 	if len(listMatchPattern) > 0 {
-		weight += 0.2 * float32(len(listMatchPattern))
+		weight += 0.15 * float32(len(listMatchPattern))
 	}
 
 	return weight
