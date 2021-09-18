@@ -22,6 +22,7 @@ func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.Cand
 	if !currencyConfig.IsOnHold {
 		data := map[string]interface{}{
 			"is_on_hold": true,
+			"holded_at":  time.Now().Unix(),
 		}
 		err := repositories.UpdateCurrencyNotifConfig(currencyConfig.ID, data)
 		if err != nil {
@@ -87,7 +88,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		Symbol:       config.Symbol,
 		StartDate:    0,
 		EndDate:      timeInMili,
-		Limit:        int(CandleLimit),
+		Limit:        int(models.CandleLimit),
 		Resolution:   "15m",
 		ResponseChan: responseChan,
 	}
@@ -99,7 +100,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		Symbol:       masterCoinConfig.Symbol,
 		StartDate:    0,
 		EndDate:      timeInMili,
-		Limit:        int(CandleLimit),
+		Limit:        int(models.CandleLimit),
 		Resolution:   "15m",
 		ResponseChan: responseChan,
 	}

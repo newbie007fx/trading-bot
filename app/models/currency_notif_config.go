@@ -12,6 +12,7 @@ type CurrencyNotifConfig struct {
 	Volume    float32 `gorm:"default:0;index"`
 	Balance   float32 `gorm:"default:0;index"`
 	HoldPrice float32 `gorm:"default:0"`
+	HoldedAt  int64   `gorm:"default:0"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

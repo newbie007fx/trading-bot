@@ -30,7 +30,6 @@ var canldeRequest chan CandleRequest
 var previousTimeCheck time.Time = time.Now()
 var thresholdPerMinute int64 = 140
 var counter int64 = 0
-var CandleLimit int64 = 40
 
 func DispatchRequestJob(request CandleRequest) {
 	canldeRequest <- request
@@ -172,7 +171,7 @@ func GetOnLongIntervalWeight(coin models.BandResult, masterCoinLocal models.Band
 		Symbol:       data.Symbol,
 		StartDate:    startDate,
 		EndDate:      endDate,
-		Limit:        int(CandleLimit),
+		Limit:        int(models.CandleLimit),
 		Resolution:   "1h",
 		ResponseChan: responseChan,
 	}

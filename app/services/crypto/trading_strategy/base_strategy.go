@@ -144,7 +144,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 func GetStartDate(baseTime time.Time, duration int) int64 {
 	durationPerCandle := 60 * duration
-	totalDuration := crypto.CandleLimit * int64(durationPerCandle)
+	totalDuration := models.CandleLimit * int64(durationPerCandle)
 	unixTime := baseTime.Unix() - totalDuration
 
 	if baseTime.Minute()%15 == 0 {
