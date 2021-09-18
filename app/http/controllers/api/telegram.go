@@ -86,6 +86,17 @@ func ProcessTeleWebhook(c echo.Context) error {
 				responseMsg += msg
 			}
 		}
+	} else if cmd == "/status-log" {
+		responseMsg = "invalid format lur"
+		if len(msgData) > 2 {
+			msg, err := handlerStatusLog(msgData[1], msgData[2])
+			if err != nil {
+				responseMsg = err.Error()
+			} else {
+				responseMsg = fmt.Sprintf("Berikut ini status untuk coin %s :\n", msgData[1])
+				responseMsg += msg
+			}
+		}
 	} else if cmd == "/balance" {
 		responseMsg = crypto.GetBalances()
 	} else if cmd == "/sync-balance" {
@@ -151,7 +162,7 @@ func handlerStatusCoin(symbol string) (string, error) {
 		return "", errors.New("invalid symbol lur")
 	}
 
-	return crypto.GetCurrencyStatus(*currencyConfig), nil
+	return crypto.GetCurrencyStatus(*currencyConfig, "15m", nil), nil
 }
 
 func handlerMaxHold(maxHold string) error {
@@ -175,5 +186,20 @@ func handlerWeightLog(symbol, date string) (string, error) {
 	}
 	tm := time.Unix(i, 0)
 	msg := crypto.GetWeightLog(*currencyConfig, tm)
+	return msg, nil
+}
+
+func handlerStatusLog(symbol, date string) (string, error) {
+	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
+	if err != nil {
+		log.Println(err.Error())
+		return "", errors.New("invalid symbol lur")
+	}
+	i, err := strconv.ParseInt(date, 10, 64)
+	if err != nil {
+		return "", errors.New("invalid log date value")
+	}
+	tm := time.Unix(i, 0)
+	msg := crypto.GetCurrencyStatus(*currencyConfig, "1h", &tm)
 	return msg, nil
 }

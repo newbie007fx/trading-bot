@@ -57,8 +57,12 @@ func ReleaseCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.C
 	return nil
 }
 
-func GetCurrencyStatus(config models.CurrencyNotifConfig) string {
+func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, requestTime *time.Time) string {
 	currentTime := time.Now()
+	if requestTime != nil {
+		currentTime = *requestTime
+	}
+
 	timeInMili := currentTime.Unix() * 1000
 
 	responseChan := make(chan CandleResponse)
@@ -66,7 +70,7 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig) string {
 		Symbol:       config.Symbol,
 		EndDate:      timeInMili,
 		Limit:        40,
-		Resolution:   "15m",
+		Resolution:   resolution,
 		ResponseChan: responseChan,
 	}
 
