@@ -34,19 +34,20 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	weightLogData["crossBandWeight"] = crossBandWeight
 	weight += crossBandWeight
 
-	if masterCoin.Trend == models.TREND_UP {
-		weight += 0.05
-		weightLogData["masterTrenWeight"] = 0.05
+	if masterCoin.Trend == models.TREND_UP || (masterCoin.Trend == models.TREND_SIDEWAY && masterCoin.Direction == BAND_UP) {
+		if isMasterCoinReversal {
+			weight += 0.1
+			weightLogData["masterTrenWeight"] = 0.1
+		} else {
+			weight += 0.05
+			weightLogData["masterTrenWeight"] = 0.05
+		}
 	}
 
 	if result.Trend == models.TREND_UP {
-		if isMasterCoinReversal {
-			weight += 0.1
-			weightLogData["TrenWeight"] = 0.1
-		} else {
-			weight += 0.05
-			weightLogData["TrenWeight"] = 0.05
-		}
+
+		weight += 0.05
+		weightLogData["TrenWeight"] = 0.05
 	}
 
 	return weight
@@ -225,10 +226,7 @@ func getPriceMarginWithUpperBandWeight(bands []models.Band) float32 {
 	lastBand := bands[len(bands)-1]
 	var percent float32 = 0
 
-	if lastBand.Candle.Close < float32(lastBand.SMA) {
-		different := float32(lastBand.SMA) - lastBand.Candle.Close
-		percent = different / lastBand.Candle.Close * 100
-	} else if lastBand.Candle.Close < float32(lastBand.Upper) {
+	if lastBand.Candle.Close < float32(lastBand.Upper) {
 		different := float32(lastBand.Upper) - lastBand.Candle.Close
 		percent = different / lastBand.Candle.Close * 100
 	}
