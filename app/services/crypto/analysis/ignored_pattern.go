@@ -34,6 +34,14 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
+	if isBelowSMAAfterDown(result) {
+		return true
+	}
+
+	if isOnUpperAndPreviousBandBelowUpper(result.Bands) {
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -83,7 +91,7 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 	if lastBand.Candle.Hight < float32(lastBand.Upper) {
 		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
-		return margin < 2.8
+		return margin < 2.5
 	}
 
 	return false
@@ -206,6 +214,26 @@ func haveEverBandAboveSMA(bands []models.Band) bool {
 		if band.Candle.Low >= float32(band.SMA) && band.Candle.Hight >= float32(band.Upper) {
 			return true
 		}
+	}
+
+	return false
+}
+
+func isBelowSMAAfterDown(result *models.BandResult) bool {
+	lastBand := result.Bands[len(result.Bands)-1]
+	if lastBand.Candle.Open < float32(lastBand.SMA) {
+		if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend != models.TREND_UP {
+			return true
+		}
+	}
+	return false
+}
+
+func isOnUpperAndPreviousBandBelowUpper(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+	secondLastBand := bands[len(bands)-2]
+	if lastBand.Candle.Open <= float32(lastBand.Upper) && lastBand.Candle.Close >= float32(lastBand.Upper) {
+		return secondLastBand.Candle.Close < float32(secondLastBand.Upper)
 	}
 
 	return false

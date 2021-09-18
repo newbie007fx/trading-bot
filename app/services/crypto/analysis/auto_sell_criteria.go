@@ -45,6 +45,11 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		return true
 	}
 
+	if SellPattern(&result) && changesInPercent > 1 && isCandleComplete {
+		reason = "sell up with criteria x1"
+		return true
+	}
+
 	lastBand := result.Bands[len(result.Bands)-1]
 	if currencyConfig.HoldPrice > result.CurrentPrice {
 		return sellOnDown(result, currencyConfig, lastBand)
@@ -52,11 +57,6 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 
 	if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN && masterCoinLongTrend != models.TREND_UP {
 		reason = "sell up with criteria x0"
-		return true
-	}
-
-	if SellPattern(&result) && changesInPercent > 1 && isCandleComplete {
-		reason = "sell up with criteria x1"
 		return true
 	}
 
