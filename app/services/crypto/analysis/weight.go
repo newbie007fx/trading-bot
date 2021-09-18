@@ -145,7 +145,7 @@ func reversalWeight(result *models.BandResult, masterTrend int8) float32 {
 	trend := CalculateTrends(result.Bands[:len(result.Bands)-1])
 
 	lastSixData := result.Bands[len(result.Bands)-6:]
-	if trend == models.TREND_UP || CalculateTrends(lastSixData[1:]) != models.TREND_UP || ((result.PriceChanges < 1 && countSquentialUpBand(lastSixData) < 3) || result.PriceChanges < 1.3) {
+	if trend == models.TREND_UP || CalculateTrends(lastSixData[1:]) == models.TREND_DOWN || ((result.PriceChanges < 1 && countSquentialUpBand(lastSixData) < 2) || result.PriceChanges < 1.3) {
 		lastSixDataTrend := CalculateTrendsDetail(lastSixData)
 		if lastSixDataTrend.FirstTrend == models.TREND_DOWN && lastSixDataTrend.SecondTrend == models.TREND_UP {
 			weight = 0.08
@@ -157,7 +157,7 @@ func reversalWeight(result *models.BandResult, masterTrend int8) float32 {
 	}
 
 	lastBand := lastSixData[5]
-	highUpNotInterested := CalculateTrends(lastSixData[:4]) == models.TREND_UP && lastBand.Candle.Close > float32(lastBand.Upper)
+	highUpNotInterested := CalculateTrends(lastSixData[2:]) == models.TREND_UP && lastBand.Candle.Close > float32(lastBand.Upper)
 	if countUpBand(lastSixData[1:]) < 2 && highUpNotInterested {
 		return 0.08
 	}
@@ -255,8 +255,6 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 
 	weightUpCounter := weightUpSquential(bands)
 
-	lastFiveTrend := CalculateTrends(bands[len(bands)-5:])
-
 	// low hight dibawah lower
 	if lastBand.Candle.Hight < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
@@ -287,37 +285,27 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 
 	// low hight dibawah SMA
 	if lastBand.Candle.Hight < float32(lastBand.SMA) {
-		if lastFiveTrend == models.TREND_UP || trend != models.TREND_DOWN {
-			return 0.42 + weightUpCounter
-		}
+		return 0.42 + weightUpCounter
 	}
 
 	// hight menyentuh SMA tp close dibaawh SMA
 	if lastBand.Candle.Hight >= float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA) {
-		if lastFiveTrend == models.TREND_UP || trend != models.TREND_DOWN {
-			return 0.40 + weightUpCounter
-		}
+		return 0.40 + weightUpCounter
 	}
 
 	// close menyentuh SMA tp open dibaawh SMA
 	if lastBand.Candle.Close >= float32(lastBand.SMA) && lastBand.Candle.Open < float32(lastBand.SMA) {
-		if lastFiveTrend == models.TREND_UP || trend != models.TREND_DOWN {
-			return 0.44 + weightUpCounter
-		}
+		return 0.44 + weightUpCounter
 	}
 
 	// open menyentuh SMA tp low dibaawh SMA
 	if lastBand.Candle.Open >= float32(lastBand.SMA) && lastBand.Candle.Low < float32(lastBand.SMA) {
-		if lastFiveTrend == models.TREND_UP || trend != models.TREND_DOWN {
-			return 0.46 + weightUpCounter
-		}
+		return 0.46 + weightUpCounter
 	}
 
 	// low hight dibawah Upper
 	if lastBand.Candle.Hight < float32(lastBand.Upper) {
-		if lastFiveTrend == models.TREND_UP || trend != models.TREND_DOWN {
-			return 0.38 + weightUpCounter
-		}
+		return 0.38 + weightUpCounter
 	}
 
 	// hight menyentuh Upper tp close dibaawh Upper
