@@ -121,13 +121,13 @@ func priceChangeWeight(priceChange float32) float32 {
 	} else if priceChange >= 1.2 {
 		return 0.46
 	} else if priceChange >= 1 {
-		return 0.41
+		return 0.42
 	} else if priceChange >= 0.75 {
-		return 0.36
+		return 0.38
 	} else if priceChange >= 0.5 {
-		return 0.31
+		return 0.34
 	} else if priceChange >= 0.3 {
-		return 0.21
+		return 0.28
 	}
 
 	return 0.16
@@ -208,11 +208,11 @@ func getPriceMarginWithUpperBandPercentWeight(percent float32) float32 {
 	} else if percent >= 3 {
 		return 0.46
 	} else if percent >= 2.5 {
-		return 0.41
+		return 0.42
 	} else if percent >= 2 {
-		return 0.36
+		return 0.38
 	} else if percent >= 1 {
-		return 0.31
+		return 0.34
 	}
 
 	return 0.21
@@ -279,19 +279,19 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 
 	// hight menyentuh Upper tp close dibaawh Upper
 	if lastBand.Candle.Hight >= float32(lastBand.Upper) && lastBand.Candle.Close < float32(lastBand.Upper) {
-		return 0.34 + weightUpCounter
+		return 0.32 + weightUpCounter
 	}
 
 	if ((masterTrend != models.TREND_DOWN) || isMasterCoinReversal) && !isLongInterval {
 
 		// close menyentuh Upper tp open dibaawh Upper
 		if lastBand.Candle.Close >= float32(lastBand.Upper) && lastBand.Candle.Open < float32(lastBand.Upper) {
-			return 0.38 + weightUpCounter
+			return 0.36 + weightUpCounter
 		}
 
 		// close diatas upper dan band sebelumya juga diatas upper
 		if lastBand.Candle.Close > float32(lastBand.Upper) {
-			var val float32 = 0.28
+			var val float32 = 0.26
 			if secondLastBand.Candle.Close > float32(secondLastBand.Upper) {
 				val += 0.12
 			}
@@ -301,7 +301,7 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 
 	}
 
-	return 0.28
+	return 0.26
 }
 
 func countUpBand(bands []models.Band) int {
@@ -332,11 +332,11 @@ func weightUpSquential(bands []models.Band) float32 {
 	counter := countSquentialUpBand(bands)
 	var weight float32 = 0.05
 	if counter >= 5 {
-		weight = 0.1
+		weight = 0.095
 	} else if counter == 4 {
-		weight = 0.125
+		weight = 0.115
 	} else if counter == 3 {
-		weight = 0.1
+		weight = 0.095
 	} else if counter == 2 {
 		weight = 0.05
 	}
