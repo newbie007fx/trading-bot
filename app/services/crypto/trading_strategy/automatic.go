@@ -31,12 +31,14 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	}
 
 	maxHold := crypto.GetMaxHold()
-	minuteLeft := checkingTime.Minute() % 15
 	if holdCount < maxHold {
 		if ats.isTimeToCheckAltCoinPrice(currentTime) {
 			ats.cryptoAltCoinPriceChan <- true
-		} else if masterCoin.Direction == analysis.BAND_UP && (minuteLeft > 5 && minuteLeft <= 14) {
-			waitMasterCoinProcessed()
+		}
+
+		waitMasterCoinProcessed()
+		minuteLeft := checkingTime.Minute() % 15
+		if masterCoin.Direction == analysis.BAND_UP && (minuteLeft > 5 && minuteLeft <= 14) {
 			if checkMasterDown() {
 				ats.cryptoAltCoinDownChan <- true
 			}
