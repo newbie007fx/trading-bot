@@ -35,17 +35,17 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	weight += crossBandWeight
 
 	if masterCoin.Trend == models.TREND_UP {
-		weight += 0.1
-		weightLogData["masterTrenWeight"] = 0.1
+		weight += 0.05
+		weightLogData["masterTrenWeight"] = 0.05
 	}
 
 	if result.Trend == models.TREND_UP {
 		if isMasterCoinReversal {
-			weight += 0.15
-			weightLogData["TrenWeight"] = 0.15
-		} else {
 			weight += 0.1
 			weightLogData["TrenWeight"] = 0.1
+		} else {
+			weight += 0.05
+			weightLogData["TrenWeight"] = 0.05
 		}
 	}
 
@@ -76,8 +76,8 @@ func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) fl
 	longIntervalWeightLogData["weightCrossBand"] = weightCrossBand
 
 	if result.Trend == models.TREND_UP {
-		weight += 0.15
-		longIntervalWeightLogData["trendWeight"] = 0.15
+		weight += 0.1
+		longIntervalWeightLogData["trendWeight"] = 0.1
 	}
 
 	return weight
@@ -126,18 +126,18 @@ func priceChangeWeight(priceChange float32) float32 {
 	if priceChange >= 1.4 {
 		return 0.5
 	} else if priceChange >= 1.2 {
-		return 0.45
+		return 0.46
 	} else if priceChange >= 1 {
-		return 0.4
+		return 0.41
 	} else if priceChange >= 0.75 {
-		return 0.35
+		return 0.36
 	} else if priceChange >= 0.5 {
-		return 0.3
+		return 0.31
 	} else if priceChange >= 0.3 {
-		return 0.2
+		return 0.21
 	}
 
-	return 0.15
+	return 0.16
 }
 
 func reversalWeight(result *models.BandResult, masterTrend int8) float32 {
@@ -237,16 +237,16 @@ func getPriceMarginWithUpperBandPercentWeight(percent float32) float32 {
 	if percent >= 3.5 {
 		return 0.5
 	} else if percent >= 3 {
-		return 0.45
+		return 0.46
 	} else if percent >= 2.5 {
-		return 0.4
+		return 0.41
 	} else if percent >= 2 {
-		return 0.35
+		return 0.36
 	} else if percent >= 1 {
-		return 0.3
+		return 0.31
 	}
 
-	return 0.2
+	return 0.21
 }
 
 func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInterval bool, isMasterCoinReversal bool, masterDirection int8) float32 {
@@ -375,13 +375,13 @@ func weightUpSquential(bands []models.Band) float32 {
 	counter := countSquentialUpBand(bands)
 	var weight float32 = 0.05
 	if counter >= 5 {
-		weight = 0.2
-	} else if counter == 4 {
-		weight = 0.175
-	} else if counter == 3 {
-		weight = 0.15
-	} else if counter == 2 {
 		weight = 0.1
+	} else if counter == 4 {
+		weight = 0.125
+	} else if counter == 3 {
+		weight = 0.1
+	} else if counter == 2 {
+		weight = 0.05
 	}
 
 	return weight
