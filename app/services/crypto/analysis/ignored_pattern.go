@@ -30,6 +30,10 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
+	if whenHeightTripleAverage(result) {
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -127,6 +131,22 @@ func getHighestIndex(result *models.BandResult) int {
 	}
 
 	return hiIndex
+}
+
+func whenHeightTripleAverage(result *models.BandResult) bool {
+	lastBand := result.Bands[len(result.Bands)-1]
+	lastBandHeight := lastBand.Candle.Close - lastBand.Candle.Open
+	var totalHeight float32 = 0
+	for _, band := range result.Bands[:len(result.Bands)-1] {
+		if band.Candle.Open > band.Candle.Close {
+			totalHeight += band.Candle.Open - band.Candle.Close
+		} else {
+			totalHeight += band.Candle.Close - band.Candle.Open
+		}
+	}
+	average := totalHeight / float32(len(result.Bands)-1)
+
+	return lastBandHeight/average >= 3
 }
 
 func lastBandHeadDoubleBody(result *models.BandResult) bool {

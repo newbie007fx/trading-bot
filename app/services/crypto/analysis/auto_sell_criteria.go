@@ -91,7 +91,7 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 
 	lastBandPercentChanges := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
 	lastHightChangePercent := (lastBand.Candle.Close - lastBand.Candle.Open) / (lastBand.Candle.Hight - lastBand.Candle.Open)
-	specialTolerance := (changesInPercent > 10 && highestHightChangePercent <= 65) || (lastBandPercentChanges > 5 && lastHightChangePercent <= 55 && isTimeBelowTenMinute())
+	specialTolerance := (changesInPercent > 10 && highestHightChangePercent <= 65) || (changesInPercent > 5 && lastBandPercentChanges > 5 && lastHightChangePercent <= 55 && isTimeBelowTenMinute())
 	if !specialTolerance {
 		if changesInPercent > 3.5 && !isCandleComplete && highestChangePercent > 55 && countDownCandleFromHighest(result.Bands) < 4 {
 			return false
