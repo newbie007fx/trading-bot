@@ -63,6 +63,10 @@ func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 		}
 	}
 
+	if isBellowSMAAndUpJustOneBand(result) {
+		return true
+	}
+
 	return false
 }
 
