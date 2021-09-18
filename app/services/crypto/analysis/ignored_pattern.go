@@ -37,12 +37,16 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 	return ignored(result, masterCoin)
 }
 
-func IsIgnoredLongInterval(result *models.BandResult) bool {
+func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
 	if isInAboveUpperBandAndDownTrend(result) && result.Direction == BAND_DOWN {
 		return true
 	}
 
 	if lastBandHeadDoubleBody(result) {
+		return true
+	}
+
+	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN {
 		return true
 	}
 
@@ -88,7 +92,7 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 func isBellowSMAAndUpJustOneBand(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 	secondLastBand := result.Bands[len(result.Bands)-2]
-	if lastBand.Candle.Hight < float32(lastBand.SMA) {
+	if lastBand.Candle.Open < float32(lastBand.SMA) {
 		return secondLastBand.Candle.Open > secondLastBand.Candle.Close
 	}
 

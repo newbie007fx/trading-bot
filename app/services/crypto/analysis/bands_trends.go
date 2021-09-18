@@ -158,12 +158,7 @@ func getConclusionTrend(firstToMidleTrend, midleToLastTrend int8, firstAvg, midl
 	}
 
 	if firstToMidleTrend == models.TREND_UP && midleToLastTrend == models.TREND_DOWN {
-		if firstAvg < lastAvg {
-			fourtyFromMidle := 35 * (midleAvg - firstAvg) / 100
-			if lastAvg > (midleAvg - fourtyFromMidle) {
-				return models.TREND_UP
-			}
-		}
+		return models.TREND_DOWN
 	}
 
 	if firstToMidleTrend == models.TREND_DOWN && midleToLastTrend == models.TREND_UP {

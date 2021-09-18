@@ -186,7 +186,7 @@ func GetOnLongIntervalWeight(coin models.BandResult, masterCoinLocal models.Band
 		trendChecking = result.Trend == models.TREND_UP || coin.Trend == models.TREND_UP
 	}
 	weight := analysis.CalculateWeightLongInterval(result, masterCoinLocal.Trend)
-	if analysis.IsIgnoredLongInterval(result) || (result.Direction == analysis.BAND_DOWN && result.Trend != models.TREND_UP) || !trendChecking {
+	if analysis.IsIgnoredLongInterval(result, &coin) || (result.Direction == analysis.BAND_DOWN && result.Trend != models.TREND_UP) || !trendChecking {
 		return 0
 	}
 
