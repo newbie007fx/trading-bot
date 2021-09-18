@@ -254,44 +254,44 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 
 	// low hight dibawah SMA
 	if lastBand.Candle.Hight < float32(lastBand.SMA) {
-		return 0.42 + weightUpCounter
+		return 0.40 + weightUpCounter
 	}
 
 	// hight menyentuh SMA tp close dibaawh SMA
 	if lastBand.Candle.Hight >= float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA) {
-		return 0.40 + weightUpCounter
+		return 0.38 + weightUpCounter
 	}
 
 	// close menyentuh SMA tp open dibaawh SMA
 	if lastBand.Candle.Close >= float32(lastBand.SMA) && lastBand.Candle.Open < float32(lastBand.SMA) {
-		return 0.44 + weightUpCounter
+		return 0.42 + weightUpCounter
 	}
 
 	// open menyentuh SMA tp low dibaawh SMA
 	if lastBand.Candle.Open >= float32(lastBand.SMA) && lastBand.Candle.Low < float32(lastBand.SMA) {
-		return 0.46 + weightUpCounter
+		return 0.44 + weightUpCounter
 	}
 
 	// low hight dibawah Upper
 	if lastBand.Candle.Hight < float32(lastBand.Upper) {
-		return 0.38 + weightUpCounter
+		return 0.36 + weightUpCounter
 	}
 
 	// hight menyentuh Upper tp close dibaawh Upper
 	if lastBand.Candle.Hight >= float32(lastBand.Upper) && lastBand.Candle.Close < float32(lastBand.Upper) {
-		return 0.36 + weightUpCounter
+		return 0.34 + weightUpCounter
 	}
 
 	if ((masterTrend != models.TREND_DOWN) || isMasterCoinReversal) && !isLongInterval {
 
 		// close menyentuh Upper tp open dibaawh Upper
 		if lastBand.Candle.Close >= float32(lastBand.Upper) && lastBand.Candle.Open < float32(lastBand.Upper) {
-			return 0.40 + weightUpCounter
+			return 0.38 + weightUpCounter
 		}
 
 		// close diatas upper dan band sebelumya juga diatas upper
 		if lastBand.Candle.Close > float32(lastBand.Upper) {
-			var val float32 = 0.3
+			var val float32 = 0.28
 			if secondLastBand.Candle.Close > float32(secondLastBand.Upper) {
 				val += 0.12
 			}
