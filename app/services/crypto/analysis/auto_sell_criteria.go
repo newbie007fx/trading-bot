@@ -40,7 +40,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		}
 	}
 
-	if BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) && result.Direction == BAND_DOWN && isCandleComplete {
+	if BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) && result.Direction == BAND_DOWN && masterCoin.Direction == BAND_DOWN && isCandleComplete {
 		reason = "sell with criteria 00"
 		return true
 	}
@@ -69,7 +69,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		return true
 	}
 
-	return isHoldedMoreThanDurationThreshold(currencyConfig, result)
+	return isHoldedMoreThanDurationThreshold(currencyConfig, result, isCandleComplete)
 }
 
 func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConfig, lastBand models.Band, isCandleComplete bool, masterCoinTrend, masterCoinLongTrend int8) bool {
@@ -286,7 +286,7 @@ func checkOnTrendDown(result models.BandResult, masterCoinTrend, masterCoinLongI
 			lastBandOnUpper := lastBand.Candle.Low <= float32(lastBand.Upper) && lastBand.Candle.Hight >= float32(lastBand.Upper)
 			secondLastBandOnSMA := secondLastBand.Candle.Low <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
 			secondLastBandOnUpper := secondLastBand.Candle.Low <= float32(secondLastBand.Upper) && secondLastBand.Candle.Hight >= float32(secondLastBand.Upper)
-			if ((priceChange >= 1.5 && priceChange <= 3.5) || isCandleComplete) && (lastBandOnSMA || lastBandOnUpper || secondLastBandOnSMA || secondLastBandOnUpper) {
+			if ((priceChange >= 1 && priceChange <= 3.5) || isCandleComplete) && (lastBandOnSMA || lastBandOnUpper || secondLastBandOnSMA || secondLastBandOnUpper) {
 				return true
 			}
 		}
@@ -301,13 +301,14 @@ func isTimeBelowTenMinute() bool {
 	return currentTime.Minute()%15 <= 10
 }
 
-func isHoldedMoreThanDurationThreshold(config *models.CurrencyNotifConfig, result models.BandResult) bool {
+func isHoldedMoreThanDurationThreshold(config *models.CurrencyNotifConfig, result models.BandResult, isCandleComplete bool) bool {
 	currentTime := time.Now()
 	durationOnOnePeriode := ((models.CandleLimit / 2) + 1) * 15 * 60
 	maxThreshold := config.HoldedAt + durationOnOnePeriode
 
 	if currentTime.Unix() > maxThreshold {
-		if result.AllTrend.SecondTrend != models.TREND_UP && result.Direction == BAND_DOWN {
+		if result.AllTrend.SecondTrend != models.TREND_UP && result.Direction == BAND_DOWN && isCandleComplete {
+			reason = "sell after hold more than threshold"
 			return true
 		}
 	}
