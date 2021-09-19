@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"log"
 	"math"
 	"telebot-trading/app/models"
 )
@@ -37,10 +38,12 @@ func CalculateTrends(data []models.Band) int8 {
 		if i > middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
 			totalMidleData += val.Candle.Close
 			midle_counter++
+			log.Println("midle", val.Candle.Close)
 		}
 
 		if i >= len(data)-limit {
 			totalLastData += val.Candle.Close
+			log.Println("last", val.Candle.Close)
 		}
 
 		totalBaseLine += (val.Candle.Open + val.Candle.Close) / 2
@@ -98,10 +101,12 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 		if i > middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
 			totalMidleData += val.Candle.Close
 			midle_counter++
+			log.Println("midle", val.Candle.Close)
 		}
 
 		if i >= len(data)-limit {
 			totalLastData += val.Candle.Close
+			log.Println("last", val.Candle.Close)
 		}
 
 		totalBaseLine += (val.Candle.Open + val.Candle.Close) / 2
@@ -176,6 +181,9 @@ func getConclusionTrend(firstToMidleTrend, midleToLastTrend int8, firstAvg, midl
 }
 
 func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
+	log.Println("baseline", baseLine)
+	log.Println("first", fistAvg)
+	log.Println("second", secondAvg)
 	var lastPointValue float32 = 0
 	var firstPointValue float32 = 0
 	if fistAvg > baseLine {
@@ -197,7 +205,7 @@ func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
 		percent = (firstPointValue / lastPointValue) * 100
 	}
 
-	if percent >= 87 {
+	if percent >= 65 {
 		return models.TREND_SIDEWAY
 	}
 
