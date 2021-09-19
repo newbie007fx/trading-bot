@@ -67,16 +67,9 @@ func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
-	if haveEverBandAboveSMA(result.Bands) {
-		marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-		if marginFromUpper < 2.8 {
-			return true
-		}
-	} else {
-		marginFromSMA := (lastBand.SMA - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-		if marginFromSMA < 2.8 {
-			return true
-		}
+	marginFromSMA := (lastBand.SMA - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
+	if marginFromSMA < 2 {
+		return true
 	}
 
 	if isBellowSMAAndUpJustOneBand(result) {
@@ -91,7 +84,7 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 	if lastBand.Candle.Close < float32(lastBand.Upper) {
 		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
-		return margin < 2.5
+		return margin < 3
 	}
 
 	return false
@@ -127,7 +120,7 @@ func isHeighestOnHalfEndAndAboveUpper(result *models.BandResult) bool {
 
 func isContaineBearishEngulfing(result *models.BandResult) bool {
 	hiIndex := getHighestIndex(result)
-	if hiIndex >= len(result.Bands)-(len(result.Bands)/4) {
+	if hiIndex > len(result.Bands)-(len(result.Bands)/4) {
 		return BearishEngulfing(result.Bands[hiIndex:])
 	}
 
