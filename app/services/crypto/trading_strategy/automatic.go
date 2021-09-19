@@ -235,7 +235,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	for i := range altCoins {
 		waitMasterCoinProcessed()
 		altCoins[i].Weight += crypto.GetOnLongIntervalWeight(altCoins[i], *masterCoin, timeInMilli, 0)
-		if altCoins[i].Weight > 2.27 {
+		if altCoins[i].Weight > 2.25 {
 			results = append(results, altCoins[i])
 		}
 	}
@@ -283,7 +283,7 @@ func skippedProcess() bool {
 		return true
 	}
 
-	if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) {
+	if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) && masterCoin.Direction == analysis.BAND_DOWN {
 		return true
 	}
 
