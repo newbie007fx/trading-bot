@@ -51,22 +51,24 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
-	if currencyConfig.HoldPrice > result.CurrentPrice && sellOnDown(result, currencyConfig, lastBand) {
-		return true
-	}
+	if currencyConfig.HoldPrice > result.CurrentPrice {
+		if sellOnDown(result, currencyConfig, lastBand) {
+			return true
+		}
+	} else {
+		if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN && masterCoinLongTrend != models.TREND_UP {
+			reason = "sell up with criteria x0"
+			return true
+		}
 
-	if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN && masterCoinLongTrend != models.TREND_UP {
-		reason = "sell up with criteria x0"
-		return true
-	}
+		if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && changesInPercent > 2.5 && isCandleComplete && result.Direction == BAND_DOWN {
+			reason = "sell up with criteria x2"
+			return true
+		}
 
-	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && changesInPercent > 2.5 && isCandleComplete && result.Direction == BAND_DOWN {
-		reason = "sell up with criteria x2"
-		return true
-	}
-
-	if sellOnUp(result, currencyConfig, lastBand, isCandleComplete, masterCoin.Trend, masterCoinLongTrend) {
-		return true
+		if sellOnUp(result, currencyConfig, lastBand, isCandleComplete, masterCoin.Trend, masterCoinLongTrend) {
+			return true
+		}
 	}
 
 	return isHoldedMoreThanDurationThreshold(currencyConfig, result, isCandleComplete)
