@@ -182,25 +182,27 @@ func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
 	if (firstPointValue < 0 && lastPointValue < 0) || (firstPointValue > 0 && lastPointValue > 0) {
 		var percent float32 = 0
 		if firstPointValue > lastPointValue {
-			percent = (lastPointValue / firstPointValue) * 100
+			if firstPointValue > 0 {
+				percent = (lastPointValue / firstPointValue) * 100
+			} else {
+				percent = (firstPointValue / lastPointValue) * 100
+			}
 		} else {
-			percent = (firstPointValue / lastPointValue) * 100
+			if firstPointValue > 0 {
+				percent = (firstPointValue / lastPointValue) * 100
+			} else {
+				percent = (lastPointValue / firstPointValue) * 100
+			}
 		}
 
 		if percent >= 70 {
 			return models.TREND_SIDEWAY
 		}
-
-		if fistAvg < secondAvg {
-			return models.TREND_UP
-		}
-
-		return models.TREND_DOWN
 	}
 
-	if firstPointValue > lastPointValue {
-		return models.TREND_DOWN
+	if fistAvg < secondAvg {
+		return models.TREND_UP
 	}
 
-	return models.TREND_UP
+	return models.TREND_DOWN
 }
