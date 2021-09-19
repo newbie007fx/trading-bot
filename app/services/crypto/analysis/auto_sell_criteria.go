@@ -51,8 +51,8 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
-	if currencyConfig.HoldPrice > result.CurrentPrice {
-		return sellOnDown(result, currencyConfig, lastBand)
+	if currencyConfig.HoldPrice > result.CurrentPrice && sellOnDown(result, currencyConfig, lastBand) {
+		return true
 	}
 
 	if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN && masterCoinLongTrend != models.TREND_UP {
@@ -303,7 +303,7 @@ func isTimeBelowTenMinute() bool {
 
 func isHoldedMoreThanDurationThreshold(config *models.CurrencyNotifConfig, result models.BandResult, isCandleComplete bool) bool {
 	currentTime := time.Now()
-	durationOnOnePeriode := ((models.CandleLimit / 2) + 1) * 15 * 60
+	durationOnOnePeriode := ((models.CandleLimit - 20) + 1) * 15 * 60
 	maxThreshold := config.HoldedAt + durationOnOnePeriode
 
 	if currentTime.Unix() > maxThreshold {
