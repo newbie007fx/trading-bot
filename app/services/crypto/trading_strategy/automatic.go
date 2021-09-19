@@ -176,6 +176,9 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 		currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
 		waitMasterCoinProcessed()
+		if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) && masterCoin.Direction == analysis.BAND_DOWN {
+			return
+		}
 		for _, data := range *currency_configs {
 			request := crypto.CandleRequest{
 				Symbol:       data.Symbol,
