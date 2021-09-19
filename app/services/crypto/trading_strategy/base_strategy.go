@@ -47,9 +47,7 @@ func checkCryptoMasterCoinPrice(requestTime time.Time) {
 		ResponseChan: responseChan,
 	}
 
-	result := crypto.MakeCryptoRequest(*masterCoinConfig, request)
-
-	masterCoin = result
+	masterCoin = crypto.MakeCryptoRequest(*masterCoinConfig, request)
 
 	requestLong := crypto.CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
@@ -59,9 +57,7 @@ func checkCryptoMasterCoinPrice(requestTime time.Time) {
 		ResponseChan: responseChan,
 	}
 
-	resultLong := crypto.MakeCryptoRequest(*masterCoinConfig, requestLong)
-
-	masterCoinLongInterval = resultLong
+	masterCoinLongInterval = crypto.MakeCryptoRequest(*masterCoinConfig, requestLong)
 
 	log.Println("crypto check price worker is done")
 	waitMasterCoin = false
