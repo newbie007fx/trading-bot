@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"log"
 	"math"
 	"telebot-trading/app/models"
 )
@@ -34,12 +35,14 @@ func CalculateTrends(data []models.Band) int8 {
 		if i < limit {
 			totalFirstData += val.Candle.Close
 			totalBaseLineFirst += (val.Candle.Open + val.Candle.Close) / 2
+			log.Println("first", val.Candle.Close)
 		}
 
 		if i > middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
 			totalMidleData += val.Candle.Close
 			totalBaseLineMidle += (val.Candle.Open + val.Candle.Close) / 2
 			midle_counter++
+			log.Println("midle", val.Candle.Close)
 		}
 
 		if i >= len(data)-limit {
@@ -97,12 +100,14 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 		if i < limit {
 			totalFirstData += val.Candle.Close
 			totalBaseLineFirst += (val.Candle.Open + val.Candle.Close) / 2
+			log.Println("first", val.Candle.Close)
 		}
 
 		if i > middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
 			totalMidleData += val.Candle.Close
 			totalBaseLineMidle += (val.Candle.Open + val.Candle.Close) / 2
 			midle_counter++
+			log.Println("midle", val.Candle.Close)
 		}
 
 		if i >= len(data)-limit {
@@ -180,6 +185,9 @@ func getConclusionTrend(firstToMidleTrend, midleToLastTrend int8, firstAvg, midl
 }
 
 func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
+	log.Println("baseLine", baseLine)
+	log.Println("first", fistAvg)
+	log.Println("second", secondAvg)
 	var lastPointValue float32 = 0
 	var firstPointValue float32 = 0
 	if fistAvg > baseLine {
