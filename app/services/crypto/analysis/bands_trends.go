@@ -17,8 +17,7 @@ func CalculateTrends(data []models.Band) int8 {
 	var totalFirstData float32 = 0
 	var totalLastData float32 = 0
 	var totalMidleData float32 = 0
-	var totalBaseLineFirst float32 = 0
-	var totalBaseLineMidle float32 = 0
+	var totalBaseLine float32 = 0
 
 	var midle_counter int = 0
 
@@ -34,13 +33,11 @@ func CalculateTrends(data []models.Band) int8 {
 
 		if i < limit {
 			totalFirstData += val.Candle.Close
-			totalBaseLineFirst += (val.Candle.Open + val.Candle.Close) / 2
 			log.Println("first", val.Candle.Close)
 		}
 
 		if i > middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
 			totalMidleData += val.Candle.Close
-			totalBaseLineMidle += (val.Candle.Open + val.Candle.Close) / 2
 			midle_counter++
 			log.Println("midle", val.Candle.Close)
 		}
@@ -48,6 +45,8 @@ func CalculateTrends(data []models.Band) int8 {
 		if i >= len(data)-limit {
 			totalLastData += val.Candle.Close
 		}
+
+		totalBaseLine += (val.Candle.Open + val.Candle.Close) / 2
 	}
 
 	if highestIndex == len(data)-1 {
@@ -61,13 +60,12 @@ func CalculateTrends(data []models.Band) int8 {
 	firstAvg := totalFirstData / float32(limit)
 	lastAvg := totalLastData / float32(limit)
 	midleAvg := totalMidleData / float32(midle_counter)
-	baseLinePointFirst := totalBaseLineFirst / float32(limit)
-	baseLinePointMidle := totalBaseLineMidle / float32(midle_counter)
+	baseLinePoint := totalBaseLine / float32(len(data))
 
-	firstToMidleTrend := getTrend(baseLinePointFirst, firstAvg, midleAvg)
-	midleToLastTrend := getTrend(baseLinePointMidle, midleAvg, lastAvg)
+	firstToMidleTrend := getTrend(baseLinePoint, firstAvg, midleAvg)
+	midleToLastTrend := getTrend(baseLinePoint, midleAvg, lastAvg)
 
-	return getConclusionTrend(firstToMidleTrend, midleToLastTrend, firstAvg, midleAvg, lastAvg, baseLinePointFirst)
+	return getConclusionTrend(firstToMidleTrend, midleToLastTrend, firstAvg, midleAvg, lastAvg, baseLinePoint)
 }
 
 func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
@@ -82,8 +80,7 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	var totalFirstData float32 = 0
 	var totalLastData float32 = 0
 	var totalMidleData float32 = 0
-	var totalBaseLineFirst float32 = 0
-	var totalBaseLineMidle float32 = 0
+	var totalBaseLine float32 = 0
 
 	var midle_counter int = 0
 
@@ -99,13 +96,11 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 
 		if i < limit {
 			totalFirstData += val.Candle.Close
-			totalBaseLineFirst += (val.Candle.Open + val.Candle.Close) / 2
 			log.Println("first", val.Candle.Close)
 		}
 
 		if i > middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
 			totalMidleData += val.Candle.Close
-			totalBaseLineMidle += (val.Candle.Open + val.Candle.Close) / 2
 			midle_counter++
 			log.Println("midle", val.Candle.Close)
 		}
@@ -113,6 +108,8 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 		if i >= len(data)-limit {
 			totalLastData += val.Candle.Close
 		}
+
+		totalBaseLine += (val.Candle.Open + val.Candle.Close) / 2
 	}
 
 	if highestIndex == len(data)-1 {
@@ -126,16 +123,15 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	firstAvg := totalFirstData / float32(limit)
 	lastAvg := totalLastData / float32(limit)
 	midleAvg := totalMidleData / float32(midle_counter)
-	baseLinePointFirst := totalBaseLineFirst / float32(limit)
-	baseLinePointMidle := totalBaseLineMidle / float32(midle_counter)
+	baseLinePoint := totalBaseLine / float32(len(data))
 
-	firstToMidleTrend := getTrend(baseLinePointFirst, firstAvg, midleAvg)
-	midleToLastTrend := getTrend(baseLinePointMidle, midleAvg, lastAvg)
+	firstToMidleTrend := getTrend(baseLinePoint, firstAvg, midleAvg)
+	midleToLastTrend := getTrend(baseLinePoint, midleAvg, lastAvg)
 	trend.FirstTrend = firstToMidleTrend
 	trend.SecondTrend = midleToLastTrend
 
 	if trend.Trend == 0 {
-		trend.Trend = getConclusionTrend(firstToMidleTrend, midleToLastTrend, firstAvg, midleAvg, lastAvg, baseLinePointFirst)
+		trend.Trend = getConclusionTrend(firstToMidleTrend, midleToLastTrend, firstAvg, midleAvg, lastAvg, baseLinePoint)
 	}
 
 	return trend
