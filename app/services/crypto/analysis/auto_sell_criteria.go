@@ -286,7 +286,7 @@ func checkOnTrendDown(result models.BandResult, masterCoinTrend, masterCoinLongI
 			lastBandOnUpper := lastBand.Candle.Low <= float32(lastBand.Upper) && lastBand.Candle.Hight >= float32(lastBand.Upper)
 			secondLastBandOnSMA := secondLastBand.Candle.Low <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
 			secondLastBandOnUpper := secondLastBand.Candle.Low <= float32(secondLastBand.Upper) && secondLastBand.Candle.Hight >= float32(secondLastBand.Upper)
-			if ((priceChange >= 1 && priceChange <= 3.5) || isCandleComplete) && (lastBandOnSMA || lastBandOnUpper || secondLastBandOnSMA || secondLastBandOnUpper) {
+			if ((priceChange >= 1 && priceChange <= 3) || isCandleComplete) && (lastBandOnSMA || lastBandOnUpper || secondLastBandOnSMA || secondLastBandOnUpper) {
 				return true
 			}
 		}
