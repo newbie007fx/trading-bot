@@ -68,7 +68,7 @@ func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 
 	lastBand := result.Bands[len(result.Bands)-1]
 	marginFromSMA := (lastBand.SMA - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	if marginFromSMA < 2 {
+	if marginFromSMA < 1.5 {
 		return true
 	}
 
@@ -84,7 +84,7 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 	if lastBand.Candle.Close < float32(lastBand.Upper) {
 		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
-		return margin < 3
+		return margin < 2.8
 	}
 
 	return false
