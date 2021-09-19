@@ -179,6 +179,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 		if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) && masterCoin.Direction == analysis.BAND_DOWN {
 			return
 		}
+
 		for _, data := range *currency_configs {
 			request := crypto.CandleRequest{
 				Symbol:       data.Symbol,
@@ -193,16 +194,18 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 				continue
 			}
 
-			if result.AllTrend.SecondTrend != models.TREND_UP {
+			masterSecondLastBand := masterCoin.Bands[len(masterCoin.Bands)-2]
+			countUp := analysis.CountSquentialUpBand(result.Bands)
+			if masterSecondLastBand.Candle.Open < masterSecondLastBand.Candle.Close || countUp > 2 {
 				result.Weight = analysis.CalculateWeightOnDown(result)
 				if result.Weight != 0 && !analysis.IsIgnoredMasterDown(result, masterCoin) {
 					altCoins = append(altCoins, *result)
 				}
 			}
 		}
+
 		msg := ""
 		if len(altCoins) > 0 {
-
 			sort.Slice(altCoins, func(i, j int) bool { return altCoins[i].Weight > altCoins[j].Weight })
 			coin := altCoins[0]
 			currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
@@ -264,9 +267,7 @@ func checkMasterDown() bool {
 	masterSecondLastBand := masterCoin.Bands[len(masterCoin.Bands)-2]
 
 	if masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN {
-		if masterCoin.Direction == analysis.BAND_UP || masterSecondLastBand.Candle.Open < masterSecondLastBand.Candle.Close {
-			return true
-		}
+		return true
 	}
 
 	if masterSecondLastBand.Candle.Open > masterSecondLastBand.Candle.Close {

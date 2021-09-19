@@ -138,7 +138,7 @@ func reversalWeight(result *models.BandResult, masterTrend int8) float32 {
 	trend := CalculateTrends(result.Bands[:len(result.Bands)-1])
 
 	lastSixData := result.Bands[len(result.Bands)-6:]
-	if trend == models.TREND_UP || CalculateTrends(lastSixData[2:]) != models.TREND_UP || ((result.PriceChanges < 0.8 && countSquentialUpBand(lastSixData) < 3) || result.PriceChanges < 1.1) {
+	if trend == models.TREND_UP || CalculateTrends(lastSixData[2:]) != models.TREND_UP || ((result.PriceChanges < 0.8 && CountSquentialUpBand(lastSixData) < 3) || result.PriceChanges < 1.1) {
 		lastSixDataTrend := CalculateTrendsDetail(lastSixData)
 		if lastSixDataTrend.FirstTrend == models.TREND_DOWN && lastSixDataTrend.SecondTrend == models.TREND_UP {
 			weight = 0.08
@@ -315,7 +315,7 @@ func countUpBand(bands []models.Band) int {
 	return counter
 }
 
-func countSquentialUpBand(bands []models.Band) int {
+func CountSquentialUpBand(bands []models.Band) int {
 	counter := 0
 	for i := len(bands) - 1; i >= 0; i-- {
 		if bands[1].Candle.Open < bands[i].Candle.Close {
@@ -329,7 +329,7 @@ func countSquentialUpBand(bands []models.Band) int {
 }
 
 func weightUpSquential(bands []models.Band) float32 {
-	counter := countSquentialUpBand(bands)
+	counter := CountSquentialUpBand(bands)
 	var weight float32 = 0.05
 	if counter >= 5 {
 		weight = 0.095
