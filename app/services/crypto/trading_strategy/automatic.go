@@ -38,7 +38,7 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 
 		waitMasterCoinProcessed()
 		minuteLeft := checkingTime.Minute() % 15
-		if masterCoin.Direction == analysis.BAND_UP && (minuteLeft > 5 && minuteLeft <= 14) {
+		if masterCoin.Direction == analysis.BAND_UP && (minuteLeft > 7 && minuteLeft <= 14) {
 			if checkMasterDown() {
 				ats.cryptoAltCoinDownChan <- true
 			}
