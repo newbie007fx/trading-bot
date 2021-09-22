@@ -7,7 +7,7 @@ import (
 
 func CalculateTrends(data []models.Band) int8 {
 	highestIndex, lowestIndex := 0, 0
-	thirtyPercent := float64(len(data)) * float64(19) / float64(100)
+	thirtyPercent := float64(len(data)) * float64(15) / float64(100)
 	limit := int(math.Floor(thirtyPercent))
 	if limit < 1 {
 		limit = 1
