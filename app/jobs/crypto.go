@@ -45,6 +45,9 @@ func startService() {
 
 	setStrategy()
 	strategy.InitService()
+
+	log.Println("waiting start up")
+	time.Sleep(5 * time.Second)
 }
 
 func setStrategy() {

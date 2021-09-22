@@ -31,14 +31,14 @@ func checkCryptoMasterCoinPrice(requestTime time.Time) {
 	log.Println("starting crypto check price master coin worker")
 
 	responseChan := make(chan crypto.CandleResponse)
-	log.Println("1")
+
 	masterCoinConfig, err := repositories.GetMasterCoinConfig()
 	if err != nil {
 		log.Println("error: ", err.Error())
 		waitMasterCoin = false
 		return
 	}
-	log.Println("2")
+
 	request := crypto.CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
 		StartDate:    GetStartDate(requestTime, 15),
@@ -46,7 +46,7 @@ func checkCryptoMasterCoinPrice(requestTime time.Time) {
 		Resolution:   "15m",
 		ResponseChan: responseChan,
 	}
-	log.Println("3")
+
 	requestLong := crypto.CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
 		StartDate:    GetStartDate(requestTime, 60),
@@ -54,11 +54,11 @@ func checkCryptoMasterCoinPrice(requestTime time.Time) {
 		Resolution:   "1h",
 		ResponseChan: responseChan,
 	}
-	log.Println("4")
+
 	masterCoinLongInterval = crypto.MakeCryptoRequest(*masterCoinConfig, requestLong)
-	log.Println("5")
+
 	masterCoin = crypto.MakeCryptoRequest(*masterCoinConfig, request)
-	log.Println("6")
+
 	log.Println("crypto check price worker is done")
 	waitMasterCoin = false
 }
