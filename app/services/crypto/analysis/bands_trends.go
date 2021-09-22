@@ -16,7 +16,6 @@ func CalculateTrends(data []models.Band) int8 {
 	var totalFirstData float32 = 0
 	var totalLastData float32 = 0
 	var totalMidleData float32 = 0
-	var totalBaseLine float32 = 0
 
 	var midle_counter int = 0
 
@@ -42,8 +41,6 @@ func CalculateTrends(data []models.Band) int8 {
 		if i >= len(data)-limit {
 			totalLastData += val.Candle.Close
 		}
-
-		totalBaseLine += (val.Candle.Open + val.Candle.Close) / 2
 	}
 
 	if highestIndex == len(data)-1 {
@@ -57,7 +54,7 @@ func CalculateTrends(data []models.Band) int8 {
 	firstAvg := totalFirstData / float32(limit)
 	lastAvg := totalLastData / float32(limit)
 	midleAvg := totalMidleData / float32(midle_counter)
-	baseLinePoint := totalBaseLine / float32(len(data))
+	baseLinePoint := data[lowestIndex].Candle.Close
 
 	firstToMidleTrend := getTrend(baseLinePoint, firstAvg, midleAvg)
 	midleToLastTrend := getTrend(baseLinePoint, midleAvg, lastAvg)
@@ -77,7 +74,6 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	var totalFirstData float32 = 0
 	var totalLastData float32 = 0
 	var totalMidleData float32 = 0
-	var totalBaseLine float32 = 0
 
 	var midle_counter int = 0
 
@@ -103,8 +99,6 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 		if i >= len(data)-limit {
 			totalLastData += val.Candle.Close
 		}
-
-		totalBaseLine += (val.Candle.Open + val.Candle.Close) / 2
 	}
 
 	if highestIndex == len(data)-1 {
@@ -118,7 +112,7 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	firstAvg := totalFirstData / float32(limit)
 	lastAvg := totalLastData / float32(limit)
 	midleAvg := totalMidleData / float32(midle_counter)
-	baseLinePoint := totalBaseLine / float32(len(data))
+	baseLinePoint := data[lowestIndex].Candle.Close
 
 	firstToMidleTrend := getTrend(baseLinePoint, firstAvg, midleAvg)
 	midleToLastTrend := getTrend(baseLinePoint, midleAvg, lastAvg)
@@ -176,28 +170,18 @@ func getConclusionTrend(firstToMidleTrend, midleToLastTrend int8, firstAvg, midl
 }
 
 func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
-	firstPointValue := baseLine - fistAvg
-	lastPointValue := baseLine - secondAvg
+	firstPointValue := fistAvg - baseLine
+	lastPointValue := secondAvg - baseLine
 
-	if (firstPointValue < 0 && lastPointValue < 0) || (firstPointValue > 0 && lastPointValue > 0) {
-		var percent float32 = 0
-		if firstPointValue > lastPointValue {
-			if firstPointValue > 0 {
-				percent = (lastPointValue / firstPointValue) * 100
-			} else {
-				percent = (firstPointValue / lastPointValue) * 100
-			}
-		} else {
-			if firstPointValue > 0 {
-				percent = (firstPointValue / lastPointValue) * 100
-			} else {
-				percent = (lastPointValue / firstPointValue) * 100
-			}
-		}
+	var percent float32 = 0
+	if firstPointValue > lastPointValue {
+		percent = (lastPointValue / firstPointValue) * 100
+	} else {
+		percent = (firstPointValue / lastPointValue) * 100
+	}
 
-		if percent >= 70 {
-			return models.TREND_SIDEWAY
-		}
+	if percent >= 70 {
+		return models.TREND_SIDEWAY
 	}
 
 	if fistAvg < secondAvg {
