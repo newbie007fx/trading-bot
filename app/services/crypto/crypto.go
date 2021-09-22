@@ -32,20 +32,24 @@ var thresholdPerMinute int64 = 140
 var counter int64 = 0
 
 func DispatchRequestJob(request CandleRequest) {
+	log.Println("y1")
 	canldeRequest <- request
 }
 
 func RequestCandleService() {
 	canldeRequest = make(chan CandleRequest, 100)
-
+	log.Println("z1")
 	crypto := driver.GetCrypto()
+	log.Println("z2")
 	for request := range canldeRequest {
+		log.Println("z3")
 		checkCounter()
-
+		log.Println("z4")
 		response := CandleResponse{}
 		response.CandleData, response.Err = crypto.GetCandlesData(request.Symbol, request.Limit, request.StartDate, request.EndDate, request.Resolution)
-
+		log.Println("z5")
 		request.ResponseChan <- response
+		log.Println("z6")
 	}
 
 	defer func() {

@@ -10,8 +10,9 @@ import (
 )
 
 func MakeCryptoRequest(data models.CurrencyNotifConfig, request CandleRequest) *models.BandResult {
+	log.Println("x1")
 	DispatchRequestJob(request)
-
+	log.Println("x2")
 	response := <-request.ResponseChan
 	if response.Err != nil {
 		log.Println("error: ", response.Err.Error())
