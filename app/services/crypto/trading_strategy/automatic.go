@@ -242,13 +242,14 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 
 func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *models.BandResult {
 	results := []models.BandResult{}
-	timeInMilli := GetStartDate(checkingTime, 60)
+	timeInMilliMid := GetStartDate(checkingTime, 60)
+	timeInMilliLong := GetStartDate(checkingTime, 60*4)
 	for i := range altCoins {
 		waitMasterCoinProcessed()
-		altCoins[i].Weight += crypto.GetOnMidIntervalWeight(altCoins[i], *masterCoin, timeInMilli, 0)
+		altCoins[i].Weight += crypto.GetOnMidIntervalWeight(altCoins[i], *masterCoin, timeInMilliMid, 0)
 		if altCoins[i].Weight > 2.25 {
 			log.Println("checking on long interval")
-			altCoins[i].Weight += crypto.GetOnLongIntervalWeight(altCoins[i], *masterCoin, timeInMilli, 0)
+			altCoins[i].Weight += crypto.GetOnLongIntervalWeight(altCoins[i], *masterCoin, timeInMilliLong, 0)
 			if altCoins[i].Weight > 3.25 {
 				results = append(results, altCoins[i])
 			}

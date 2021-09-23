@@ -143,7 +143,7 @@ func GetStartDate(baseTime time.Time, duration int) int64 {
 	totalDuration := models.CandleLimit * int64(durationPerCandle)
 	unixTime := baseTime.Unix() - totalDuration
 
-	if baseTime.Minute()%15 == 0 {
+	if baseTime.Minute()%duration == 0 {
 		unixTime -= 30
 	}
 

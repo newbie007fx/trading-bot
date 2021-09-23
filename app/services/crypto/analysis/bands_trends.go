@@ -69,6 +69,15 @@ func CalculateTrends(data []models.Band) int8 {
 }
 
 func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
+	if len(data) == 0 {
+		log.Println("invalid data when calculate trends")
+		return models.TrendDetail{
+			FirstTrend:  models.TREND_DOWN,
+			SecondTrend: models.TREND_DOWN,
+			Trend:       models.TREND_DOWN,
+		}
+	}
+
 	trend := models.TrendDetail{}
 	highestIndex, lowestIndex := 0, 0
 	thirtyPercent := float64(len(data)) * float64(19) / float64(100)
