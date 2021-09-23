@@ -171,6 +171,40 @@ func GetOnLongIntervalWeight(coin models.BandResult, masterCoinLocal models.Band
 		StartDate:    startDate,
 		EndDate:      endDate,
 		Limit:        int(models.CandleLimit),
+		Resolution:   "4h",
+		ResponseChan: responseChan,
+	}
+
+	result := MakeCryptoRequest(*data, request)
+	if result == nil {
+		return 0
+	}
+
+	trendChecking := true
+	if masterCoinLocal.Trend == models.TREND_DOWN {
+		trendChecking = result.Trend == models.TREND_UP || coin.Trend == models.TREND_UP
+	}
+	weight := analysis.CalculateWeightLongInterval(result, masterCoinLocal.Trend)
+	if analysis.IsIgnoredLongInterval(result, &coin) || result.Direction == analysis.BAND_DOWN || !trendChecking || (masterCoinLocal.Trend == models.TREND_SIDEWAY && masterCoinLocal.Direction == analysis.BAND_DOWN) {
+		return 0
+	}
+
+	return weight
+}
+
+func GetOnMidIntervalWeight(coin models.BandResult, masterCoinLocal models.BandResult, startDate, endDate int64) float32 {
+	responseChan := make(chan CandleResponse)
+
+	data, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
+	if err != nil {
+		return 0
+	}
+
+	request := CandleRequest{
+		Symbol:       data.Symbol,
+		StartDate:    startDate,
+		EndDate:      endDate,
+		Limit:        int(models.CandleLimit),
 		Resolution:   "1h",
 		ResponseChan: responseChan,
 	}
@@ -181,11 +215,11 @@ func GetOnLongIntervalWeight(coin models.BandResult, masterCoinLocal models.Band
 	}
 
 	trendChecking := true
-	if masterCoinLocal.Trend == models.TREND_DOWN || (masterCoinLocal.Trend == models.TREND_SIDEWAY && masterCoinLocal.Direction == analysis.BAND_DOWN) {
+	if masterCoinLocal.Trend == models.TREND_DOWN {
 		trendChecking = result.Trend == models.TREND_UP || coin.Trend == models.TREND_UP
 	}
 	weight := analysis.CalculateWeightLongInterval(result, masterCoinLocal.Trend)
-	if analysis.IsIgnoredLongInterval(result, &coin) || (result.Direction == analysis.BAND_DOWN && result.Trend != models.TREND_UP) || !trendChecking {
+	if analysis.IsIgnoredLongInterval(result, &coin) || result.Direction == analysis.BAND_DOWN || !trendChecking || (masterCoinLocal.Trend == models.TREND_SIDEWAY && masterCoinLocal.Direction == analysis.BAND_DOWN) {
 		return 0
 	}
 
