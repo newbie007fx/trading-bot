@@ -2,6 +2,7 @@ package trading_strategy
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
@@ -246,8 +247,9 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 		waitMasterCoinProcessed()
 		altCoins[i].Weight += crypto.GetOnMidIntervalWeight(altCoins[i], *masterCoin, timeInMilli, 0)
 		if altCoins[i].Weight > 2.25 {
+			log.Println("checking on long interval")
 			altCoins[i].Weight += crypto.GetOnLongIntervalWeight(altCoins[i], *masterCoin, timeInMilli, 0)
-			if altCoins[i].Weight > 3.28 {
+			if altCoins[i].Weight > 3.25 {
 				results = append(results, altCoins[i])
 			}
 		}

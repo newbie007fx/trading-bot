@@ -1,11 +1,17 @@
 package analysis
 
 import (
+	"log"
 	"math"
 	"telebot-trading/app/models"
 )
 
 func CalculateTrends(data []models.Band) int8 {
+	if len(data) == 0 {
+		log.Println("invalid data when calculate trends")
+		return models.TREND_DOWN
+	}
+
 	highestIndex, lowestIndex := 0, 0
 	thirtyPercent := float64(len(data)) * float64(15) / float64(100)
 	limit := int(math.Floor(thirtyPercent))

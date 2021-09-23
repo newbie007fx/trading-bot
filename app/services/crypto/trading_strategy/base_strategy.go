@@ -17,7 +17,7 @@ type TradingStrategy interface {
 
 var masterCoin *models.BandResult
 var masterCoinLongInterval *models.BandResult
-var waitMasterCoin bool
+var waitMasterCoin bool = true
 
 func StartCheckMasterCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {

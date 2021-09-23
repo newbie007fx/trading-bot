@@ -206,16 +206,6 @@ func whenHeadCrossBandAndMasterDown(result, masterCoin *models.BandResult) bool 
 	return false
 }
 
-func haveEverBandAboveSMA(bands []models.Band) bool {
-	for _, band := range bands {
-		if band.Candle.Low >= float32(band.SMA) && band.Candle.Hight >= float32(band.Upper) {
-			return true
-		}
-	}
-
-	return false
-}
-
 func isBelowSMAAfterDown(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 	if lastBand.Candle.Open < float32(lastBand.SMA) {
