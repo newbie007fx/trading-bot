@@ -120,6 +120,8 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 			ResponseChan: responseChan,
 		}
 
+		log.Println(data.Symbol)
+
 		result := crypto.MakeCryptoRequest(data, request)
 		if result == nil || result.Direction == analysis.BAND_DOWN {
 			continue
