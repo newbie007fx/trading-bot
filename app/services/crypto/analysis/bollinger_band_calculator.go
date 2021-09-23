@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"log"
 	"math"
 	"telebot-trading/app/models"
 )
@@ -14,6 +15,10 @@ func GenerateBollingerBands(historical []models.CandleData) (bands models.Bands)
 	end := SMA_DAYS
 
 	bands.Data = []models.Band{}
+
+	if len(historical) < SMA_DAYS {
+		log.Println("invalid historycal data with len: ", len(historical))
+	}
 
 	graphData := len(historical) - SMA_DAYS
 	for i := 0; i <= graphData; i++ {
