@@ -84,6 +84,8 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 			ResponseChan: responseChan,
 		}
 
+		log.Println(data.Symbol)
+
 		result := crypto.MakeCryptoRequest(data, request)
 		if result == nil {
 			continue
@@ -106,7 +108,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 140
+	limit := 120
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
@@ -119,8 +121,6 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 			Resolution:   "15m",
 			ResponseChan: responseChan,
 		}
-
-		log.Println(data.Symbol)
 
 		result := crypto.MakeCryptoRequest(data, request)
 		if result == nil || result.Direction == analysis.BAND_DOWN {

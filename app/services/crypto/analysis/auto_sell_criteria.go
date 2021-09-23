@@ -296,7 +296,7 @@ func isTimeBelowTenMinute() bool {
 
 func isHoldedMoreThanDurationThreshold(config *models.CurrencyNotifConfig, result models.BandResult, isCandleComplete bool) bool {
 	currentTime := time.Now()
-	durationOnOnePeriode := ((models.CandleLimit - 20) + 1) * 15 * 60
+	durationOnOnePeriode := int64(24 * 60 * 60)
 	maxThreshold := config.HoldedAt + durationOnOnePeriode
 
 	if currentTime.Unix() > maxThreshold {

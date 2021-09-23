@@ -2,7 +2,6 @@ package trading_strategy
 
 import (
 	"fmt"
-	"log"
 	"sort"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
@@ -251,10 +250,8 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	timeInMilliLong := GetStartDate(checkingTime, 60*4)
 	for i := range altCoins {
 		waitMasterCoinProcessed()
-		log.Println("checking on long interval: ", altCoins[i].Symbol)
 		altCoins[i].Weight += getWeightCustomInterval(altCoins[i], *masterCoin, "1h", timeInMilliMid)
 		if altCoins[i].Weight > 2.3 {
-			log.Println("checking on long interval: ", altCoins[i].Symbol)
 			altCoins[i].Weight += getWeightCustomInterval(altCoins[i], *masterCoin, "4h", timeInMilliLong)
 			if altCoins[i].Weight > 3.5 {
 				results = append(results, altCoins[i])
@@ -312,6 +309,10 @@ func checkMasterDown() bool {
 }
 
 func skippedProcess() bool {
+	if checkingTime.Unix()%(60*4*60) != 0 {
+		return false
+	}
+
 	if masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN && masterCoin.Direction == analysis.BAND_DOWN {
 		return true
 	}
