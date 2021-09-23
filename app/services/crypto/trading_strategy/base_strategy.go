@@ -106,7 +106,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 150
+	limit := 140
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
@@ -128,7 +128,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 		}
 
 		result.Weight = analysis.CalculateWeight(result, *masterCoin)
-		if !analysis.IsIgnored(result, masterCoin) && result.Weight >= 1.23 {
+		if !analysis.IsIgnored(result, masterCoin) && result.Weight >= 1.1 {
 			altCoin = append(altCoin, *result)
 		}
 

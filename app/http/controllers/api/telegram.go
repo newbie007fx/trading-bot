@@ -89,7 +89,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 	} else if cmd == "/status-log" {
 		responseMsg = "invalid format lur"
 		if len(msgData) > 2 {
-			msg, err := handlerStatusLog(msgData[1], msgData[2])
+			msg, err := handlerStatusLog(msgData[1], msgData[2], msgData[2])
 			if err != nil {
 				responseMsg = err.Error()
 			} else {
@@ -189,7 +189,7 @@ func handlerWeightLog(symbol, date string) (string, error) {
 	return msg, nil
 }
 
-func handlerStatusLog(symbol, date string) (string, error) {
+func handlerStatusLog(symbol, date, interval string) (string, error) {
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
 	if err != nil {
 		log.Println(err.Error())
@@ -200,6 +200,6 @@ func handlerStatusLog(symbol, date string) (string, error) {
 		return "", errors.New("invalid log date value")
 	}
 	tm := time.Unix(i, 0)
-	msg := crypto.GetCurrencyStatus(*currencyConfig, "1h", &tm)
+	msg := crypto.GetCurrencyStatus(*currencyConfig, interval, &tm)
 	return msg, nil
 }

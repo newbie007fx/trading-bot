@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
-	"telebot-trading/app/services/crypto/analysis"
 	"telebot-trading/app/services/crypto/driver"
 	"telebot-trading/utils"
 	"time"
@@ -158,12 +157,13 @@ func GetMode() string {
 	return mode
 }
 
-func GetOnLongIntervalWeight(coin models.BandResult, masterCoinLocal models.BandResult, startDate, endDate int64) float32 {
+func CheckCoin(symbol string, interval string, startDate, endDate int64) *models.BandResult {
 	responseChan := make(chan CandleResponse)
 
-	data, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
+	data, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
 	if err != nil {
-		return 0
+		log.Println(err.Error())
+		return nil
 	}
 
 	request := CandleRequest{
@@ -171,57 +171,9 @@ func GetOnLongIntervalWeight(coin models.BandResult, masterCoinLocal models.Band
 		StartDate:    startDate,
 		EndDate:      endDate,
 		Limit:        int(models.CandleLimit),
-		Resolution:   "4h",
+		Resolution:   interval,
 		ResponseChan: responseChan,
 	}
 
-	result := MakeCryptoRequest(*data, request)
-	if result == nil {
-		return 0
-	}
-
-	trendChecking := true
-	if masterCoinLocal.Trend == models.TREND_DOWN {
-		trendChecking = result.Trend == models.TREND_UP || coin.Trend == models.TREND_UP
-	}
-	weight := analysis.CalculateWeightLongInterval(result, masterCoinLocal.Trend)
-	if analysis.IsIgnoredLongInterval(result, &coin) || result.Direction == analysis.BAND_DOWN || !trendChecking || (masterCoinLocal.Trend == models.TREND_SIDEWAY && masterCoinLocal.Direction == analysis.BAND_DOWN) {
-		return 0
-	}
-
-	return weight
-}
-
-func GetOnMidIntervalWeight(coin models.BandResult, masterCoinLocal models.BandResult, startDate, endDate int64) float32 {
-	responseChan := make(chan CandleResponse)
-
-	data, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
-	if err != nil {
-		return 0
-	}
-
-	request := CandleRequest{
-		Symbol:       data.Symbol,
-		StartDate:    startDate,
-		EndDate:      endDate,
-		Limit:        int(models.CandleLimit),
-		Resolution:   "1h",
-		ResponseChan: responseChan,
-	}
-
-	result := MakeCryptoRequest(*data, request)
-	if result == nil {
-		return 0
-	}
-
-	trendChecking := true
-	if masterCoinLocal.Trend == models.TREND_DOWN {
-		trendChecking = result.Trend == models.TREND_UP || coin.Trend == models.TREND_UP
-	}
-	weight := analysis.CalculateWeightLongInterval(result, masterCoinLocal.Trend)
-	if analysis.IsIgnoredLongInterval(result, &coin) || result.Direction == analysis.BAND_DOWN || !trendChecking || (masterCoinLocal.Trend == models.TREND_SIDEWAY && masterCoinLocal.Direction == analysis.BAND_DOWN) {
-		return 0
-	}
-
-	return weight
+	return MakeCryptoRequest(*data, request)
 }

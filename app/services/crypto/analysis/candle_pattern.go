@@ -51,10 +51,8 @@ func GetCandlePattern(bandResult *models.BandResult) []int8 {
 
 func SellPattern(bandResult *models.BandResult) bool {
 	if bandResult.AllTrend.SecondTrend == models.TREND_UP {
-		if bandResult.Position == models.ABOVE_SMA || bandResult.Position == models.ABOVE_UPPER {
-			if BearishEngulfing(bandResult.Bands[len(bandResult.Bands)-2:]) {
-				return true
-			}
+		if BearishEngulfing(bandResult.Bands[len(bandResult.Bands)-2:]) {
+			return true
 		}
 	}
 	return false
@@ -70,7 +68,7 @@ func BearishEngulfing(bands []models.Band) bool {
 			secondDifferent := secondBand.Candle.Open - secondBand.Candle.Close
 			if secondDifferent > firstDifferent {
 				percent := firstDifferent / secondDifferent * 100
-				isContainBearishEngulfing = percent > 60
+				isContainBearishEngulfing = percent > 40
 			}
 		}
 		if isContainBearishEngulfing {

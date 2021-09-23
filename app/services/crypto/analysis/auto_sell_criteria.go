@@ -19,8 +19,8 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 	changes := result.CurrentPrice - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
 
-	if (isCandleComplete || result.PriceChanges > 1.5) && masterCoin.Trend == models.TREND_DOWN {
-		var masterDown, resultDown, safe, crossLower = false, false, false, false
+	if isCandleComplete && masterCoin.Direction == BAND_DOWN {
+		var masterDown, resultDown, safe = false, false, false
 		for i := len(result.Bands) - 1; i >= len(result.Bands)-2; i-- {
 			masterDown = masterCoin.Bands[i].Candle.Open > masterCoin.Bands[i].Candle.Close
 			resultDown = result.Bands[i].Candle.Open > result.Bands[i].Candle.Close
@@ -28,21 +28,12 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 				safe = true
 				break
 			}
-
-			if masterCoin.Bands[i].Candle.Open >= float32(masterCoin.Bands[i].Lower) && masterCoin.Bands[i].Candle.Close < float32(masterCoin.Bands[i].Lower) {
-				crossLower = true
-			}
 		}
 
-		if !safe && crossLower && changesInPercent >= 1.5 {
+		if !safe {
 			reason = "sell with criteria 0"
 			return true
 		}
-	}
-
-	if BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) && result.Direction == BAND_DOWN && masterCoin.Direction == BAND_DOWN && isCandleComplete {
-		reason = "sell with criteria 00"
-		return true
 	}
 
 	if SellPattern(&result) && changesInPercent > 1 && isCandleComplete {

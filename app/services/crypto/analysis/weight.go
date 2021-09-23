@@ -30,22 +30,6 @@ func CalculateWeight(result *models.BandResult, masterCoin models.BandResult) fl
 	weightLogData["reversalWeight"] = weightReversal
 	weight += weightReversal
 
-	if masterCoin.Trend == models.TREND_UP || (masterCoin.Trend == models.TREND_SIDEWAY && masterCoin.Direction == BAND_UP) {
-		if isMasterCoinReversal {
-			weight += 0.1
-			weightLogData["masterTrenWeight"] = 0.1
-		} else {
-			weight += 0.05
-			weightLogData["masterTrenWeight"] = 0.05
-		}
-	}
-
-	if result.Trend == models.TREND_UP {
-
-		weight += 0.05
-		weightLogData["TrenWeight"] = 0.05
-	}
-
 	return weight
 }
 
@@ -67,11 +51,6 @@ func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) fl
 	weightReseversal := reversalWeight(result, masterTrend)
 	weight += weightReseversal
 	longIntervalWeightLogData["weightReversal"] = weightReseversal
-
-	if result.Trend == models.TREND_UP {
-		weight += 0.1
-		longIntervalWeightLogData["trendWeight"] = 0.1
-	}
 
 	return weight
 }

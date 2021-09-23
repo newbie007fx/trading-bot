@@ -176,7 +176,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 
 		responseChan := make(chan crypto.CandleResponse)
 
-		limit := 100
+		limit := 120
 		condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 		currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
@@ -196,6 +196,11 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 
 			result := crypto.MakeCryptoRequest(data, request)
 			if result == nil || result.Direction == analysis.BAND_DOWN {
+				continue
+			}
+
+			longInterval := crypto.CheckCoin(result.Symbol, "4h", startDate, 0)
+			if longInterval.Trend == models.TREND_DOWN && analysis.CalculateTrends(longInterval.Bands[len(longInterval.Bands)-4:]) != models.TREND_UP {
 				continue
 			}
 
@@ -247,11 +252,11 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	for i := range altCoins {
 		waitMasterCoinProcessed()
 		log.Println("checking on long interval: ", altCoins[i].Symbol)
-		altCoins[i].Weight += crypto.GetOnMidIntervalWeight(altCoins[i], *masterCoin, timeInMilliMid, 0)
-		if altCoins[i].Weight > 2.25 {
+		altCoins[i].Weight += getWeightCustomInterval(altCoins[i], *masterCoin, "1h", timeInMilliMid)
+		if altCoins[i].Weight > 2.3 {
 			log.Println("checking on long interval: ", altCoins[i].Symbol)
-			altCoins[i].Weight += crypto.GetOnLongIntervalWeight(altCoins[i], *masterCoin, timeInMilliLong, 0)
-			if altCoins[i].Weight > 3.25 {
+			altCoins[i].Weight += getWeightCustomInterval(altCoins[i], *masterCoin, "4h", timeInMilliLong)
+			if altCoins[i].Weight > 3.5 {
 				results = append(results, altCoins[i])
 			}
 		}
@@ -263,6 +268,20 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 		return &results[0]
 	}
 	return nil
+}
+
+func getWeightCustomInterval(coin models.BandResult, masterCoinLocal models.BandResult, interval string, startDate int64) float32 {
+	result := crypto.CheckCoin(coin.Symbol, interval, startDate, 0)
+	weight := analysis.CalculateWeightLongInterval(result, masterCoinLocal.Trend)
+	if analysis.IsIgnoredLongInterval(result, &coin) || result.Direction == analysis.BAND_DOWN {
+		return 0
+	}
+
+	if interval == "4h" && result.Position == models.ABOVE_UPPER {
+		return 0
+	}
+
+	return weight
 }
 
 func sendHoldMsg(result *models.BandResult) string {

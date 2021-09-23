@@ -34,10 +34,6 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if isBelowSMAAfterDown(result) {
-		return true
-	}
-
 	if isOnUpperAndPreviousBandBelowUpper(result.Bands) {
 		return true
 	}
@@ -71,8 +67,8 @@ func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
-	marginFromSMA := (lastBand.SMA - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	if marginFromSMA < 1.5 {
+	marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
+	if marginFromUpper < 3.5 {
 		return true
 	}
 
@@ -123,12 +119,8 @@ func isHeighestOnHalfEndAndAboveUpper(result *models.BandResult) bool {
 }
 
 func isContaineBearishEngulfing(result *models.BandResult) bool {
-	hiIndex := getHighestIndex(result)
-	if hiIndex > len(result.Bands)-(len(result.Bands)/4) {
-		return BearishEngulfing(result.Bands[hiIndex:])
-	}
-
-	return false
+	hiIndex := len(result.Bands) - (len(result.Bands) / 4)
+	return BearishEngulfing(result.Bands[hiIndex:]) && CalculateTrends(result.Bands[hiIndex:]) == models.TREND_DOWN
 }
 
 func getHighestIndex(result *models.BandResult) int {
@@ -203,16 +195,6 @@ func whenHeadCrossBandAndMasterDown(result, masterCoin *models.BandResult) bool 
 		return true
 	}
 
-	return false
-}
-
-func isBelowSMAAfterDown(result *models.BandResult) bool {
-	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Open < float32(lastBand.SMA) {
-		if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend != models.TREND_UP {
-			return true
-		}
-	}
 	return false
 }
 
