@@ -258,14 +258,14 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 
 	// hight menyentuh Upper tp close dibaawh Upper
 	if lastBand.Candle.Hight >= float32(lastBand.Upper) && lastBand.Candle.Close < float32(lastBand.Upper) {
-		return 0.32 + weightUpCounter
+		return 0.32
 	}
 
 	if ((masterTrend != models.TREND_DOWN) || isMasterCoinReversal) && !isLongInterval {
 
 		// close menyentuh Upper tp open dibaawh Upper
 		if lastBand.Candle.Close >= float32(lastBand.Upper) && lastBand.Candle.Open < float32(lastBand.Upper) {
-			return 0.36 + weightUpCounter
+			return 0.36
 		}
 
 		// close diatas upper dan band sebelumya juga diatas upper
@@ -275,7 +275,7 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 				val += 0.12
 			}
 
-			return val + weightUpCounter
+			return val
 		}
 
 	}
