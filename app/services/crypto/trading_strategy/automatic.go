@@ -101,7 +101,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 						if err != nil {
 							tmpMsg = err.Error()
 						} else {
-							tmpMsg = "coin berikut akan dijual:\n"
+							tmpMsg = fmt.Sprintf("coin berikut akan dijual %d:\n", GetStartDate(checkingTime, 15))
 							tmpMsg += crypto.GenerateMsg(coin)
 							tmpMsg += "\n"
 							tmpMsg += crypto.HoldCoinMessage(*currencyConfig, &coin)
