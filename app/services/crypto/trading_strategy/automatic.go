@@ -2,6 +2,7 @@ package trading_strategy
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
@@ -90,7 +91,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 				if masterCoin == nil {
 					continue
 				}
-
+				log.Println("aneh")
 				if analysis.IsNeedToSell(coin, *masterCoin, ats.isTimeToCheckAltCoinPrice(checkingTime), masterCoinLongInterval.Trend) {
 					currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
 					if err == nil {
