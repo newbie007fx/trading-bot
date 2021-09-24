@@ -179,7 +179,7 @@ func ignored(result, masterCoin *models.BandResult) bool {
 	if masterCoin.Trend == models.TREND_DOWN {
 		lastFourData := result.Bands[len(result.Bands)-4:]
 		if CalculateTrends(lastFourData) != models.TREND_UP {
-			log.Println("reset to 0 with criteria 3")
+			log.Println("reset to 0 with criteria 3: ", result.Symbol)
 			return true
 		}
 	}

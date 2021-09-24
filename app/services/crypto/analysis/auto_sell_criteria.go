@@ -83,7 +83,7 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 	}
 
 	lastBandPercentChanges := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
-	lastHightChangePercent := (lastBand.Candle.Close - lastBand.Candle.Open) / (lastBand.Candle.Hight - lastBand.Candle.Open)
+	lastHightChangePercent := (lastBand.Candle.Close - lastBand.Candle.Open) / (lastBand.Candle.Hight - lastBand.Candle.Open) * 100
 	specialTolerance := (changesInPercent > 10 && highestHightChangePercent <= 65) || (changesInPercent > 5 && lastBandPercentChanges > 5 && lastHightChangePercent <= 55 && isTimeBelowTenMinute())
 	if !specialTolerance {
 		if changesInPercent > 3.5 && !isCandleComplete && highestChangePercent > 55 && countDownCandleFromHighest(result.Bands) < 4 {
@@ -272,14 +272,14 @@ func GetSellReason() string {
 
 func checkOnTrendDown(result models.BandResult, masterCoinTrend, masterCoinLongIntervalTrend int8, priceChange float32, isCandleComplete bool) bool {
 	if masterCoinTrend != models.TREND_UP && masterCoinLongIntervalTrend == models.TREND_DOWN {
-		if result.Direction == BAND_DOWN {
+		if result.Direction == BAND_DOWN && result.AllTrend.SecondTrend != models.TREND_UP && isCandleComplete {
 			lastBand := result.Bands[len(result.Bands)-1]
 			secondLastBand := result.Bands[len(result.Bands)-2]
 			lastBandOnSMA := lastBand.Candle.Low <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.SMA)
 			lastBandOnUpper := lastBand.Candle.Low <= float32(lastBand.Upper) && lastBand.Candle.Hight >= float32(lastBand.Upper)
 			secondLastBandOnSMA := secondLastBand.Candle.Low <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
 			secondLastBandOnUpper := secondLastBand.Candle.Low <= float32(secondLastBand.Upper) && secondLastBand.Candle.Hight >= float32(secondLastBand.Upper)
-			if ((priceChange >= 1 && priceChange <= 3) || isCandleComplete) && (lastBandOnSMA || lastBandOnUpper || secondLastBandOnSMA || secondLastBandOnUpper) {
+			if lastBandOnSMA || lastBandOnUpper || secondLastBandOnSMA || secondLastBandOnUpper {
 				return true
 			}
 		}

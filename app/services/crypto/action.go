@@ -75,6 +75,9 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 	}
 
 	result := MakeCryptoRequest(config, request)
+	if result == nil {
+		return "invalid requested date"
+	}
 
 	msg := GenerateMsg(*result)
 	if config.IsOnHold {

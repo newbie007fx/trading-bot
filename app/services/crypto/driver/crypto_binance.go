@@ -2,7 +2,9 @@ package driver
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 	"telebot-trading/app/models"
 	"telebot-trading/utils"
@@ -27,6 +29,7 @@ func (client *BinanceClient) init() {
 
 func (client *BinanceClient) GetCandlesData(symbol string, limit int, startDate, endDate int64, resolution string) ([]models.CandleData, error) {
 	var candlesData []models.CandleData
+	conteks := context.Background()
 	service := client.klineService.Symbol(symbol).Limit(limit).Interval(resolution)
 	if startDate > 1 {
 		service = service.StartTime(startDate)
@@ -34,9 +37,16 @@ func (client *BinanceClient) GetCandlesData(symbol string, limit int, startDate,
 	if endDate > 1 {
 		service = service.EndTime(endDate)
 	}
-	cryptoCandles, err := service.Do(context.Background())
+	cryptoCandles, err := service.Do(conteks)
 	if err == nil {
 		candlesData = client.convertCandleDataMap(cryptoCandles)
+	}
+
+	if len(cryptoCandles) < 40 && limit == 40 {
+		log.Println(symbol, " ,", limit, " ,", startDate, " ,", endDate, " ,", resolution)
+		log.Println(conteks.Err().Error())
+		s, _ := json.MarshalIndent(cryptoCandles, "", "\t")
+		log.Print(string(s))
 	}
 
 	return candlesData, err
