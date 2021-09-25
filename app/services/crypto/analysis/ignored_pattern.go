@@ -26,10 +26,6 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if isBellowSMAAndUpJustOneBand(result) {
-		return true
-	}
-
 	if whenHeightTripleAverage(result) {
 		return true
 	}
@@ -50,7 +46,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN {
+	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		return true
 	}
 
@@ -76,7 +72,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		low := getLowestIndex(result.Bands[lenData/2:])
 		difference := hight - low
 		percent := float32(difference) / float32(low) * 100
-		if percent > 13 {
+		if percent > 15 {
 			return true
 		}
 	}
