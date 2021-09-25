@@ -84,8 +84,6 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 			ResponseChan: responseChan,
 		}
 
-		log.Println(data.Symbol)
-
 		result := crypto.MakeCryptoRequest(data, request)
 		if result == nil {
 			continue
@@ -132,7 +130,6 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 			altCoin = append(altCoin, *result)
 		}
 
-		//log.Println(analysis.GetWeightLog())
 	}
 
 	log.Println("crypto check price worker is done")
@@ -145,7 +142,7 @@ func GetStartDate(baseTime time.Time, duration int) int64 {
 	totalDuration := models.CandleLimit * int64(durationPerCandle)
 	unixTime := baseTime.Unix() - totalDuration
 
-	if baseTime.Minute()%duration == 0 {
+	if baseTime.Minute()%15 == 0 {
 		unixTime -= 30
 	}
 

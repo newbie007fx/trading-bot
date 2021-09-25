@@ -58,6 +58,10 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_DOWN && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+		return true
+	}
+
 	return isContaineBearishEngulfing(result)
 }
 

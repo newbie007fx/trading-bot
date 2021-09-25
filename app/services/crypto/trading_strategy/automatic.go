@@ -2,7 +2,6 @@ package trading_strategy
 
 import (
 	"fmt"
-	"log"
 	"sort"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
@@ -12,6 +11,7 @@ import (
 )
 
 var checkingTime time.Time
+var holdCount int64 = 0
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
@@ -26,7 +26,7 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	ats.masterCoinChan <- true
 
 	condition := map[string]interface{}{"is_on_hold": true}
-	holdCount := repositories.CountNotifConfig(&condition)
+	holdCount = repositories.CountNotifConfig(&condition)
 	if holdCount > 0 {
 		ats.cryptoHoldCoinPriceChan <- true
 	}
@@ -91,7 +91,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 				if masterCoin == nil {
 					continue
 				}
-				log.Println("aneh")
+
 				if analysis.IsNeedToSell(coin, *masterCoin, ats.isTimeToCheckAltCoinPrice(checkingTime), masterCoinLongInterval.Trend) {
 					currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
 					if err == nil {
@@ -136,29 +136,36 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 		msg := ""
 		if len(altCoins) > 0 {
 
-			coin := ats.sortAndGetHigest(altCoins)
-			if coin == nil {
+			coins := ats.sortAndGetHigest(altCoins)
+			if coins == nil {
 				continue
 			}
 
-			currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
-			if err == nil {
-				bands := coin.Bands
-				lastBand := bands[len(bands)-1]
-				err = crypto.HoldCoin(*currencyConfig, lastBand.Candle)
-				if err != nil {
-					msg = err.Error()
-				} else {
-					msg = fmt.Sprintf("coin berikut telah dihold on %d:\n", checkingTime.Unix())
-					msg += crypto.GenerateMsg(*coin)
-					msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
-					msg += "\n"
-					msg += sendHoldMsg(coin)
-					msg += "\n"
+			for _, coin := range *coins {
+				if holdCount == 0 {
+					break
+				}
 
-					if masterCoin != nil {
-						msg += "untuk master coin:\n"
-						msg += crypto.GenerateMsg(*masterCoin)
+				currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
+				if err == nil {
+					bands := coin.Bands
+					lastBand := bands[len(bands)-1]
+					err = crypto.HoldCoin(*currencyConfig, lastBand.Candle)
+					if err != nil {
+						msg = err.Error()
+					} else {
+						msg = fmt.Sprintf("coin berikut telah dihold on %d:\n", checkingTime.Unix())
+						msg += crypto.GenerateMsg(coin)
+						msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
+						msg += "\n"
+						msg += sendHoldMsg(&coin)
+						msg += "\n"
+
+						if masterCoin != nil {
+							msg += "untuk master coin:\n"
+							msg += crypto.GenerateMsg(*masterCoin)
+						}
+						holdCount--
 					}
 				}
 			}
@@ -245,7 +252,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 	}
 }
 
-func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *models.BandResult {
+func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *[]models.BandResult {
 	results := []models.BandResult{}
 	timeInMilliMid := GetStartDate(checkingTime, 60)
 	timeInMilliLong := GetStartDate(checkingTime, 60*4)
@@ -263,7 +270,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	if len(results) > 0 {
 		sort.Slice(results, func(i, j int) bool { return results[i].Weight > results[j].Weight })
 
-		return &results[0]
+		return &results
 	}
 	return nil
 }

@@ -201,59 +201,57 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 	lastBand := bands[len(bands)-1]
 	secondLastBand := bands[len(bands)-2]
 
-	weightUpCounter := weightUpSquential(bands)
-
 	// low hight dibawah lower
 	if lastBand.Candle.Hight < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.46 + weightUpCounter
+			return 0.46
 		}
 	}
 
 	// hight menyentuh lower tp close dibaawh lower
 	if lastBand.Candle.Hight >= float32(lastBand.Lower) && lastBand.Candle.Close < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.44 + weightUpCounter
+			return 0.44
 		}
 	}
 
 	// close menyentuh lower tp open dibaawh lower
 	if lastBand.Candle.Close >= float32(lastBand.Lower) && lastBand.Candle.Open < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.48 + weightUpCounter
+			return 0.48
 		}
 	}
 
 	// open menyentuh lower tp low dibaawh lower
 	if lastBand.Candle.Open >= float32(lastBand.Lower) && lastBand.Candle.Low < float32(lastBand.Lower) {
 		if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-			return 0.5 + weightUpCounter
+			return 0.5
 		}
 	}
 
 	// low hight dibawah SMA
 	if lastBand.Candle.Hight < float32(lastBand.SMA) {
-		return 0.40 + weightUpCounter
+		return 0.40
 	}
 
 	// hight menyentuh SMA tp close dibaawh SMA
 	if lastBand.Candle.Hight >= float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA) {
-		return 0.38 + weightUpCounter
+		return 0.38
 	}
 
 	// close menyentuh SMA tp open dibaawh SMA
 	if lastBand.Candle.Close >= float32(lastBand.SMA) && lastBand.Candle.Open < float32(lastBand.SMA) {
-		return 0.42 + weightUpCounter
+		return 0.42
 	}
 
 	// open menyentuh SMA tp low dibaawh SMA
 	if lastBand.Candle.Open >= float32(lastBand.SMA) && lastBand.Candle.Low < float32(lastBand.SMA) {
-		return 0.44 + weightUpCounter
+		return 0.44
 	}
 
 	// low hight dibawah Upper
 	if lastBand.Candle.Hight < float32(lastBand.Upper) {
-		return 0.36 + weightUpCounter
+		return 0.36
 	}
 
 	// hight menyentuh Upper tp close dibaawh Upper
@@ -305,20 +303,4 @@ func CountSquentialUpBand(bands []models.Band) int {
 	}
 
 	return counter
-}
-
-func weightUpSquential(bands []models.Band) float32 {
-	counter := CountSquentialUpBand(bands)
-	var weight float32 = 0.05
-	if counter >= 5 {
-		weight = 0.095
-	} else if counter == 4 {
-		weight = 0.115
-	} else if counter == 3 {
-		weight = 0.095
-	} else if counter == 2 {
-		weight = 0.05
-	}
-
-	return weight
 }
