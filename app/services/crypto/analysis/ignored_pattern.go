@@ -74,7 +74,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if result.Trend == models.TREND_UP && result.Position == models.ABOVE_SMA {
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.Position == models.ABOVE_SMA {
 		lenData := len(result.Bands)
 		hight := getHighestIndex(result.Bands[lenData/2:])
 		low := getLowestIndex(result.Bands[lenData/2:])

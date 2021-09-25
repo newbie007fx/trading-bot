@@ -281,11 +281,15 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 func getWeightCustomInterval(coin models.BandResult, masterCoinLocal models.BandResult, interval string, startDate int64) float32 {
 	result := crypto.CheckCoin(coin.Symbol, interval, startDate, 0)
 	weight := analysis.CalculateWeightLongInterval(result, masterCoinLocal.Trend)
-	if analysis.IsIgnoredLongInterval(result, &coin) || result.Direction == analysis.BAND_DOWN {
-		return 0
+	ignored := false
+
+	if interval == "1h" {
+		ignored = analysis.IsIgnoredMidInterval(result, &coin)
+	} else {
+		ignored = analysis.IsIgnoredLongInterval(result, &coin)
 	}
 
-	if interval == "4h" && result.Position == models.ABOVE_UPPER {
+	if ignored || result.Direction == analysis.BAND_DOWN {
 		return 0
 	}
 
