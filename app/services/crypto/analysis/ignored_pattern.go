@@ -68,8 +68,8 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 	if result.AllTrend.SecondTrend == models.TREND_UP && result.Position == models.ABOVE_SMA {
 		lenData := len(result.Bands)
-		hight := getHighestIndex(result.Bands[lenData/2:])
-		low := getLowestIndex(result.Bands[lenData/2:])
+		hight := getHighestIndex(result.Bands[lenData-lenData/3:])
+		low := getLowestIndex(result.Bands[lenData-lenData/3:])
 		difference := hight - low
 		percent := float32(difference) / float32(low) * 100
 		if percent > 15 {
