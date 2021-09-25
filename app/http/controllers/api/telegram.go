@@ -89,7 +89,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 	} else if cmd == "/status-log" {
 		responseMsg = "invalid format lur"
 		if len(msgData) > 2 {
-			msg, err := handlerStatusLog(msgData[1], msgData[2], msgData[2])
+			msg, err := handlerStatusLog(msgData[1], msgData[2], msgData[3])
 			if err != nil {
 				responseMsg = err.Error()
 			} else {
