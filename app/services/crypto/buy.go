@@ -48,6 +48,7 @@ func Buy(config models.CurrencyNotifConfig, candleData *models.CandleData) error
 		RequestSyncBalance()
 	} else {
 		totalCoin := coinBalance / candleData.Close
+		fmt.Printf("error when try to buy coin %s with amount %.2f, price %f, total coin %f", config.Symbol, coinBalance, candleData.Close, totalCoin)
 
 		SetBalance(balance - (totalCoin * candleData.Close))
 		repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": totalCoin, "hold_price": candleData.Close})
