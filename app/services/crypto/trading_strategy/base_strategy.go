@@ -41,7 +41,7 @@ func checkCryptoMasterCoinPrice(requestTime time.Time) {
 
 	request := crypto.CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
-		StartDate:    GetStartDate(requestTime, 15),
+		EndDate:      GetEndDate(requestTime, 15),
 		Limit:        40,
 		Resolution:   "15m",
 		ResponseChan: responseChan,
@@ -49,7 +49,7 @@ func checkCryptoMasterCoinPrice(requestTime time.Time) {
 
 	requestLong := crypto.CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
-		StartDate:    GetStartDate(requestTime, 60),
+		EndDate:      GetEndDate(requestTime, 60),
 		Limit:        40,
 		Resolution:   "1h",
 		ResponseChan: responseChan,
@@ -68,7 +68,7 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 
 	holdCoin := []models.BandResult{}
 
-	startDate := GetStartDate(requestTime, 15)
+	endDate := GetEndDate(requestTime, 15)
 
 	responseChan := make(chan crypto.CandleResponse)
 
@@ -79,7 +79,7 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
 			Limit:        40,
-			StartDate:    startDate,
+			EndDate:      endDate,
 			Resolution:   "15m",
 			ResponseChan: responseChan,
 		}
@@ -102,7 +102,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 	altCoin := []models.BandResult{}
 
-	startDate := GetStartDate(baseTime, 15)
+	endDate := GetEndDate(baseTime, 15)
 
 	responseChan := make(chan crypto.CandleResponse)
 
@@ -114,7 +114,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
-			StartDate:    startDate,
+			EndDate:      endDate,
 			Limit:        40,
 			Resolution:   "15m",
 			ResponseChan: responseChan,
@@ -137,16 +137,17 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 	return altCoin
 }
 
-func GetStartDate(baseTime time.Time, duration int) int64 {
-	durationPerCandle := 60 * duration
-	totalDuration := models.CandleLimit * int64(durationPerCandle)
-	unixTime := baseTime.Unix() - totalDuration
+func GetEndDate(baseTime time.Time, duration int) int64 {
+	unixTime := baseTime.Unix()
 
 	if baseTime.Minute()%15 == 0 {
-		unixTime -= 30
+		unixTime = unixTime - int64(baseTime.Second())%60
+		unixTime = (unixTime * 1000) - 1
+	} else {
+		unixTime = unixTime * 1000
 	}
 
-	return unixTime * 1000
+	return unixTime
 }
 
 func waitMasterCoinProcessed() {

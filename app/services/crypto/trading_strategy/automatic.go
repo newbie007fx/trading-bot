@@ -101,7 +101,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 						if err != nil {
 							tmpMsg = err.Error()
 						} else {
-							tmpMsg = fmt.Sprintf("coin berikut akan dijual %d:\n", GetStartDate(checkingTime, 15))
+							tmpMsg = fmt.Sprintf("coin berikut akan dijual %d:\n", GetEndDate(checkingTime, 15))
 							tmpMsg += crypto.GenerateMsg(coin)
 							tmpMsg += "\n"
 							tmpMsg += crypto.HoldCoinMessage(*currencyConfig, &coin)
@@ -179,7 +179,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 	for <-checkPriceChan {
 		altCoins := []models.BandResult{}
 
-		startDate := GetStartDate(checkingTime, 15)
+		endDate := GetEndDate(checkingTime, 15)
 
 		responseChan := make(chan crypto.CandleResponse)
 
@@ -195,7 +195,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 		for _, data := range *currency_configs {
 			request := crypto.CandleRequest{
 				Symbol:       data.Symbol,
-				StartDate:    startDate,
+				EndDate:      endDate,
 				Limit:        40,
 				Resolution:   "15m",
 				ResponseChan: responseChan,
@@ -206,9 +206,9 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 				continue
 			}
 
-			longInterval := crypto.CheckCoin(result.Symbol, "4h", GetStartDate(checkingTime, 60*4), 0)
+			longInterval := crypto.CheckCoin(result.Symbol, "4h", 0, GetEndDate(checkingTime, 60*4))
 			checkLongInterval := longInterval.Trend == models.TREND_DOWN && analysis.CalculateTrends(longInterval.Bands[len(longInterval.Bands)-4:]) != models.TREND_UP
-			midInterval := crypto.CheckCoin(result.Symbol, "1h", GetStartDate(checkingTime, 60), 0)
+			midInterval := crypto.CheckCoin(result.Symbol, "1h", 0, GetEndDate(checkingTime, 60))
 			checkMidInterval := midInterval.AllTrend.FirstTrend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend == models.TREND_SIDEWAY
 			if checkLongInterval || checkMidInterval {
 				continue
@@ -257,13 +257,12 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 
 func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *[]models.BandResult {
 	results := []models.BandResult{}
-	timeInMilliMid := GetStartDate(checkingTime, 60)
-	timeInMilliLong := GetStartDate(checkingTime, 60*4)
+	timeInMilli := GetEndDate(checkingTime, 60)
 	for i := range altCoins {
 		waitMasterCoinProcessed()
-		altCoins[i].Weight += getWeightCustomInterval(altCoins[i], *masterCoin, "1h", timeInMilliMid)
+		altCoins[i].Weight += getWeightCustomInterval(altCoins[i], *masterCoin, "1h", timeInMilli)
 		if altCoins[i].Weight > 2.3 {
-			altCoins[i].Weight += getWeightCustomInterval(altCoins[i], *masterCoin, "4h", timeInMilliLong)
+			altCoins[i].Weight += getWeightCustomInterval(altCoins[i], *masterCoin, "4h", timeInMilli)
 			if altCoins[i].Weight > 3.5 {
 				results = append(results, altCoins[i])
 			}
@@ -278,8 +277,8 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	return nil
 }
 
-func getWeightCustomInterval(coin models.BandResult, masterCoinLocal models.BandResult, interval string, startDate int64) float32 {
-	result := crypto.CheckCoin(coin.Symbol, interval, startDate, 0)
+func getWeightCustomInterval(coin models.BandResult, masterCoinLocal models.BandResult, interval string, endDate int64) float32 {
+	result := crypto.CheckCoin(coin.Symbol, interval, 0, endDate)
 	weight := analysis.CalculateWeightLongInterval(result, masterCoinLocal.Trend)
 	ignored := false
 
