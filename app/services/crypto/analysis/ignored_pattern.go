@@ -54,10 +54,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN {
-		return true
-	}
-
 	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_DOWN && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		return true
 	}
@@ -80,12 +76,12 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		low := getLowestIndex(result.Bands[lenData/2:])
 		difference := hight - low
 		percent := float32(difference) / float32(low) * 100
-		if percent > 13.5 {
+		if percent > 13 {
 			return true
 		}
 	}
 
-	return isContaineBearishEngulfing(result)
+	return false
 }
 
 func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
@@ -138,7 +134,7 @@ func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
 
 func isHeighestOnHalfEndAndAboveUpper(result *models.BandResult) bool {
 	hiIndex := getHighestIndex(result.Bands)
-	if hiIndex >= len(result.Bands)-5 {
+	if hiIndex >= len(result.Bands)/2 {
 		return result.Bands[hiIndex].Candle.Close > float32(result.Bands[hiIndex].Upper)
 	}
 
