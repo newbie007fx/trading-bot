@@ -41,7 +41,7 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 	return ignored(result, masterCoin)
 }
 
-func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
+func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
 	if isInAboveUpperBandAndDownTrend(result) && result.Direction == BAND_DOWN {
 		return true
 	}
@@ -60,6 +60,29 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_DOWN && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		return true
+	}
+
+	return isContaineBearishEngulfing(result)
+}
+
+func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
+	if IsIgnoredMidInterval(result, shortInterval) {
+		return true
+	}
+
+	if result.Position == models.ABOVE_UPPER {
+		return true
+	}
+
+	if result.Trend == models.TREND_UP && result.Position == models.ABOVE_SMA {
+		lenData := len(result.Bands)
+		hight := getHighestIndex(result.Bands[lenData/2:])
+		low := getLowestIndex(result.Bands[lenData/2:])
+		difference := hight - low
+		percent := float32(difference) / float32(low) * 100
+		if percent > 13.5 {
+			return true
+		}
 	}
 
 	return isContaineBearishEngulfing(result)
@@ -114,7 +137,7 @@ func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
 }
 
 func isHeighestOnHalfEndAndAboveUpper(result *models.BandResult) bool {
-	hiIndex := getHighestIndex(result)
+	hiIndex := getHighestIndex(result.Bands)
 	if hiIndex >= len(result.Bands)-5 {
 		return result.Bands[hiIndex].Candle.Close > float32(result.Bands[hiIndex].Upper)
 	}
@@ -127,10 +150,21 @@ func isContaineBearishEngulfing(result *models.BandResult) bool {
 	return BearishEngulfing(result.Bands[hiIndex:]) && CalculateTrends(result.Bands[hiIndex:]) == models.TREND_DOWN
 }
 
-func getHighestIndex(result *models.BandResult) int {
+func getHighestIndex(bands []models.Band) int {
 	hiIndex := 0
-	for i, band := range result.Bands {
-		if result.Bands[hiIndex].Candle.Close < band.Candle.Close {
+	for i, band := range bands {
+		if bands[hiIndex].Candle.Close < band.Candle.Close {
+			hiIndex = i
+		}
+	}
+
+	return hiIndex
+}
+
+func getLowestIndex(bands []models.Band) int {
+	hiIndex := 0
+	for i, band := range bands {
+		if bands[hiIndex].Candle.Close < band.Candle.Close {
 			hiIndex = i
 		}
 	}

@@ -207,7 +207,10 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 			}
 
 			longInterval := crypto.CheckCoin(result.Symbol, "4h", GetStartDate(checkingTime, 60*4), 0)
-			if longInterval.Trend == models.TREND_DOWN && analysis.CalculateTrends(longInterval.Bands[len(longInterval.Bands)-4:]) != models.TREND_UP {
+			checkLongInterval := longInterval.Trend == models.TREND_DOWN && analysis.CalculateTrends(longInterval.Bands[len(longInterval.Bands)-4:]) != models.TREND_UP
+			midInterval := crypto.CheckCoin(result.Symbol, "1h", GetStartDate(checkingTime, 60), 0)
+			checkMidInterval := midInterval.AllTrend.FirstTrend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend == models.TREND_SIDEWAY
+			if checkLongInterval || checkMidInterval {
 				continue
 			}
 
