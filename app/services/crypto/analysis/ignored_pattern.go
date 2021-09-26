@@ -91,7 +91,11 @@ func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if isBellowSMAAndUpJustOneBand(result) {
+	if countUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+		return true
+	}
+
+	if CalculateTrends(masterCoin.Bands[len(masterCoin.Bands)-4:]) != models.TREND_UP && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		return true
 	}
 
@@ -104,16 +108,6 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
 		return margin < 2
-	}
-
-	return false
-}
-
-func isBellowSMAAndUpJustOneBand(result *models.BandResult) bool {
-	lastBand := result.Bands[len(result.Bands)-1]
-	secondLastBand := result.Bands[len(result.Bands)-2]
-	if lastBand.Candle.Open < float32(lastBand.SMA) {
-		return secondLastBand.Candle.Open > secondLastBand.Candle.Close
 	}
 
 	return false

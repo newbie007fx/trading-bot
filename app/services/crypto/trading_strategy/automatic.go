@@ -179,6 +179,8 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
+		log.Println("executing alt check on master down")
+
 		altCoins := []models.BandResult{}
 
 		endDate := GetEndDate(checkingTime, 15)
@@ -208,11 +210,9 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 				continue
 			}
 
-			longInterval := crypto.CheckCoin(result.Symbol, "4h", 0, GetEndDate(checkingTime, 60*4))
-			checkLongInterval := longInterval.Trend == models.TREND_DOWN && analysis.CalculateTrends(longInterval.Bands[len(longInterval.Bands)-3:]) == models.TREND_DOWN
-
 			midInterval := crypto.CheckCoin(result.Symbol, "1h", 0, GetEndDate(checkingTime, 60))
-			if checkLongInterval || !(midInterval.Position == models.BELOW_SMA || analysis.CalculateTrends(midInterval.Bands[len(midInterval.Bands)-7:]) == models.TREND_UP) {
+			midIntervalLastBand := midInterval.Bands[len(midInterval.Bands)-1]
+			if !(midIntervalLastBand.Candle.Close < float32(midIntervalLastBand.SMA) || analysis.CalculateTrends(midInterval.Bands[len(midInterval.Bands)-5:]) == models.TREND_UP) {
 				continue
 			}
 
