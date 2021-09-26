@@ -216,13 +216,9 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 				continue
 			}
 
-			masterSecondLastBand := masterCoin.Bands[len(masterCoin.Bands)-2]
-			countUp := analysis.CountSquentialUpBand(result.Bands)
-			if masterSecondLastBand.Candle.Open < masterSecondLastBand.Candle.Close || countUp > 2 {
-				result.Weight = analysis.CalculateWeightOnDown(result)
-				if result.Weight != 0 && !analysis.IsIgnoredMasterDown(result, masterCoin) {
-					altCoins = append(altCoins, *result)
-				}
+			result.Weight = analysis.CalculateWeightOnDown(result)
+			if result.Weight != 0 && !analysis.IsIgnoredMasterDown(result, masterCoin) {
+				altCoins = append(altCoins, *result)
 			}
 		}
 
