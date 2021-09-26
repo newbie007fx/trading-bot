@@ -143,8 +143,9 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 				continue
 			}
 
+			maxHold := crypto.GetMaxHold()
 			for _, coin := range *coins {
-				if holdCount == 0 {
+				if holdCount == maxHold {
 					break
 				}
 
@@ -167,7 +168,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 							msg += "untuk master coin:\n"
 							msg += crypto.GenerateMsg(*masterCoin)
 						}
-						holdCount--
+						holdCount++
 					}
 				}
 			}
