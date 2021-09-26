@@ -2,6 +2,7 @@ package trading_strategy
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
@@ -130,6 +131,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 	for <-checkPriceChan {
 		waitMasterCoinProcessed()
 		if skippedProcess() {
+			log.Println("checking alt coin skipped")
 			continue
 		}
 		altCoins := checkCryptoAltCoinPrice(checkingTime)
@@ -263,9 +265,9 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	for i := range altCoins {
 		waitMasterCoinProcessed()
 		altCoins[i].Weight += getWeightCustomInterval(altCoins[i], *masterCoin, "1h", timeInMilli)
-		if altCoins[i].Weight > 2.3 {
+		if altCoins[i].Weight > 1.9 {
 			altCoins[i].Weight += getWeightCustomInterval(altCoins[i], *masterCoin, "4h", timeInMilli)
-			if altCoins[i].Weight > 3.5 {
+			if altCoins[i].Weight > 2.7 {
 				results = append(results, altCoins[i])
 			}
 		}
@@ -325,7 +327,7 @@ func checkMasterDown() bool {
 }
 
 func skippedProcess() bool {
-	if checkingTime.Unix()%(60*4*60) != 0 {
+	if checkingTime.Minute()%60 != 0 {
 		return false
 	}
 
@@ -337,7 +339,7 @@ func skippedProcess() bool {
 		return true
 	}
 
-	if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) && masterCoin.Direction == analysis.BAND_DOWN {
+	if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-3:]) && masterCoin.Direction == analysis.BAND_DOWN {
 		return true
 	}
 
