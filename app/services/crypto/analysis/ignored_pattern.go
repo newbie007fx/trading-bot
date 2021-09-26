@@ -81,10 +81,6 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 }
 
 func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
-	if result.Position != models.BELOW_LOWER && result.Position != models.BELOW_SMA {
-		return true
-	}
-
 	lastBand := result.Bands[len(result.Bands)-1]
 	marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 	if marginFromUpper < 3.5 {
