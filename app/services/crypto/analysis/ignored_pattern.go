@@ -34,6 +34,10 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
+	if lastFourCandleNotUpTrend(result.Bands) {
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -226,4 +230,8 @@ func isOnUpperAndPreviousBandBelowUpper(bands []models.Band) bool {
 	}
 
 	return false
+}
+
+func lastFourCandleNotUpTrend(bands []models.Band) bool {
+	return CalculateTrends(bands[len(bands)-4:]) != models.TREND_UP
 }
