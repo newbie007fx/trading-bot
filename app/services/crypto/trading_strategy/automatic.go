@@ -157,7 +157,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 					if err != nil {
 						msg = err.Error()
 					} else {
-						msg = fmt.Sprintf("coin berikut telah dihold on %d:\n", checkingTime.Unix())
+						msg += fmt.Sprintf("coin berikut telah dihold on %d:\n", checkingTime.Unix())
 						msg += crypto.GenerateMsg(coin)
 						msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
 						msg += "\n"
@@ -168,6 +168,11 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 							msg += "untuk master coin:\n"
 							msg += crypto.GenerateMsg(*masterCoin)
 						}
+
+						if checkIsOnLongIntervalChangePeriode() {
+							break
+						}
+
 						holdCount++
 					}
 				}
@@ -337,6 +342,19 @@ func skippedProcess() bool {
 
 	if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-3:]) && masterCoin.Direction == analysis.BAND_DOWN {
 		return true
+	}
+
+	return false
+}
+
+func checkIsOnLongIntervalChangePeriode() bool {
+	hours := []int{0, 4, 8, 12, 16, 20}
+	hour := checkingTime.Hour()
+	minute := checkingTime.Minute()
+	for _, data := range hours {
+		if data == hour && minute == 15 {
+			return true
+		}
 	}
 
 	return false

@@ -122,6 +122,44 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
 
+	responseChanMid := make(chan CandleResponse)
+	requestMid := CandleRequest{
+		Symbol:       config.Symbol,
+		StartDate:    0,
+		EndDate:      timeInMili,
+		Limit:        int(models.CandleLimit),
+		Resolution:   "1h",
+		ResponseChan: responseChanMid,
+	}
+
+	resultMid := MakeCryptoRequest(config, requestMid)
+	weightMid := analysis.CalculateWeightLongInterval(resultMid, masterCoin.Trend)
+	msg += fmt.Sprintf("\nweight midInterval for coin %s: %.2f", config.Symbol, weightMid)
+	msg += "\n"
+	msg += "detail weight: \n"
+	for key, val := range analysis.GetLongIntervalWeightLogData() {
+		msg += fmt.Sprintf("%s: %.2f\n", key, val)
+	}
+
+	responseChanLong := make(chan CandleResponse)
+	requestLong := CandleRequest{
+		Symbol:       config.Symbol,
+		StartDate:    0,
+		EndDate:      timeInMili,
+		Limit:        int(models.CandleLimit),
+		Resolution:   "4h",
+		ResponseChan: responseChanLong,
+	}
+
+	resultLong := MakeCryptoRequest(config, requestLong)
+	weightLong := analysis.CalculateWeightLongInterval(resultLong, masterCoin.Trend)
+	msg += fmt.Sprintf("\nweight long Interval for coin %s: %.2f", config.Symbol, weightLong)
+	msg += "\n"
+	msg += "detail weight: \n"
+	for key, val := range analysis.GetLongIntervalWeightLogData() {
+		msg += fmt.Sprintf("%s: %.2f\n", key, val)
+	}
+
 	return msg
 }
 
