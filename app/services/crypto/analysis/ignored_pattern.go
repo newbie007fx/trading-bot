@@ -30,7 +30,7 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if isOnUpperAndPreviousBandBelowUpper(result.Bands) {
+	if result.Position == models.ABOVE_UPPER {
 		return true
 	}
 
@@ -237,16 +237,6 @@ func whenHeadCrossBandAndMasterDown(result, masterCoin *models.BandResult) bool 
 	crossUpper := lastBand.Candle.Close < float32(lastBand.Upper) && lastBand.Candle.Hight > float32(lastBand.Upper)
 	if (crossSMA || crossUpper) && CalculateTrends(masterCoin.Bands[len(masterCoin.Bands)-5:]) == models.TREND_DOWN {
 		return true
-	}
-
-	return false
-}
-
-func isOnUpperAndPreviousBandBelowUpper(bands []models.Band) bool {
-	lastBand := bands[len(bands)-1]
-	secondLastBand := bands[len(bands)-2]
-	if lastBand.Candle.Open <= float32(lastBand.Upper) && lastBand.Candle.Close >= float32(lastBand.Upper) {
-		return secondLastBand.Candle.Close < float32(secondLastBand.Upper)
 	}
 
 	return false
