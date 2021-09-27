@@ -49,14 +49,6 @@ func CalculateTrends(data []models.Band) int8 {
 		}
 	}
 
-	if highestIndex == len(data)-1 {
-		return models.TREND_UP
-	}
-
-	if lowestIndex == len(data)-1 {
-		return models.TREND_DOWN
-	}
-
 	firstAvg := totalFirstData / float32(limit)
 	lastAvg := totalLastData / float32(limit)
 	midleAvg := totalMidleData / float32(midle_counter)
@@ -114,14 +106,6 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 		if i >= len(data)-limit {
 			totalLastData += val.Candle.Close
 		}
-	}
-
-	if highestIndex == len(data)-1 {
-		trend.Trend = models.TREND_UP
-	}
-
-	if lowestIndex == len(data)-1 {
-		trend.Trend = models.TREND_DOWN
 	}
 
 	firstAvg := totalFirstData / float32(limit)
