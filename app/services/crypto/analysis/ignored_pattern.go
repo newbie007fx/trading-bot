@@ -58,11 +58,31 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
+	if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+		return true
+	}
+
 	return isContaineBearishEngulfing(result)
 }
 
 func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
-	if IsIgnoredMidInterval(result, shortInterval) {
+	if isInAboveUpperBandAndDownTrend(result) && result.Direction == BAND_DOWN {
+		return true
+	}
+
+	if lastBandHeadDoubleBody(result) {
+		return true
+	}
+
+	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+		return true
+	}
+
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_DOWN && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+		return true
+	}
+
+	if isContaineBearishEngulfing(result) {
 		return true
 	}
 
@@ -91,7 +111,7 @@ func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if countUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+	if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
 		return true
 	}
 

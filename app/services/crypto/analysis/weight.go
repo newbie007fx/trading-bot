@@ -130,7 +130,7 @@ func reversalWeight(result *models.BandResult, masterTrend int8) float32 {
 
 	lastBand := lastSixData[5]
 	highUpNotInterested := CalculateTrends(lastSixData[2:]) == models.TREND_UP && lastBand.Candle.Close > float32(lastBand.Upper)
-	if countUpBand(lastSixData[1:]) < 2 && highUpNotInterested {
+	if CountUpBand(lastSixData[1:]) < 2 && highUpNotInterested {
 		return 0.08
 	}
 
@@ -281,7 +281,7 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 	return 0.26
 }
 
-func countUpBand(bands []models.Band) int {
+func CountUpBand(bands []models.Band) int {
 	counter := 0
 	for _, band := range bands {
 		if band.Candle.Open < band.Candle.Close {
