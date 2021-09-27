@@ -164,11 +164,6 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 						msg += sendHoldMsg(&coin)
 						msg += "\n"
 
-						if masterCoin != nil {
-							msg += "untuk master coin:\n"
-							msg += crypto.GenerateMsg(*masterCoin)
-						}
-
 						if checkIsOnLongIntervalChangePeriode() {
 							break
 						}
@@ -176,6 +171,11 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 						holdCount++
 					}
 				}
+			}
+
+			if masterCoin != nil && msg != "" {
+				msg += "untuk master coin:\n"
+				msg += crypto.GenerateMsg(*masterCoin)
 			}
 		}
 
