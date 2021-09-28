@@ -228,7 +228,7 @@ func CalculateTrendShort(data []models.Band) int8 {
 
 	firstAvg := totalFirstData / float32(limit)
 	lastAvg := totalLastData / float32(limit)
-	baseLinePoint := data[lowestIndex].Candle.Close
+	baseLinePoint := data[lowestIndex].Candle.Close - (data[lowestIndex].Candle.Close / 100)
 
 	return getTrendShort(baseLinePoint, firstAvg, lastAvg)
 }
@@ -244,7 +244,7 @@ func getTrendShort(baseLine, fistAvg, secondAvg float32) int8 {
 		percent = (firstPointValue / lastPointValue) * 100
 	}
 
-	if percent >= 81 {
+	if percent >= 77 {
 		return models.TREND_SIDEWAY
 	}
 
