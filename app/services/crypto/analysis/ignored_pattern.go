@@ -38,7 +38,7 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
 		return true
 	}
 
