@@ -67,4 +67,5 @@ type TrendDetail struct {
 	FirstTrend  int8
 	SecondTrend int8
 	Trend       int8
+	ShortTrend  int8
 }
