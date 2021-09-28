@@ -50,11 +50,11 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+	if result.Trend == models.TREND_DOWN && shortInterval.Trend != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		return true
 	}
 
-	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_DOWN && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		return true
 	}
 
@@ -74,11 +74,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		return true
 	}
 
-	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_DOWN && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		return true
 	}
 
@@ -115,7 +115,7 @@ func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if CalculateTrends(masterCoin.Bands[len(masterCoin.Bands)-4:]) != models.TREND_UP && CalculateTrends(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+	if CalculateTrendShort(masterCoin.Bands[len(masterCoin.Bands)-4:]) != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		return true
 	}
 
@@ -135,7 +135,7 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 
 func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
 	lastFiveData := result.Bands[len(result.Bands)-5:]
-	if isHeighestOnHalfEndAndAboveUpper(result) && CalculateTrends(lastFiveData) == models.TREND_DOWN {
+	if isHeighestOnHalfEndAndAboveUpper(result) && CalculateTrendShort(lastFiveData) == models.TREND_DOWN {
 		return true
 	}
 
@@ -153,7 +153,7 @@ func isHeighestOnHalfEndAndAboveUpper(result *models.BandResult) bool {
 
 func isContaineBearishEngulfing(result *models.BandResult) bool {
 	hiIndex := len(result.Bands) - (len(result.Bands) / 4)
-	return BearishEngulfing(result.Bands[hiIndex:]) && CalculateTrends(result.Bands[hiIndex:]) == models.TREND_DOWN
+	return BearishEngulfing(result.Bands[hiIndex:]) && CalculateTrendShort(result.Bands[hiIndex:]) == models.TREND_DOWN
 }
 
 func getHighestIndex(bands []models.Band) int {
@@ -222,7 +222,7 @@ func ignored(result, masterCoin *models.BandResult) bool {
 
 	if masterCoin.Trend == models.TREND_DOWN {
 		lastFourData := result.Bands[len(result.Bands)-4:]
-		if CalculateTrends(lastFourData) != models.TREND_UP {
+		if CalculateTrendShort(lastFourData) != models.TREND_UP {
 			log.Println("reset to 0 with criteria 3: ", result.Symbol)
 			return true
 		}
@@ -235,7 +235,7 @@ func whenHeadCrossBandAndMasterDown(result, masterCoin *models.BandResult) bool 
 	lastBand := result.Bands[len(result.Bands)-1]
 	crossSMA := lastBand.Candle.Close < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA)
 	crossUpper := lastBand.Candle.Close < float32(lastBand.Upper) && lastBand.Candle.Hight > float32(lastBand.Upper)
-	if (crossSMA || crossUpper) && CalculateTrends(masterCoin.Bands[len(masterCoin.Bands)-5:]) == models.TREND_DOWN {
+	if (crossSMA || crossUpper) && CalculateTrendShort(masterCoin.Bands[len(masterCoin.Bands)-5:]) == models.TREND_DOWN {
 		return true
 	}
 
@@ -243,5 +243,5 @@ func whenHeadCrossBandAndMasterDown(result, masterCoin *models.BandResult) bool 
 }
 
 func lastFourCandleNotUpTrend(bands []models.Band) bool {
-	return CalculateTrends(bands[len(bands)-4:]) != models.TREND_UP
+	return CalculateTrendShort(bands[len(bands)-4:]) != models.TREND_UP
 }

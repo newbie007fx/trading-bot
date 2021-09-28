@@ -220,8 +220,8 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 			if result.Weight != 0 && !analysis.IsIgnoredMasterDown(result, masterCoin) {
 				midInterval := crypto.CheckCoin(result.Symbol, "1h", 0, GetEndDate(checkingTime, 60))
 				midIntervalLastBand := midInterval.Bands[len(midInterval.Bands)-1]
-				checkMidInterval := !(midIntervalLastBand.Candle.Close < float32(midIntervalLastBand.SMA) || analysis.CalculateTrends(midInterval.Bands[len(midInterval.Bands)-5:]) == models.TREND_UP)
-				if analysis.CountUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 || analysis.CalculateTrends(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP || checkMidInterval {
+				checkMidInterval := !(midIntervalLastBand.Candle.Close < float32(midIntervalLastBand.SMA) || analysis.CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-5:]) == models.TREND_UP)
+				if analysis.CountUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 || analysis.CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP || checkMidInterval {
 					continue
 				}
 

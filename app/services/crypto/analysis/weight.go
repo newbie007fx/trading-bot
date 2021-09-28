@@ -87,7 +87,7 @@ func isMasterReversal(master *models.BandResult) bool {
 	trend := CalculateTrends(master.Bands[:len(master.Bands)-1])
 
 	lastFiveData := master.Bands[len(master.Bands)-4:]
-	if trend == models.TREND_UP || CalculateTrends(lastFiveData[1:]) != models.TREND_UP || master.PriceChanges < 0.3 {
+	if trend == models.TREND_UP || CalculateTrendShort(lastFiveData[1:]) != models.TREND_UP || master.PriceChanges < 0.3 {
 		return false
 	}
 
@@ -117,7 +117,7 @@ func reversalWeight(result *models.BandResult, masterTrend int8) float32 {
 	trend := CalculateTrends(result.Bands[:len(result.Bands)-1])
 
 	lastSixData := result.Bands[len(result.Bands)-6:]
-	if trend == models.TREND_UP || CalculateTrends(lastSixData[2:]) != models.TREND_UP || ((result.PriceChanges < 0.8 && CountSquentialUpBand(lastSixData) < 3) || result.PriceChanges < 1.1) {
+	if trend == models.TREND_UP || CalculateTrendShort(lastSixData[2:]) != models.TREND_UP || ((result.PriceChanges < 0.8 && CountSquentialUpBand(lastSixData) < 3) || result.PriceChanges < 1.1) {
 		lastSixDataTrend := CalculateTrendsDetail(lastSixData)
 		if lastSixDataTrend.FirstTrend == models.TREND_DOWN && lastSixDataTrend.SecondTrend == models.TREND_UP {
 			weight = 0.08
@@ -129,7 +129,7 @@ func reversalWeight(result *models.BandResult, masterTrend int8) float32 {
 	}
 
 	lastBand := lastSixData[5]
-	highUpNotInterested := CalculateTrends(lastSixData[2:]) == models.TREND_UP && lastBand.Candle.Close > float32(lastBand.Upper)
+	highUpNotInterested := CalculateTrendShort(lastSixData[2:]) == models.TREND_UP && lastBand.Candle.Close > float32(lastBand.Upper)
 	if CountUpBand(lastSixData[1:]) < 2 && highUpNotInterested {
 		return 0.08
 	}

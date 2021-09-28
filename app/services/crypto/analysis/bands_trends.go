@@ -189,3 +189,66 @@ func getTrend(baseLine, fistAvg, secondAvg float32) int8 {
 
 	return models.TREND_DOWN
 }
+
+func CalculateTrendShort(data []models.Band) int8 {
+	if len(data) == 0 {
+		log.Println("invalid data when calculate trends")
+		return models.TREND_DOWN
+	}
+
+	highestIndex, lowestIndex := 0, 0
+	thirtyPercent := float64(len(data)) * float64(15) / float64(100)
+	limit := int(math.Floor(thirtyPercent))
+	if limit < 1 {
+		limit = 1
+	}
+
+	var totalFirstData float32 = 0
+	var totalLastData float32 = 0
+
+	for i, val := range data {
+		if data[highestIndex].Candle.Close < val.Candle.Close {
+			highestIndex = i
+		}
+
+		if data[lowestIndex].Candle.Close > val.Candle.Close {
+			lowestIndex = i
+		}
+
+		if i < limit {
+			totalFirstData += val.Candle.Close
+		}
+
+		if i >= len(data)-limit {
+			totalLastData += val.Candle.Close
+		}
+	}
+
+	firstAvg := totalFirstData / float32(limit)
+	lastAvg := totalLastData / float32(limit)
+	baseLinePoint := data[lowestIndex].Candle.Close
+
+	return getTrendShort(baseLinePoint, firstAvg, lastAvg)
+}
+
+func getTrendShort(baseLine, fistAvg, secondAvg float32) int8 {
+	firstPointValue := fistAvg - baseLine
+	lastPointValue := secondAvg - baseLine
+
+	var percent float32 = 0
+	if firstPointValue > lastPointValue {
+		percent = (lastPointValue / firstPointValue) * 100
+	} else {
+		percent = (firstPointValue / lastPointValue) * 100
+	}
+
+	if percent >= 90 {
+		return models.TREND_SIDEWAY
+	}
+
+	if fistAvg < secondAvg {
+		return models.TREND_UP
+	}
+
+	return models.TREND_DOWN
+}
