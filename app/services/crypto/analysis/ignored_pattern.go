@@ -38,6 +38,10 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
+	if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -58,7 +62,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
 		return true
 	}
 
@@ -111,7 +115,7 @@ func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
 		return true
 	}
 
