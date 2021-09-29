@@ -30,10 +30,6 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if result.Position == models.ABOVE_UPPER {
-		return true
-	}
-
 	if lastFourCandleNotUpTrend(result.Bands) {
 		return true
 	}
@@ -58,11 +54,23 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_SIDEWAY {
+		return true
+	}
+
+	if result.AllTrend.FirstTrend == models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		return true
 	}
 
 	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+		return true
+	}
+
+	if result.Position == models.ABOVE_UPPER {
+		return true
+	}
+
+	if isTrendUpLastThreeBandHasDoji(result) {
 		return true
 	}
 
@@ -78,11 +86,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP {
 		return true
 	}
 
-	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP {
 		return true
 	}
 
@@ -103,6 +111,10 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		if percent > 15 {
 			return true
 		}
+	}
+
+	if isTrendUpLastThreeBandHasDoji(result) {
+		return true
 	}
 
 	return false
@@ -131,7 +143,7 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 	if lastBand.Candle.Close < float32(lastBand.Upper) {
 		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
-		return margin < 2
+		return margin < 1.5
 	}
 
 	return false
@@ -200,11 +212,12 @@ func whenHeightTripleAverage(result *models.BandResult) bool {
 
 func lastBandHeadDoubleBody(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Close > lastBand.Candle.Open && result.Position == models.ABOVE_UPPER {
+	if lastBand.Candle.Close > lastBand.Candle.Open {
 		head := lastBand.Candle.Hight - lastBand.Candle.Close
 		body := lastBand.Candle.Close - lastBand.Candle.Open
-		return head > body
+		return head > body*2
 	}
+
 	return false
 }
 
@@ -224,14 +237,6 @@ func ignored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if masterCoin.Trend == models.TREND_DOWN {
-		lastFourData := result.Bands[len(result.Bands)-4:]
-		if CalculateTrendShort(lastFourData) != models.TREND_UP {
-			log.Println("reset to 0 with criteria 3: ", result.Symbol)
-			return true
-		}
-	}
-
 	return false
 }
 
@@ -248,4 +253,29 @@ func whenHeadCrossBandAndMasterDown(result, masterCoin *models.BandResult) bool 
 
 func lastFourCandleNotUpTrend(bands []models.Band) bool {
 	return CalculateTrendShort(bands[len(bands)-4:]) != models.TREND_UP
+}
+
+func isTrendUpLastThreeBandHasDoji(result *models.BandResult) bool {
+	if result.AllTrend.SecondTrend != models.TREND_UP {
+		return false
+	}
+
+	lastThreeBand := result.Bands[len(result.Bands)-3:]
+	var difference float32 = 0
+	var percent float32 = 0
+	for _, band := range lastThreeBand {
+		if band.Candle.Close > band.Candle.Open {
+			difference = band.Candle.Close - band.Candle.Open
+			percent = difference / band.Candle.Open * 100
+		} else {
+			difference = band.Candle.Open - band.Candle.Close
+			percent = difference / band.Candle.Close * 100
+		}
+
+		if percent < 0.1 {
+			return true
+		}
+	}
+
+	return false
 }

@@ -163,7 +163,7 @@ func getPatternWeight(result *models.BandResult) float32 {
 
 	var weight float32 = 0
 	if len(listMatchPattern) > 0 {
-		weight += 0.15 * float32(len(listMatchPattern))
+		weight = 0.2
 	}
 
 	return weight
@@ -173,7 +173,10 @@ func getPriceMarginWithUpperBandWeight(bands []models.Band) float32 {
 	lastBand := bands[len(bands)-1]
 	var percent float32 = 0
 
-	if lastBand.Candle.Close < float32(lastBand.Upper) {
+	if lastBand.Candle.Close < float32(lastBand.SMA) {
+		different := float32(lastBand.SMA) - lastBand.Candle.Close
+		percent = different / lastBand.Candle.Close * 100
+	} else if lastBand.Candle.Close < float32(lastBand.Upper) {
 		different := float32(lastBand.Upper) - lastBand.Candle.Close
 		percent = different / lastBand.Candle.Close * 100
 	}
@@ -248,7 +251,7 @@ func getPositionWeight(bands []models.Band, trend, masterTrend int8, isLongInter
 
 	// open menyentuh SMA tp low dibaawh SMA
 	if lastBand.Candle.Open >= float32(lastBand.SMA) && lastBand.Candle.Low < float32(lastBand.SMA) {
-		return 0.44 + weightUp
+		return 0.38 + weightUp
 	}
 
 	// low hight dibawah Upper
