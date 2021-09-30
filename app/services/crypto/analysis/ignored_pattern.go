@@ -3,6 +3,7 @@ package analysis
 import (
 	"log"
 	"telebot-trading/app/models"
+	"time"
 )
 
 func IsIgnored(result, masterCoin *models.BandResult) bool {
@@ -34,7 +35,11 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 {
+		return true
+	}
+
+	if isUpMoreThanThreeOnDownBellowSMA(result) {
 		return true
 	}
 
@@ -72,6 +77,15 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 
 	if isTrendUpLastThreeBandHasDoji(result) {
 		return true
+	}
+
+	if shortInterval.Position == models.ABOVE_UPPER {
+		lastBand := result.Bands[len(result.Bands)-1]
+		diff := lastBand.Upper - float64(lastBand.Candle.Close)
+		percent := diff / float64(lastBand.Candle.Close) * 100
+		if percent < 4 {
+			return true
+		}
 	}
 
 	return isContaineBearishEngulfing(result)
@@ -133,6 +147,17 @@ func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 
 	if CalculateTrendShort(masterCoin.Bands[len(masterCoin.Bands)-4:]) != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		return true
+	}
+
+	return false
+}
+
+func isUpMoreThanThreeOnDownBellowSMA(result *models.BandResult) bool {
+	currentTime := time.Now()
+	if result.Position == models.BELOW_SMA {
+		if CountSquentialUpBand(result.Bands[len(result.Bands)-4:]) > 3 && currentTime.Minute() < 17 {
+			return true
+		}
 	}
 
 	return false
@@ -256,7 +281,7 @@ func lastFourCandleNotUpTrend(bands []models.Band) bool {
 }
 
 func isTrendUpLastThreeBandHasDoji(result *models.BandResult) bool {
-	if result.AllTrend.SecondTrend != models.TREND_UP {
+	if result.AllTrend.SecondTrend != models.TREND_DOWN {
 		return false
 	}
 
