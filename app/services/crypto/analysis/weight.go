@@ -291,7 +291,7 @@ func CountUpBand(bands []models.Band) int {
 	for _, band := range bands {
 		if band.Candle.Open < band.Candle.Close {
 			difference := band.Candle.Close - band.Candle.Open
-			if (difference / band.Candle.Open * 100) >= 0.15 {
+			if (difference / band.Candle.Open * 100) >= 0.11 {
 				counter++
 			}
 		}
@@ -305,7 +305,7 @@ func CountSquentialUpBand(bands []models.Band) int {
 	for i := len(bands) - 1; i >= 0; i-- {
 		if bands[1].Candle.Open < bands[i].Candle.Close {
 			difference := bands[1].Candle.Close - bands[1].Candle.Open
-			if (difference / bands[1].Candle.Open * 100) >= 0.13 {
+			if (difference / bands[1].Candle.Open * 100) >= 0.11 {
 				counter++
 			} else {
 				return counter

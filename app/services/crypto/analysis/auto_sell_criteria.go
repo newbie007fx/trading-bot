@@ -9,7 +9,7 @@ import (
 
 var reason string = ""
 
-func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCandleComplete bool, masterCoinLongTrend int8) bool {
+func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCandleComplete bool, coinLongTrend, masterCoinLongTrend int8) bool {
 	reason = ""
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
 	if err != nil {
@@ -57,7 +57,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			return true
 		}
 
-		if sellOnUp(result, currencyConfig, lastBand, isCandleComplete, masterCoin.Trend, masterCoinLongTrend) {
+		if sellOnUp(result, currencyConfig, coinLongTrend, isCandleComplete, masterCoin.Trend, masterCoinLongTrend) {
 			return true
 		}
 	}
@@ -65,7 +65,8 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 	return isHoldedMoreThanDurationThreshold(currencyConfig, result, isCandleComplete)
 }
 
-func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConfig, lastBand models.Band, isCandleComplete bool, masterCoinTrend, masterCoinLongTrend int8) bool {
+func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConfig, coinLongTrend int8, isCandleComplete bool, masterCoinTrend, masterCoinLongTrend int8) bool {
+	lastBand := result.Bands[len(result.Bands)-1]
 	changes := result.CurrentPrice - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
 
@@ -77,7 +78,7 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 
 	lastFiveData := result.Bands[len(result.Bands)-5 : len(result.Bands)]
 
-	if checkOnTrendDown(result, masterCoinTrend, masterCoinLongTrend, changesInPercent, isCandleComplete) {
+	if checkOnTrendDown(result, coinLongTrend, masterCoinTrend, masterCoinLongTrend, changesInPercent, isCandleComplete) {
 		reason = "sell with criteria y1"
 		return true
 	}
@@ -270,8 +271,8 @@ func GetSellReason() string {
 	return reason
 }
 
-func checkOnTrendDown(result models.BandResult, masterCoinTrend, masterCoinLongIntervalTrend int8, priceChange float32, isCandleComplete bool) bool {
-	if masterCoinTrend != models.TREND_UP && masterCoinLongIntervalTrend == models.TREND_DOWN {
+func checkOnTrendDown(result models.BandResult, coinLongTrend, masterCoinTrend, masterCoinLongIntervalTrend int8, priceChange float32, isCandleComplete bool) bool {
+	if (masterCoinTrend != models.TREND_UP || coinLongTrend == models.TREND_DOWN) && masterCoinLongIntervalTrend == models.TREND_DOWN {
 		if result.Direction == BAND_DOWN && result.AllTrend.SecondTrend != models.TREND_UP && isCandleComplete {
 			lastBand := result.Bands[len(result.Bands)-1]
 			lastBandOnUpper := lastBand.Candle.Low <= float32(lastBand.Upper) && lastBand.Candle.Hight >= float32(lastBand.Upper)

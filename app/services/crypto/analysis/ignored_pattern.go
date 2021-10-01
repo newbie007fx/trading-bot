@@ -19,9 +19,9 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if whenHeadCrossBandAndMasterDown(result, masterCoin) {
-		return true
-	}
+	// if whenHeadCrossBandAndMasterDown(result, masterCoin) {
+	// 	return true
+	// }
 
 	if isPosititionBellowUpperMarginBellowThreshold(result) {
 		return true
@@ -40,6 +40,10 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 	}
 
 	if isUpMoreThanThreeOnDownBellowSMA(result) {
+		return true
+	}
+
+	if result.Position == models.ABOVE_UPPER {
 		return true
 	}
 
@@ -77,15 +81,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 
 	if isTrendUpLastThreeBandHasDoji(result) {
 		return true
-	}
-
-	if shortInterval.Position == models.ABOVE_UPPER {
-		lastBand := result.Bands[len(result.Bands)-1]
-		diff := lastBand.Upper - float64(lastBand.Candle.Close)
-		percent := diff / float64(lastBand.Candle.Close) * 100
-		if percent < 4 {
-			return true
-		}
 	}
 
 	return isContaineBearishEngulfing(result)
@@ -165,7 +160,7 @@ func isUpMoreThanThreeOnDownBellowSMA(result *models.BandResult) bool {
 
 func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Close < float32(lastBand.Upper) {
+	if lastBand.Candle.Close < float32(lastBand.Upper) && result.Trend == models.TREND_DOWN {
 		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
 		return margin < 1.5
@@ -265,16 +260,16 @@ func ignored(result, masterCoin *models.BandResult) bool {
 	return false
 }
 
-func whenHeadCrossBandAndMasterDown(result, masterCoin *models.BandResult) bool {
-	lastBand := result.Bands[len(result.Bands)-1]
-	crossSMA := lastBand.Candle.Close < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA)
-	crossUpper := lastBand.Candle.Close < float32(lastBand.Upper) && lastBand.Candle.Hight > float32(lastBand.Upper)
-	if (crossSMA || crossUpper) && CalculateTrendShort(masterCoin.Bands[len(masterCoin.Bands)-5:]) == models.TREND_DOWN {
-		return true
-	}
+// func whenHeadCrossBandAndMasterDown(result, masterCoin *models.BandResult) bool {
+// 	lastBand := result.Bands[len(result.Bands)-1]
+// 	crossSMA := lastBand.Candle.Close < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA)
+// 	crossUpper := lastBand.Candle.Close < float32(lastBand.Upper) && lastBand.Candle.Hight > float32(lastBand.Upper)
+// 	if (crossSMA || crossUpper) && CalculateTrendShort(masterCoin.Bands[len(masterCoin.Bands)-5:]) == models.TREND_DOWN {
+// 		return true
+// 	}
 
-	return false
-}
+// 	return false
+// }
 
 func lastFourCandleNotUpTrend(bands []models.Band) bool {
 	return CalculateTrendShort(bands[len(bands)-4:]) != models.TREND_UP
@@ -297,7 +292,7 @@ func isTrendUpLastThreeBandHasDoji(result *models.BandResult) bool {
 			percent = difference / band.Candle.Close * 100
 		}
 
-		if percent < 0.1 {
+		if percent < 0.09 {
 			return true
 		}
 	}
