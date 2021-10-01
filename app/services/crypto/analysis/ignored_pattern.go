@@ -43,10 +43,6 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if result.Position == models.ABOVE_UPPER {
-		return true
-	}
-
 	return ignored(result, masterCoin)
 }
 
@@ -72,6 +68,10 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	}
 
 	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+		return true
+	}
+
+	if shortInterval.Position == models.ABOVE_UPPER && result.Trend != models.TREND_SIDEWAY {
 		return true
 	}
 
@@ -160,7 +160,7 @@ func isUpMoreThanThreeOnDownBellowSMA(result *models.BandResult) bool {
 
 func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Close < float32(lastBand.Upper) && result.Trend == models.TREND_DOWN {
+	if lastBand.Candle.Close < float32(lastBand.Upper) && (result.AllTrend.FirstTrend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN) {
 		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
 		return margin < 1.5
