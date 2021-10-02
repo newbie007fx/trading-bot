@@ -1,21 +1,25 @@
 package analysis
 
 import (
-	"log"
 	"telebot-trading/app/models"
 	"time"
 )
 
+var ignoredReason string = ""
+
 func IsIgnored(result, masterCoin *models.BandResult) bool {
 	if isInAboveUpperBandAndDownTrend(result) {
+		ignoredReason = "isInAboveUpperBandAndDownTrend"
 		return true
 	}
 
 	if lastBandHeadDoubleBody(result) {
+		ignoredReason = "lastBandHeadDoubleBody"
 		return true
 	}
 
 	if isContaineBearishEngulfing(result) {
+		ignoredReason = "isContaineBearishEngulfing"
 		return true
 	}
 
@@ -24,22 +28,27 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 	// }
 
 	if isPosititionBellowUpperMarginBellowThreshold(result) {
+		ignoredReason = "isPosititionBellowUpperMarginBellowThreshold"
 		return true
 	}
 
 	if whenHeightTripleAverage(result) {
+		ignoredReason = "whenHeightTripleAverage"
 		return true
 	}
 
 	if lastFourCandleNotUpTrend(result.Bands) {
+		ignoredReason = "lastFourCandleNotUpTrend"
 		return true
 	}
 
 	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 {
+		ignoredReason = "count up"
 		return true
 	}
 
 	if isUpMoreThanThreeOnDownBellowSMA(result) {
+		ignoredReason = "isUpMoreThanThreeOnDownBellowSMA"
 		return true
 	}
 
@@ -48,66 +57,86 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 
 func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
 	if isInAboveUpperBandAndDownTrend(result) && result.Direction == BAND_DOWN {
+		ignoredReason = "isInAboveUpperBandAndDownTrend"
 		return true
 	}
 
 	if lastBandHeadDoubleBody(result) {
+		ignoredReason = "lastBandHeadDoubleBody"
 		return true
 	}
 
 	if result.Trend == models.TREND_DOWN && shortInterval.Trend != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+		ignoredReason = "first trend down and second not up"
 		return true
 	}
 
 	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_SIDEWAY {
+		ignoredReason = "first trend up and second sideway"
 		return true
 	}
 
 	if result.AllTrend.FirstTrend == models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+		ignoredReason = "first trend up and second down"
 		return true
 	}
 
 	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 {
+		ignoredReason = "count up"
 		return true
 	}
 
 	if shortInterval.Position == models.ABOVE_UPPER && result.Trend != models.TREND_SIDEWAY {
+		ignoredReason = "short interval above upper and mid trend not sideway"
 		return true
 	}
 
 	if result.Position == models.ABOVE_UPPER {
+		ignoredReason = "position above upper"
 		return true
 	}
 
 	if isTrendUpLastThreeBandHasDoji(result) {
-		return true
-	}
-
-	return isContaineBearishEngulfing(result)
-}
-
-func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
-	if isInAboveUpperBandAndDownTrend(result) && result.Direction == BAND_DOWN {
-		return true
-	}
-
-	if lastBandHeadDoubleBody(result) {
-		return true
-	}
-
-	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP {
-		return true
-	}
-
-	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP {
+		ignoredReason = "isTrendUpLastThreeBandHasDoji"
 		return true
 	}
 
 	if isContaineBearishEngulfing(result) {
+		ignoredReason = "isContaineBearishEngulfing"
+		return true
+	}
+
+	return false
+}
+
+func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
+	if isInAboveUpperBandAndDownTrend(result) && result.Direction == BAND_DOWN {
+		ignoredReason = "isInAboveUpperBandAndDownTrend"
+		return true
+	}
+
+	if lastBandHeadDoubleBody(result) {
+		ignoredReason = "lastBandHeadDoubleBody"
+		return true
+	}
+
+	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP {
+		ignoredReason = "first trend down and seconddown"
+		return true
+	}
+
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP {
+		ignoredReason = "first trend up and second not up"
+		return true
+	}
+
+	if isContaineBearishEngulfing(result) {
+		ignoredReason = "isContaineBearishEngulfing"
 		return true
 	}
 
 	if result.Position == models.ABOVE_UPPER {
+		ignoredReason = "position above upper"
 		return true
 	}
 
@@ -118,11 +147,13 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		difference := hight - low
 		percent := float32(difference) / float32(low) * 100
 		if percent > 15 {
+			ignoredReason = "up more than 15"
 			return true
 		}
 	}
 
 	if isTrendUpLastThreeBandHasDoji(result) {
+		ignoredReason = "isTrendUpLastThreeBandHasDoji"
 		return true
 	}
 
@@ -244,7 +275,7 @@ func lastBandHeadDoubleBody(result *models.BandResult) bool {
 func ignored(result, masterCoin *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 	if lastBand.Candle.Low <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.Upper) {
-		log.Println("reset to 0 with criteria 1")
+		ignoredReason = "up from bellow sma to upper"
 		return true
 	}
 
@@ -253,7 +284,7 @@ func ignored(result, masterCoin *models.BandResult) bool {
 	difference := highest - lowest
 	percent := difference / lowest * 100
 	if percent < 2 {
-		log.Println("reset to 0 with criteria 2")
+		ignoredReason = "hight and low bellow 2"
 		return true
 	}
 
@@ -298,4 +329,8 @@ func isTrendUpLastThreeBandHasDoji(result *models.BandResult) bool {
 	}
 
 	return false
+}
+
+func GetIgnoredReason() string {
+	return ignoredReason
 }

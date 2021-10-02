@@ -159,9 +159,24 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	for key, val := range analysis.GetLongIntervalWeightLogData() {
 		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
-	msg += fmt.Sprintf("ignord short interval: %t\n", analysis.IsIgnored(result, masterCoin))
-	msg += fmt.Sprintf("ignord mid interval: %t\n", analysis.IsIgnoredMidInterval(result, result))
-	msg += fmt.Sprintf("ignord long interval: %t\n", analysis.IsIgnoredLongInterval(result, result))
+
+	shortIgnored := analysis.IsIgnored(result, masterCoin)
+	msg += fmt.Sprintf("ignord short interval: %t\n", shortIgnored)
+	if shortIgnored {
+		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
+	}
+
+	midIgnored := analysis.IsIgnoredMidInterval(result, result)
+	msg += fmt.Sprintf("ignord mid interval: %t\n", midIgnored)
+	if midIgnored {
+		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
+	}
+
+	longIgnored := analysis.IsIgnoredLongInterval(result, result)
+	msg += fmt.Sprintf("ignord long interval: %t\n", longIgnored)
+	if longIgnored {
+		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
+	}
 
 	return msg
 }
