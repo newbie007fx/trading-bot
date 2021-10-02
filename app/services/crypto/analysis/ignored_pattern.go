@@ -1,7 +1,6 @@
 package analysis
 
 import (
-	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -116,11 +115,6 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if lastBandHeadDoubleBody(result) {
-		ignoredReason = "lastBandHeadDoubleBody"
-		return true
-	}
-
 	if result.Trend == models.TREND_DOWN && shortInterval.Trend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP {
 		ignoredReason = "first trend down and seconddown"
 		return true
@@ -195,7 +189,7 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 	if lastBand.Candle.Close < float32(lastBand.Upper) && (result.AllTrend.FirstTrend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN) {
 		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
-		return margin < 2.3
+		return margin < 2.1
 	}
 
 	return false
@@ -323,8 +317,6 @@ func isTrendUpLastThreeBandHasDoji(result *models.BandResult) bool {
 			difference = band.Candle.Open - band.Candle.Close
 			percent = difference / band.Candle.Close * 100
 		}
-
-		log.Println(band.Candle.Open, ", ", band.Candle.Close, ", ", percent)
 
 		if percent < 0.09 {
 			return true
