@@ -76,7 +76,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_SIDEWAY {
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_SIDEWAY && CalculateTrendShort(result.Bands[len(result.Bands)-5:]) != models.TREND_UP {
 		ignoredReason = "first trend up and second sideway"
 		return true
 	}
@@ -146,9 +146,9 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
+	isMidIntervalTrendNotUp := CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-4:]) != models.TREND_UP
+	isLongIntervalTrendNotUp := CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP
 	if shortInterval.Position == models.ABOVE_UPPER {
-		isMidIntervalTrendNotUp := CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-4:]) != models.TREND_UP
-		isLongIntervalTrendNotUp := CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP
 		if shortInterval.Trend != models.TREND_UP || isMidIntervalTrendNotUp || isLongIntervalTrendNotUp {
 			ignoredReason = "when above upper and trend not up"
 			return true
@@ -179,8 +179,8 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		percentMid := (float32(midLastBand.Upper) - midLastBand.Candle.Close) / midLastBand.Candle.Close * float32(100)
 		percentshort := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * float32(100)
 
-		if percentLong < 3.1 && percentMid < 3.1 && percentshort < 3.1 {
-			ignoredReason = "all band bellow 3.5 from upper"
+		if (percentLong < 3.1 && percentMid < 3.1 && percentshort < 3.1) && (shortInterval.Trend != models.TREND_UP || isMidIntervalTrendNotUp || isLongIntervalTrendNotUp) {
+			ignoredReason = "all band bellow 3.1 from upper or not up trend"
 			return true
 		}
 	}
