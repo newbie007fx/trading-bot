@@ -166,13 +166,13 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
 	}
 
-	midIgnored := analysis.IsIgnoredMidInterval(result, result)
+	midIgnored := analysis.IsIgnoredMidInterval(resultMid, result)
 	msg += fmt.Sprintf("ignord mid interval: %t\n", midIgnored)
 	if midIgnored {
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
 	}
 
-	longIgnored := analysis.IsIgnoredLongInterval(result, result)
+	longIgnored := analysis.IsIgnoredLongInterval(resultLong, result)
 	msg += fmt.Sprintf("ignord long interval: %t\n", longIgnored)
 	if longIgnored {
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
