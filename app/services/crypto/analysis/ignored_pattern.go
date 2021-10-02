@@ -52,8 +52,8 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		}
 	}
 
-	if isUpMoreThanThreeOnDownBellowSMA(result) {
-		ignoredReason = "isUpMoreThanThreeOnDownBellowSMA"
+	if isUpThreeOnMidIntervalChange(result) {
+		ignoredReason = "isUpThreeOnMidIntervalChange"
 		return true
 	}
 
@@ -206,10 +206,13 @@ func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
 	return false
 }
 
-func isUpMoreThanThreeOnDownBellowSMA(result *models.BandResult) bool {
+func isUpThreeOnMidIntervalChange(result *models.BandResult) bool {
 	currentTime := time.Now()
-	if result.Position == models.BELOW_SMA {
-		if CountSquentialUpBand(result.Bands[len(result.Bands)-4:]) > 3 && currentTime.Minute() < 17 {
+	lastBand := result.Bands[len(result.Bands)-1]
+	isCrossSMA := lastBand.Candle.Low < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA)
+	isCrossUpper := lastBand.Candle.Low < float32(lastBand.Upper) && lastBand.Candle.Hight > float32(lastBand.Upper)
+	if result.Position == models.BELOW_SMA || isCrossSMA || isCrossUpper {
+		if CountSquentialUpBand(result.Bands[len(result.Bands)-4:]) >= 3 && currentTime.Minute() < 17 {
 			return true
 		}
 	}
