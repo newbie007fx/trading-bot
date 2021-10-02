@@ -42,9 +42,18 @@ func IsIgnored(result, masterCoin *models.BandResult) bool {
 		return true
 	}
 
-	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 {
-		ignoredReason = "count up"
-		return true
+	if result.Trend == models.TREND_UP {
+		secondDown := result.Bands[len(result.Bands)-2].Candle.Close < result.Bands[len(result.Bands)-2].Candle.Open
+		thirdDown := result.Bands[len(result.Bands)-3].Candle.Close < result.Bands[len(result.Bands)-3].Candle.Open
+		if CountUpBand(result.Bands[len(result.Bands)-5:]) < 3 || (secondDown && thirdDown) {
+			ignoredReason = "count up when trend up"
+			return true
+		}
+	} else {
+		if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 {
+			ignoredReason = "count up when trend not up"
+			return true
+		}
 	}
 
 	if isUpMoreThanThreeOnDownBellowSMA(result) {
@@ -86,8 +95,8 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if shortInterval.Position == models.ABOVE_UPPER && result.Trend != models.TREND_SIDEWAY {
-		ignoredReason = "short interval above upper and mid trend not sideway"
+	if shortInterval.Position == models.ABOVE_UPPER && (result.Trend == models.TREND_DOWN || shortInterval.Trend != models.TREND_UP) {
+		ignoredReason = "short interval above upper and mid trend down or trend not up"
 		return true
 	}
 
@@ -135,7 +144,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if result.AllTrend.SecondTrend == models.TREND_UP && result.Position == models.ABOVE_SMA {
+	if result.AllTrend.SecondTrend == models.TREND_UP && midInterval.Trend == models.TREND_UP && shortInterval.Trend == models.TREND_UP {
 		lenData := len(result.Bands)
 		hight := getHighestIndex(result.Bands[lenData-lenData/3:])
 		low := getLowestIndex(result.Bands[lenData-lenData/3:])

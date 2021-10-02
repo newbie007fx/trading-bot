@@ -47,7 +47,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			return true
 		}
 	} else {
-		if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN && masterCoinLongTrend != models.TREND_UP {
+		if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN && masterCoinLongTrend != models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_DOWN {
 			reason = "sell up with criteria x0"
 			return true
 		}
