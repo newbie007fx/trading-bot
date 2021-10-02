@@ -317,8 +317,8 @@ func ignored(result, masterCoin *models.BandResult) bool {
 	lowest := getLowestPrice(result.Bands)
 	difference := highest - lowest
 	percent := difference / lowest * 100
-	if percent < 2 {
-		ignoredReason = "hight and low bellow 2"
+	if percent < 2.6 {
+		ignoredReason = "hight and low bellow 2.6"
 		return true
 	}
 
