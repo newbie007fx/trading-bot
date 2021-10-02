@@ -161,7 +161,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	}
 
 	shortIgnored := analysis.IsIgnored(result, masterCoin)
-	msg += fmt.Sprintf("ignord short interval: %t\n", shortIgnored)
+	msg += fmt.Sprintf("\nignord short interval: %t\n", shortIgnored)
 	if shortIgnored {
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
 	}
