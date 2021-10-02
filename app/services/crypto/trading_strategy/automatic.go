@@ -266,13 +266,15 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	timeInMilli := GetEndDate(checkingTime)
 	for i := range altCoins {
 		waitMasterCoinProcessed()
-		midWeight := getWeightCustomInterval(altCoins[i], *masterCoin, "1h", timeInMilli)
+		result := crypto.CheckCoin(altCoins[i].Symbol, "1h", 0, timeInMilli)
+		midWeight := getWeightCustomInterval(*result, altCoins[i], *masterCoin, "1h", nil)
 		if midWeight == 0 {
 			continue
 		}
 		altCoins[i].Weight += midWeight
 		if altCoins[i].Weight > 1.7 {
-			longWight := getWeightCustomInterval(altCoins[i], *masterCoin, "4h", timeInMilli)
+			resultLong := crypto.CheckCoin(altCoins[i].Symbol, "4h", 0, timeInMilli)
+			longWight := getWeightCustomInterval(*resultLong, altCoins[i], *masterCoin, "4h", result)
 			if longWight == 0 {
 				continue
 			}
@@ -291,15 +293,14 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	return nil
 }
 
-func getWeightCustomInterval(coin models.BandResult, masterCoinLocal models.BandResult, interval string, endDate int64) float32 {
-	result := crypto.CheckCoin(coin.Symbol, interval, 0, endDate)
-	weight := analysis.CalculateWeightLongInterval(result, masterCoinLocal.Trend)
+func getWeightCustomInterval(result, coin models.BandResult, masterCoinLocal models.BandResult, interval string, previous *models.BandResult) float32 {
+	weight := analysis.CalculateWeightLongInterval(&result, masterCoinLocal.Trend)
 	ignored := false
 
 	if interval == "1h" {
-		ignored = analysis.IsIgnoredMidInterval(result, &coin)
+		ignored = analysis.IsIgnoredMidInterval(&result, &coin)
 	} else {
-		ignored = analysis.IsIgnoredLongInterval(result, &coin)
+		ignored = analysis.IsIgnoredLongInterval(&result, &coin, previous)
 	}
 
 	if ignored || result.Direction == analysis.BAND_DOWN {
