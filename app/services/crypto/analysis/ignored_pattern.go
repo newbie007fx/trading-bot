@@ -67,7 +67,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 {
 		return true
 	}
 
@@ -163,7 +163,7 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 	if lastBand.Candle.Close < float32(lastBand.Upper) && (result.AllTrend.FirstTrend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN) {
 		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
-		return margin < 1.5
+		return margin < 3
 	}
 
 	return false
