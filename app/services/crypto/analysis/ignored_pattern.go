@@ -102,20 +102,27 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if shortInterval.Position == models.ABOVE_UPPER && (CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP || shortInterval.Trend != models.TREND_UP) {
-		ignoredReason = "short interval above upper and mid trend down or trend not up"
-		return true
-	}
-
 	if result.Position == models.ABOVE_UPPER {
 		ignoredReason = "position above upper"
 		return true
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
-	if shortInterval.Position == models.ABOVE_UPPER && lastBand.Candle.Hight > float32(lastBand.Upper) {
-		ignoredReason = "above upper and mid interval height above upper"
-		return true
+	if shortInterval.Position == models.ABOVE_UPPER {
+		if CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP || shortInterval.Trend != models.TREND_UP {
+			ignoredReason = "short interval above upper and mid trend down or trend not up"
+			return true
+		}
+
+		if lastBand.Candle.Hight > float32(lastBand.Upper) {
+			ignoredReason = "above upper and mid interval height above upper"
+			return true
+		}
+
+		if result.Trend != models.TREND_UP {
+			ignoredReason = "shord interval above upper and mid inteval trend not up"
+			return true
+		}
 	}
 
 	if isTrendUpLastThreeBandHasDoji(result) {
@@ -244,7 +251,7 @@ func isUpThreeOnMidIntervalChange(result *models.BandResult, requestTime time.Ti
 
 func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Close < float32(lastBand.Upper) && (result.AllTrend.FirstTrend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN) {
+	if lastBand.Candle.Close < float32(lastBand.Upper) && (result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend != models.TREND_UP) {
 		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
 		return margin < 2.1
