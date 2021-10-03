@@ -128,6 +128,18 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
+	secondLastBand := result.Bands[len(result.Bands)-2]
+	if secondLastBand.Candle.Low < float32(secondLastBand.SMA) && secondLastBand.Candle.Hight > float32(secondLastBand.SMA) {
+		if shortInterval.Position == models.BELOW_SMA {
+			shortLastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
+			percent := (shortLastBand.Upper - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
+			if percent < 1 {
+				ignoredReason = "mid cross band and short candle near upper band"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
@@ -311,7 +323,7 @@ func lastBandHeadDoubleBody(result *models.BandResult) bool {
 	if lastBand.Candle.Close > lastBand.Candle.Open {
 		head := lastBand.Candle.Hight - lastBand.Candle.Close
 		body := lastBand.Candle.Close - lastBand.Candle.Open
-		return head > body*2
+		return head > body*2.5
 	}
 
 	return false
