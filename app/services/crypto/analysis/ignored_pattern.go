@@ -63,6 +63,11 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
+	if secondLastBand.Candle.Open > secondLastBand.Candle.Close && secondLastBand.Candle.Open > float32(secondLastBand.Upper) {
+		ignoredReason = "previous band down from upper"
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 

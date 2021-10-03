@@ -52,11 +52,8 @@ func GetCandlePattern(bandResult *models.BandResult) []int8 {
 func SellPattern(bandResult *models.BandResult) bool {
 	lastBand := bandResult.Bands[len(bandResult.Bands)-1]
 	secondLastBand := bandResult.Bands[len(bandResult.Bands)-2]
-
-	if bandResult.AllTrend.SecondTrend == models.TREND_UP {
-		if BearishEngulfing(bandResult.Bands[len(bandResult.Bands)-3:]) {
-			return lastBand.Candle.Close < lastBand.Candle.Open && secondLastBand.Candle.Close < secondLastBand.Candle.Open
-		}
+	if BearishEngulfing(bandResult.Bands[len(bandResult.Bands)-3:]) {
+		return lastBand.Candle.Close < lastBand.Candle.Open && secondLastBand.Candle.Close < secondLastBand.Candle.Open
 	}
 
 	return false
