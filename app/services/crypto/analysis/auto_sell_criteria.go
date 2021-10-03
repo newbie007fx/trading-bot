@@ -37,7 +37,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 	}
 
 	if SellPattern(&result) && isCandleComplete {
-		reason = "sell up with criteria x1"
+		reason = "sell with criteria bearish engulfing"
 		return true
 	}
 
@@ -275,8 +275,14 @@ func checkOnTrendDown(result models.BandResult, coinLongTrend, masterCoinTrend, 
 	if (masterCoinTrend != models.TREND_UP || coinLongTrend == models.TREND_DOWN) && masterCoinLongIntervalTrend == models.TREND_DOWN {
 		if result.Direction == BAND_DOWN && result.AllTrend.SecondTrend != models.TREND_UP && isCandleComplete {
 			lastBand := result.Bands[len(result.Bands)-1]
+			secondLastBand := result.Bands[len(result.Bands)-2]
+			if secondLastBand.Candle.Close > secondLastBand.Candle.Open {
+				return false
+			}
+
 			lastBandOnUpper := lastBand.Candle.Low <= float32(lastBand.Upper) && lastBand.Candle.Hight >= float32(lastBand.Upper)
-			if lastBandOnUpper {
+			secondLastBandOnUpper := secondLastBand.Candle.Low <= float32(secondLastBand.Upper) && secondLastBand.Candle.Hight >= float32(secondLastBand.Upper)
+			if lastBandOnUpper || secondLastBandOnUpper {
 				return true
 			}
 		}

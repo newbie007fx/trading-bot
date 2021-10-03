@@ -57,6 +57,12 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
+	secondLastBand := result.Bands[len(result.Bands)-2]
+	if result.Position == models.ABOVE_UPPER && secondLastBand.Candle.Close < float32(secondLastBand.Upper) {
+		ignoredReason = "position above uppper but previous band bellow upper"
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -179,7 +185,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		percentMid := (float32(midLastBand.Upper) - midLastBand.Candle.Close) / midLastBand.Candle.Close * float32(100)
 		percentshort := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * float32(100)
 
-		if (percentLong < 3.1 && percentMid < 3.1 && percentshort < 3.1) && (shortInterval.Trend != models.TREND_UP || isMidIntervalTrendNotUp || isLongIntervalTrendNotUp) {
+		if (percentLong < 3.3 && percentMid < 3.3 && percentshort < 3.3) && (shortInterval.Trend != models.TREND_UP || isMidIntervalTrendNotUp || isLongIntervalTrendNotUp) {
 			ignoredReason = "all band bellow 3.1 from upper or not up trend"
 			return true
 		}
