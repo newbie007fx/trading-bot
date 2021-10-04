@@ -24,10 +24,13 @@ type AutomaticTradingStrategy struct {
 func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	checkingTime = currentTime
 
-	ats.masterCoinChan <- true
-
 	condition := map[string]interface{}{"is_on_hold": true}
 	holdCount = repositories.CountNotifConfig(&condition)
+
+	if ats.isTimeToCheckAltCoinPrice(currentTime) || holdCount > 0 || checkingTime.Minute()%2 == 1 {
+		ats.masterCoinChan <- true
+	}
+
 	if holdCount > 0 {
 		ats.cryptoHoldCoinPriceChan <- true
 	}
@@ -39,7 +42,7 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 		} else {
 			waitMasterCoinProcessed()
 			minuteLeft := checkingTime.Minute() % 15
-			if masterCoin.Direction == analysis.BAND_UP && (minuteLeft > 7 && minuteLeft <= 14) {
+			if masterCoin.Direction == analysis.BAND_UP && (minuteLeft > 5 && minuteLeft <= 14) && checkingTime.Minute()%2 == 1 {
 				if checkMasterDown() {
 					ats.cryptoAltCoinDownChan <- true
 				}

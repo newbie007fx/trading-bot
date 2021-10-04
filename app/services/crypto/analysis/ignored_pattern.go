@@ -120,7 +120,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 
 		if result.Trend != models.TREND_UP {
-			ignoredReason = "shord interval above upper and mid inteval trend not up"
+			ignoredReason = "short interval above upper and mid inteval trend not up"
 			return true
 		}
 	}
