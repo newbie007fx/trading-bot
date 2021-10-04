@@ -234,7 +234,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	}
 
 	secondLastBand := result.Bands[len(result.Bands)-2]
-	if secondLastBand.Candle.Open > secondLastBand.Candle.Close && time.Now().Minute() < 17 && time.Now().Minute() > 0 {
+	if secondLastBand.Candle.Open > secondLastBand.Candle.Close && time.Now().Minute() <= 17 && time.Now().Minute() > 1 {
 		ignoredReason = "previous band is down, skip"
 		return true
 	}
