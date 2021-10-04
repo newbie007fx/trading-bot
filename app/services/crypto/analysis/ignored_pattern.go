@@ -1,7 +1,6 @@
 package analysis
 
 import (
-	"fmt"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -273,7 +272,7 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 	}
 
 	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 {
-		ignoredReason = fmt.Sprintf("count up bellow 2 %d", CountUpBand(result.Bands[len(result.Bands)-4:]))
+		ignoredReason = "count up bellow 2"
 		return true
 	}
 
