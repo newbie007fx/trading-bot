@@ -251,7 +251,7 @@ func isUpThreeOnMidIntervalChange(result *models.BandResult, requestTime time.Ti
 
 func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Close < float32(lastBand.Upper) && (result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend != models.TREND_UP) {
+	if lastBand.Candle.Close < float32(lastBand.SMA) && result.AllTrend.SecondTrend != models.TREND_UP {
 		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
 		return margin < 2.1
