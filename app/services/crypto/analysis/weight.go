@@ -56,7 +56,7 @@ func CalculateWeightLongInterval(result *models.BandResult, masterTrend int8) fl
 }
 
 func CalculateWeightOnDown(result *models.BandResult) float32 {
-	if isLastFourCandleNotCrossLower(result.Bands) {
+	if result.Trend != models.TREND_DOWN {
 		return 0
 	}
 
