@@ -266,8 +266,8 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 
 	lastBand := result.Bands[len(result.Bands)-1]
 	marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	if marginFromUpper < 1.5 {
-		ignoredReason = "margin from upper is bellow 1.5"
+	if marginFromUpper < 1.35 {
+		ignoredReason = "margin from upper is bellow 1.35"
 		return true
 	}
 
