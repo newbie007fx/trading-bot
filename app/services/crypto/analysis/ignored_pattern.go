@@ -136,7 +136,14 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	}
 
 	secondLastBand := result.Bands[len(result.Bands)-2]
-	if secondLastBand.Candle.Low < float32(secondLastBand.SMA) && secondLastBand.Candle.Hight > float32(secondLastBand.SMA) {
+	var isSecondLastBandCrossSMA bool
+	if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
+		isSecondLastBandCrossSMA = secondLastBand.Candle.Open < float32(secondLastBand.SMA) && secondLastBand.Candle.Close > float32(secondLastBand.SMA)
+	} else {
+		isSecondLastBandCrossSMA = secondLastBand.Candle.Close < float32(secondLastBand.SMA) && secondLastBand.Candle.Open > float32(secondLastBand.SMA)
+	}
+	isLastBandCrossSMA := lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close > float32(lastBand.SMA)
+	if isLastBandCrossSMA || isSecondLastBandCrossSMA {
 		if shortInterval.Position == models.ABOVE_SMA {
 			shortLastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
 			percent := (shortLastBand.Upper - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
