@@ -194,7 +194,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 
 		responseChan := make(chan crypto.CandleResponse)
 
-		limit := 120
+		limit := 100
 		condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 		currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
@@ -218,14 +218,12 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 			}
 
 			result.Weight = analysis.CalculateWeightOnDown(result)
-			if result.Weight != 0 && !analysis.IsIgnoredMasterDown(result, masterCoin) {
-				midInterval := crypto.CheckCoin(result.Symbol, "1h", 0, GetEndDate(checkingTime))
-				midIntervalLastBand := midInterval.Bands[len(midInterval.Bands)-1]
-				checkMidInterval := !(midIntervalLastBand.Candle.Close < float32(midIntervalLastBand.SMA) || analysis.CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-5:]) == models.TREND_UP)
-				if analysis.CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 || analysis.CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP || checkMidInterval {
-					continue
-				}
+			if result.Weight == 0 {
+				continue
+			}
 
+			midInterval := crypto.CheckCoin(result.Symbol, "1h", 0, GetEndDate(checkingTime))
+			if !analysis.IsIgnoredMasterDown(result, midInterval, masterCoin, checkingTime) {
 				altCoins = append(altCoins, *result)
 			}
 		}
@@ -319,22 +317,11 @@ func sendHoldMsg(result *models.BandResult) string {
 }
 
 func checkMasterDown() bool {
-	masterLastBand := masterCoin.Bands[len(masterCoin.Bands)-1]
-	masterSecondLastBand := masterCoin.Bands[len(masterCoin.Bands)-2]
-
-	if masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN {
+	if masterCoin.Trend == models.TREND_DOWN && masterCoinLongInterval.Trend != models.TREND_UP {
 		return true
 	}
 
-	if masterSecondLastBand.Candle.Open > masterSecondLastBand.Candle.Close {
-		secondLastBandPriceChanges := (masterSecondLastBand.Candle.Open - masterSecondLastBand.Candle.Close) / masterSecondLastBand.Candle.Open * 100
-		if secondLastBandPriceChanges >= 0.55 && masterCoin.PriceChanges > 0.26 {
-			return true
-		}
-	}
-
-	lastBandPercentChanges := (masterLastBand.Candle.Close - masterLastBand.Candle.Open) / masterLastBand.Candle.Open * 100
-	return lastBandPercentChanges > 0.33
+	return false
 }
 
 func skippedProcess() bool {

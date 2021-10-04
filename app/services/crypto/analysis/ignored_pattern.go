@@ -97,7 +97,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 {
+	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 && result.AllTrend.ShortTrend != models.TREND_UP {
 		ignoredReason = "count up"
 		return true
 	}
@@ -135,15 +135,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	secondLastBand := result.Bands[len(result.Bands)-2]
-	var isSecondLastBandCrossSMA bool
-	if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-		isSecondLastBandCrossSMA = secondLastBand.Candle.Open <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
-	} else {
-		isSecondLastBandCrossSMA = secondLastBand.Candle.Close <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
-	}
-	isLastBandCrossSMA := lastBand.Candle.Open <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.SMA)
-	if isLastBandCrossSMA || isSecondLastBandCrossSMA {
+	if isLastBandOrPreviousBandCrossSMA(result.Bands) {
 		if shortInterval.Position == models.ABOVE_SMA {
 			shortLastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
 			percent := (shortLastBand.Upper - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
@@ -152,9 +144,28 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 				return true
 			}
 		}
+
+		if isLastBandOrPreviousBandCrossSMA(shortInterval.Bands) {
+			ignoredReason = "mid cross band and short candle cross band"
+			return true
+		}
 	}
 
 	return false
+}
+
+func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+	secondLastBand := bands[len(bands)-2]
+	var isSecondLastBandCrossSMA bool
+	if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
+		isSecondLastBandCrossSMA = secondLastBand.Candle.Open <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
+	} else {
+		isSecondLastBandCrossSMA = secondLastBand.Candle.Close <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
+	}
+	isLastBandCrossSMA := lastBand.Candle.Open <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.SMA)
+
+	return isLastBandCrossSMA || isSecondLastBandCrossSMA
 }
 
 func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult, midInterval *models.BandResult) bool {
@@ -225,18 +236,33 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	return false
 }
 
-func IsIgnoredMasterDown(result, masterCoin *models.BandResult) bool {
+func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, checkingTime time.Time) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 	marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	if marginFromUpper < 3.5 {
+	if marginFromUpper < 2.5 {
+		ignoredReason = "margin from upper is bellow 2.5"
 		return true
 	}
 
 	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+		ignoredReason = "count up bellow 2"
 		return true
 	}
 
 	if CalculateTrendShort(masterCoin.Bands[len(masterCoin.Bands)-4:]) != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+		ignoredReason = "short trend not up"
+		return true
+	}
+
+	if CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 && checkingTime.Minute() < 20 {
+		ignoredReason = "mid interval short trend not up when time < 20"
+		return true
+	}
+
+	midIntervalLastBand := midInterval.Bands[len(midInterval.Bands)-1]
+	checkMidInterval := !(midIntervalLastBand.Candle.Close < float32(midIntervalLastBand.SMA) || CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-4:]) == models.TREND_UP)
+	if checkMidInterval {
+		ignoredReason = "mit interval not bellow sma or short trend not up"
 		return true
 	}
 
@@ -328,8 +354,9 @@ func whenHeightTripleAverage(result *models.BandResult) bool {
 		}
 	}
 	average := totalHeight / float32(len(result.Bands)-1)
+	percent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
 
-	return lastBandHeight/average >= 3
+	return lastBandHeight/average >= 3 && percent > 1.5
 }
 
 func lastBandHeadDoubleBody(result *models.BandResult) bool {
