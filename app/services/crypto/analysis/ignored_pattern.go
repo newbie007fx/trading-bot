@@ -161,7 +161,7 @@ func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
 	if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
 		isSecondLastBandCrossSMA = secondLastBand.Candle.Open <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
 	} else {
-		isSecondLastBandCrossSMA = secondLastBand.Candle.Close <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
+		isSecondLastBandCrossSMA = secondLastBand.Candle.Low <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
 	}
 	isLastBandCrossSMA := lastBand.Candle.Open <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.SMA)
 
@@ -237,6 +237,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 }
 
 func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, checkingTime time.Time) bool {
+	if isLastFourCandleNotCrossLower(result.Bands) {
+		ignoredReason = "isLastFourCandleNotCrossLower"
+		return true
+	}
+
 	lastBand := result.Bands[len(result.Bands)-1]
 	marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 	if marginFromUpper < 2.5 {
@@ -267,6 +272,20 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 	}
 
 	return false
+}
+
+func isLastFourCandleNotCrossLower(bands []models.Band) bool {
+	lastFour := bands[len(bands)-4:]
+
+	crossLowerBand := false
+	for _, data := range lastFour {
+		if data.Candle.Low < float32(data.Lower) {
+			crossLowerBand = true
+			break
+		}
+	}
+
+	return !crossLowerBand
 }
 
 func isUpThreeOnMidIntervalChange(result *models.BandResult, requestTime time.Time) bool {
