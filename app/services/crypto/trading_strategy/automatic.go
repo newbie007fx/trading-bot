@@ -324,6 +324,10 @@ func checkMasterDown() bool {
 		return true
 	}
 
+	if !analysis.IsLastCandleNotCrossLower(masterCoin.Bands, 5) {
+		return true
+	}
+
 	return false
 }
 

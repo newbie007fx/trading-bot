@@ -237,47 +237,37 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 }
 
 func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, checkingTime time.Time) bool {
-	if midInterval.Trend == models.TREND_DOWN {
-		if isLastCandleNotCrossLower(result.Bands, 8) {
-			ignoredReason = "isLastEightCandleNotCrossLower"
-			return true
-		}
+	if IsLastCandleNotCrossLower(result.Bands, 5) {
+		ignoredReason = "isLastFourCandleNotCrossLower"
+		return true
+	}
 
-		if CalculateTrendShort(masterCoin.Bands[len(masterCoin.Bands)-6:]) != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-6:]) != models.TREND_UP {
-			ignoredReason = "short trend not up"
-			return true
-		}
+	if CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 && checkingTime.Minute() < 20 {
+		ignoredReason = "mid interval short trend not up when time < 20"
+		return true
+	}
 
-		if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-5:]) != models.TREND_UP {
-			ignoredReason = "last five band not up"
+	if CalculateTrendShort(masterCoin.Bands[len(masterCoin.Bands)-4:]) != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
+		ignoredReason = "short trend not up"
+		return true
+	}
+
+	if CountUpBand(midInterval.Bands[len(midInterval.Bands)-4:]) > 2 {
+		if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP {
+			ignoredReason = "last three band not up"
 			return true
 		}
 	} else {
-		if isLastCandleNotCrossLower(result.Bands, 4) {
-			ignoredReason = "isLastFourCandleNotCrossLower"
-			return true
-		}
-
-		if CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 && checkingTime.Minute() < 20 {
-			ignoredReason = "mid interval short trend not up when time < 20"
-			return true
-		}
-
-		if CalculateTrendShort(masterCoin.Bands[len(masterCoin.Bands)-4:]) != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
-			ignoredReason = "short trend not up"
-			return true
-		}
-
 		if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-4:]) != models.TREND_UP {
-			ignoredReason = "last five band not up"
+			ignoredReason = "last four band not up"
 			return true
 		}
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
 	marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	if marginFromUpper < 2.7 {
-		ignoredReason = "margin from upper is bellow 2.5"
+	if marginFromUpper < 1.5 {
+		ignoredReason = "margin from upper is bellow 1.5"
 		return true
 	}
 
@@ -289,7 +279,7 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 	return false
 }
 
-func isLastCandleNotCrossLower(bands []models.Band, number int) bool {
+func IsLastCandleNotCrossLower(bands []models.Band, number int) bool {
 	lastFour := bands[len(bands)-number:]
 
 	crossLowerBand := false

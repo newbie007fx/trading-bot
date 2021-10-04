@@ -16,6 +16,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		log.Panicln(err.Error())
 	}
 
+	lastBand := result.Bands[len(result.Bands)-1]
 	changes := result.CurrentPrice - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
 
@@ -30,7 +31,8 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			}
 		}
 
-		if !safe && result.AllTrend.SecondTrend == models.TREND_DOWN && isCandleComplete {
+		crossLower := lastBand.Candle.Close <= float32(lastBand.Lower) && lastBand.Candle.Hight >= float32(lastBand.Lower)
+		if !safe && result.AllTrend.SecondTrend == models.TREND_DOWN && isCandleComplete && !crossLower {
 			reason = "sell with criteria 0"
 			return true
 		}
@@ -41,14 +43,13 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		return true
 	}
 
-	lastBand := result.Bands[len(result.Bands)-1]
 	if currencyConfig.HoldPrice > result.CurrentPrice {
 		if sellOnDown(result, currencyConfig, lastBand) {
 			return true
 		}
 	} else {
-		if changesInPercent > 3 && result.Direction == BAND_DOWN && masterCoin.Trend == models.TREND_DOWN && masterCoinLongTrend != models.TREND_UP && (result.AllTrend.ShortTrend == models.TREND_DOWN || result.Trend != models.TREND_UP) {
-			reason = "sell up with criteria x0"
+		if changesInPercent > 3 && result.Direction == BAND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN {
+			reason = "sell up with criteria change > 3 and short trend = down"
 			return true
 		}
 
