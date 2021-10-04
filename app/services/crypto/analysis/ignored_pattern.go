@@ -72,7 +72,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 }
 
 func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
-	if isInAboveUpperBandAndDownTrend(result) && result.Direction == BAND_DOWN {
+	if isInAboveUpperBandAndDownTrend(result) {
 		ignoredReason = "isInAboveUpperBandAndDownTrend"
 		return true
 	}
@@ -231,6 +231,12 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			ignoredReason = "all band bellow 3.1 from upper or not up trend"
 			return true
 		}
+	}
+
+	secondLastBand := result.Bands[len(result.Bands)-2]
+	if secondLastBand.Candle.Open > secondLastBand.Candle.Close && time.Now().Minute() < 17 && time.Now().Minute() > 0 {
+		ignoredReason = "previous band is down, skip"
+		return true
 	}
 
 	return false
