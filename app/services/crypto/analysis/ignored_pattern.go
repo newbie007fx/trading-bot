@@ -139,7 +139,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		if shortInterval.Position == models.ABOVE_SMA {
 			shortLastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
 			percent := (shortLastBand.Upper - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
-			if percent < 1 {
+			if percent < 1.3 {
 				ignoredReason = "mid cross band and short candle near upper band"
 				return true
 			}
