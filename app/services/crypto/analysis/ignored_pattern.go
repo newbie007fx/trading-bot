@@ -237,13 +237,13 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 }
 
 func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, checkingTime time.Time) bool {
-	if IsLastCandleNotCrossLower(result.Bands, 5) {
-		ignoredReason = "isLastFourCandleNotCrossLower"
+	if IsLastCandleNotCrossLower(result.Bands, 7) {
+		ignoredReason = "isLastSevenCandleNotCrossLower"
 		return true
 	}
 
-	if CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 && checkingTime.Minute() < 20 {
-		ignoredReason = "mid interval short trend not up when time < 20"
+	if CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 && checkingTime.Minute() < 15 {
+		ignoredReason = "mid interval short trend not up when time bellow 15"
 		return true
 	}
 
