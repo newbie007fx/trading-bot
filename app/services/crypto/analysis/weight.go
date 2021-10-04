@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"log"
 	"telebot-trading/app/models"
 )
 
@@ -281,6 +282,7 @@ func CountUpBand(bands []models.Band) int {
 	for _, band := range bands {
 		if band.Candle.Open < band.Candle.Close {
 			difference := band.Candle.Close - band.Candle.Open
+			log.Println(band.Candle.Open, ", ", band.Candle.Close)
 			if (difference / band.Candle.Open * 100) >= 0.11 {
 				counter++
 			}
