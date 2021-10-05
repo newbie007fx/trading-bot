@@ -168,8 +168,8 @@ func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
 	return isLastBandCrossSMA || isSecondLastBandCrossSMA
 }
 
-func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult, midInterval *models.BandResult) bool {
-	if isInAboveUpperBandAndDownTrend(result) && result.Direction == BAND_DOWN {
+func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult, midInterval *models.BandResult, requestTime time.Time) bool {
+	if isInAboveUpperBandAndDownTrend(result) {
 		ignoredReason = "isInAboveUpperBandAndDownTrend"
 		return true
 	}
@@ -234,7 +234,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	}
 
 	secondLastBand := result.Bands[len(result.Bands)-2]
-	if secondLastBand.Candle.Open > secondLastBand.Candle.Close && time.Now().Minute() <= 17 && time.Now().Minute() > 1 {
+	if secondLastBand.Candle.Open > secondLastBand.Candle.Close && requestTime.Minute() <= 17 && requestTime.Minute() > 1 {
 		ignoredReason = "previous band is down, skip"
 		return true
 	}
@@ -258,22 +258,15 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		return true
 	}
 
-	if CountUpBand(midInterval.Bands[len(midInterval.Bands)-4:]) > 2 {
-		if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP {
-			ignoredReason = "last three band not up"
-			return true
-		}
-	} else {
-		if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-4:]) != models.TREND_UP {
-			ignoredReason = "last four band not up"
-			return true
-		}
+	if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP {
+		ignoredReason = "last three band not up"
+		return true
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
 	marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	if marginFromUpper < 1.35 {
-		ignoredReason = "margin from upper is bellow 1.35"
+	if marginFromUpper < 3 {
+		ignoredReason = "margin from upper is bellow 3"
 		return true
 	}
 
