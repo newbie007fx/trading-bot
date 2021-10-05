@@ -258,7 +258,7 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		return true
 	}
 
-	if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP {
+	if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP && CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 {
 		ignoredReason = "last three band not up"
 		return true
 	}

@@ -33,12 +33,22 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 
 		crossLower := lastBand.Candle.Close <= float32(lastBand.Lower) && lastBand.Candle.Hight >= float32(lastBand.Lower)
 		if !safe && result.AllTrend.SecondTrend == models.TREND_DOWN && isCandleComplete && !crossLower {
-			reason = "sell with criteria 0"
-			return true
+			var skipped bool = false
+			if result.CurrentPrice < currencyConfig.HoldPrice {
+				changesx := currencyConfig.HoldPrice - result.CurrentPrice
+				changesInPercentx := changesx / currencyConfig.HoldPrice * 100
+
+				skipped = changesInPercentx < 1.35
+			}
+
+			if !skipped {
+				reason = "sell with criteria 0"
+				return true
+			}
 		}
 	}
 
-	if SellPattern(&result) && isCandleComplete {
+	if SellPattern(&result) && isCandleComplete && (changesInPercent > 1 || result.AllTrend.SecondTrend == models.TREND_DOWN) {
 		reason = "sell with criteria bearish engulfing"
 		return true
 	}
