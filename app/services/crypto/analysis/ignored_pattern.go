@@ -107,8 +107,8 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if result.Position == models.ABOVE_UPPER {
-		ignoredReason = "position above upper"
+	if result.Position == models.ABOVE_UPPER && (result.Trend != models.TREND_UP || result.AllTrend.ShortTrend != models.TREND_UP) {
+		ignoredReason = "position above upper trend not up"
 		return true
 	}
 
@@ -194,8 +194,8 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if result.Position == models.ABOVE_UPPER {
-		ignoredReason = "position above upper"
+	if result.Position == models.ABOVE_UPPER && (result.Trend != models.TREND_UP || result.AllTrend.ShortTrend != models.TREND_UP) {
+		ignoredReason = "position above upper and not trend up"
 		return true
 	}
 
@@ -384,7 +384,7 @@ func whenHeightTripleAverage(result *models.BandResult) bool {
 	average := totalHeight / float32(len(result.Bands)-1)
 	percent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
 
-	return lastBandHeight/average >= 3 && percent > 1.5
+	return lastBandHeight/average >= 3.5 && percent > 3
 }
 
 func lastBandHeadDoubleBody(result *models.BandResult) bool {
