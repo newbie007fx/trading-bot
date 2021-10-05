@@ -68,7 +68,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
-	if IsHammer(result.Bands) {
+	if IsHammer(result.Bands) && result.AllTrend.SecondTrend != models.TREND_DOWN {
 		ignoredReason = "hammer pattern"
 		return true
 	}
