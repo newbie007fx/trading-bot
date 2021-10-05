@@ -84,17 +84,23 @@ func hammer(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	secondLastBand := bands[len(bands)-2]
 	if secondLastBand.Candle.Open > secondLastBand.Candle.Close {
-
 		if lastBand.Candle.Low <= float32(lastBand.Lower) || secondLastBand.Candle.Low <= float32(secondLastBand.Lower) {
-			different := lastBand.Candle.Hight - lastBand.Candle.Close
-			candleBody := lastBand.Candle.Hight - lastBand.Candle.Low
-			percent := different / candleBody * 100
-			if percent < 5 {
-				different = lastBand.Candle.Open - lastBand.Candle.Low
-				percent := different / candleBody * 100
-				return percent >= 60
-			}
+			return IsHammer(bands)
 		}
+	}
+
+	return false
+}
+
+func IsHammer(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+	different := lastBand.Candle.Hight - lastBand.Candle.Close
+	candleBody := lastBand.Candle.Hight - lastBand.Candle.Low
+	percent := different / candleBody * 100
+	if percent < 10 {
+		different = lastBand.Candle.Open - lastBand.Candle.Low
+		percent := different / candleBody * 100
+		return percent >= 60
 	}
 
 	return false

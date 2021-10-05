@@ -68,6 +68,11 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
+	if IsHammer(result.Bands) {
+		ignoredReason = "hammer pattern"
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 
