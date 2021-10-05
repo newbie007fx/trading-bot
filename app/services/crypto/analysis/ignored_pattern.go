@@ -112,15 +112,9 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	lastBand := result.Bands[len(result.Bands)-1]
 	if shortInterval.Position == models.ABOVE_UPPER {
 		if CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP || shortInterval.Trend != models.TREND_UP {
 			ignoredReason = "short interval above upper and mid trend down or trend not up"
-			return true
-		}
-
-		if lastBand.Candle.Hight > float32(lastBand.Upper) {
-			ignoredReason = "above upper and mid interval height above upper"
 			return true
 		}
 
@@ -374,7 +368,7 @@ func whenHeightTripleAverage(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 	lastBandHeight := lastBand.Candle.Close - lastBand.Candle.Open
 	var totalHeight float32 = 0
-	for _, band := range result.Bands[:len(result.Bands)-1] {
+	for _, band := range result.Bands[len(result.Bands)-6 : len(result.Bands)-1] {
 		if band.Candle.Open > band.Candle.Close {
 			totalHeight += band.Candle.Open - band.Candle.Close
 		} else {
