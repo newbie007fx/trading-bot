@@ -84,6 +84,11 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
+	if isUpSignificanAndNotUp(result) {
+		ignoredReason = "after up significan and trend not up"
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -476,10 +481,50 @@ func isTrendUpLastThreeBandHasDoji(result *models.BandResult) bool {
 	return false
 }
 
+func isUpSignificanAndNotUp(result *models.BandResult) bool {
+	if result.AllTrend.SecondTrendPercent < 40 {
+		mid := len(result.Bands) / 2
+		indexDoubleBody := getIndexBandDoubleLong(result.Bands[len(result.Bands)-mid:])
+		if indexDoubleBody > -1 {
+			realIndex := len(result.Bands)%2 + mid + indexDoubleBody
+			var trend int8
+			if len(result.Bands)-(mid+indexDoubleBody) > 4 {
+				trend = CalculateTrends(result.Bands[realIndex:])
+			} else {
+				trend = CalculateTrendShort(result.Bands[realIndex:])
+			}
+			return trend != models.TREND_UP
+		}
+	}
+
+	return false
+}
+
+func getIndexBandDoubleLong(bands []models.Band) int {
+	var total float32
+	for _, band := range bands {
+		if band.Candle.Close > band.Candle.Open {
+			total += band.Candle.Close - band.Candle.Open
+		} else {
+			total += band.Candle.Open - band.Candle.Close
+		}
+	}
+	average := total / float32(len(bands))
+	longestIndex := -1
+	for i, band := range bands {
+		if band.Candle.Close > band.Candle.Open {
+			bandLong := band.Candle.Close - band.Candle.Open
+			if bandLong > average*2 {
+				longestIndex = i
+			}
+		}
+	}
+
+	return longestIndex
+}
+
 func GetIgnoredReason() string {
 	return ignoredReason
 }
 
-// tambah pemboibotan trend btcstusdt
 // untuk second trend naik significan, dihitung trend dari band denngan kenaikan tertinggi ke current band. apakah up dengan bobot 50%
-// skip open close diatas upper
