@@ -216,3 +216,23 @@ func checkWhiteSoldiers(bands []models.Band) bool {
 
 	return true
 }
+
+func ThreeBlackCrowds(bands []models.Band) bool {
+	var bandDown []models.Band = []models.Band{}
+	for i, band := range bands {
+		if band.Candle.Open < band.Candle.Close {
+			if len(bandDown)+len(bands)-i-1 < 3 {
+				break
+			}
+			continue
+		}
+
+		bandDown = append(bandDown, band)
+	}
+
+	if len(bandDown) >= 3 {
+		return bandDown[0].Candle.Hight > float32(bandDown[0].Upper)
+	}
+
+	return false
+}

@@ -73,6 +73,17 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
+	if ThreeBlackCrowds((result.Bands[len(result.Bands)-5:])) {
+		ignoredReason = "three black crowds pattern"
+		return true
+	}
+
+	lastBand := result.Bands[len(result.Bands)]
+	if lastBand.Candle.Open > float32(lastBand.Upper) {
+		ignoredReason = "open close above upper"
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -282,7 +293,7 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		return true
 	}
 
-	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 {
+	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-5:]) < 4 {
 		ignoredReason = "count up bellow 2"
 		return true
 	}
@@ -468,3 +479,7 @@ func isTrendUpLastThreeBandHasDoji(result *models.BandResult) bool {
 func GetIgnoredReason() string {
 	return ignoredReason
 }
+
+// tambah pemboibotan trend btcstusdt
+// untuk second trend naik significan, dihitung trend dari band denngan kenaikan tertinggi ke current band. apakah up dengan bobot 50%
+// skip open close diatas upper

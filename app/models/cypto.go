@@ -64,8 +64,10 @@ type CreateOrderResponse struct {
 }
 
 type TrendDetail struct {
-	FirstTrend  int8
-	SecondTrend int8
-	Trend       int8
-	ShortTrend  int8
+	FirstTrend         int8
+	FirstTrendPercent  float32
+	SecondTrend        int8
+	SecondTrendPercent float32
+	Trend              int8
+	ShortTrend         int8
 }
