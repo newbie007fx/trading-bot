@@ -78,7 +78,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
-	lastBand := result.Bands[len(result.Bands)]
+	lastBand := result.Bands[len(result.Bands)-1]
 	if lastBand.Candle.Open > float32(lastBand.Upper) {
 		ignoredReason = "open close above upper"
 		return true
