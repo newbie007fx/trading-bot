@@ -250,18 +250,18 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 }
 
 func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, checkingTime time.Time) bool {
-	if isInLower(result.Bands) {
+	if isNotInLower(result.Bands, false) {
 		ignoredReason = "is not in lower"
 		return true
 	}
 
-	if isInLower(midInterval.Bands) {
+	if isNotInLower(midInterval.Bands, true) {
 		ignoredReason = "min interval is not in lower"
 		return true
 	}
 
-	if CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 && checkingTime.Minute() < 15 {
-		ignoredReason = "mid interval short trend not up when time bellow 15"
+	if midInterval.Direction == BAND_DOWN {
+		ignoredReason = "mid interval band down"
 		return true
 	}
 
@@ -290,12 +290,13 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 	return false
 }
 
-func isInLower(bands []models.Band) bool {
+func isNotInLower(bands []models.Band, skipCrossLowCheck bool) bool {
 	lowestIndex := getLowestIndex(bands)
-	if IsLastCandleNotCrossLower(bands, 5) {
-		if !IsLastCandleNotCrossLower(bands, 15) {
+	if IsLastCandleNotCrossLower(bands, 5) || skipCrossLowCheck {
+		if !IsLastCandleNotCrossLower(bands, 15) || skipCrossLowCheck {
 			return lowestIndex < len(bands)-6
 		}
+		return true
 	}
 
 	return false
