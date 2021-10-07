@@ -487,13 +487,10 @@ func isUpSignificanAndNotUp(result *models.BandResult) bool {
 		indexDoubleBody := getIndexBandDoubleLong(result.Bands[len(result.Bands)-mid:])
 		if indexDoubleBody > -1 {
 			realIndex := len(result.Bands)%2 + mid + indexDoubleBody
-			var trend int8
 			if len(result.Bands)-(mid+indexDoubleBody) > 4 {
-				trend = CalculateTrends(result.Bands[realIndex:])
-			} else {
-				trend = CalculateTrendShort(result.Bands[realIndex:])
+				trend := CalculateTrends(result.Bands[realIndex:])
+				return trend != models.TREND_UP
 			}
-			return trend != models.TREND_UP
 		}
 	}
 
@@ -526,5 +523,3 @@ func getIndexBandDoubleLong(bands []models.Band) int {
 func GetIgnoredReason() string {
 	return ignoredReason
 }
-
-// untuk second trend naik significan, dihitung trend dari band denngan kenaikan tertinggi ke current band. apakah up dengan bobot 50%
