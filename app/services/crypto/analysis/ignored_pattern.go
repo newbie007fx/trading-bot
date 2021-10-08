@@ -569,7 +569,7 @@ func afterUpThenDown(result *models.BandResult) bool {
 			realIndex := len(result.Bands)%2 + mid + higestIndex
 			if len(result.Bands)-(mid+higestIndex) > 4 {
 				trend := CalculateTrendsDetail(result.Bands[realIndex:])
-				return trend.FirstTrend == models.TREND_DOWN && trend.FirstTrendPercent < 50
+				return trend.FirstTrend == models.TREND_DOWN
 			}
 		}
 	}
