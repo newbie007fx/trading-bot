@@ -89,6 +89,11 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
+	if afterUpThenDown(result) {
+		ignoredReason = "after up then down"
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -181,6 +186,17 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	lastBand := result.Bands[len(result.Bands)-1]
+	if lastBand.Candle.Open > float32(lastBand.Upper) {
+		ignoredReason = "open close above upper"
+		return true
+	}
+
+	if shortInterval.Position == models.ABOVE_SMA && result.Trend != models.TREND_UP {
+		ignoredReason = "above sma and trend not up"
+		return true
+	}
+
 	return false
 }
 
@@ -270,6 +286,12 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				return true
 			}
 		}
+	}
+
+	lastBand := result.Bands[len(result.Bands)-1]
+	if lastBand.Candle.Open > float32(lastBand.Upper) {
+		ignoredReason = "open close above upper"
+		return true
 	}
 
 	return false
@@ -539,6 +561,41 @@ func getIndexBandDoubleLong(bands []models.Band) int {
 	return longestIndex
 }
 
+func afterUpThenDown(result *models.BandResult) bool {
+	if result.Position == models.ABOVE_SMA {
+		mid := len(result.Bands) / 2
+		higestIndex := getIndexHigestCrossUpper(result.Bands[len(result.Bands)-mid:])
+		if higestIndex > -1 {
+			realIndex := len(result.Bands)%2 + mid + higestIndex
+			if len(result.Bands)-(mid+higestIndex) > 4 {
+				trend := CalculateTrendsDetail(result.Bands[realIndex:])
+				return trend.FirstTrend == models.TREND_DOWN && trend.FirstTrendPercent < 50
+			}
+		}
+	}
+
+	return false
+}
+
+func getIndexHigestCrossUpper(bands []models.Band) int {
+	higestIndex := -1
+	for i, band := range bands {
+		if band.Candle.Close > float32(band.Upper) {
+			if higestIndex != -1 {
+				if bands[higestIndex].Candle.Close < band.Candle.Close {
+					higestIndex = i
+				}
+			} else {
+				higestIndex = i
+			}
+		}
+	}
+
+	return higestIndex
+}
+
 func GetIgnoredReason() string {
 	return ignoredReason
 }
+
+// check jika higest band di  wave ke 2 , dan dari ke tertinggi ke current band trend down skip
