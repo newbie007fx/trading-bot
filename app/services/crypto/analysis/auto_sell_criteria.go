@@ -338,8 +338,8 @@ func SellPattern(bandResult *models.BandResult) bool {
 	return false
 }
 
-func SpecialCondition(coin, shortInterval, midInterval, longInterval []models.Band) bool {
-	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
+func SpecialCondition(symbol string, shortInterval, midInterval, longInterval []models.Band) bool {
+	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
 	if err != nil {
 		log.Panicln(err.Error())
 	}
