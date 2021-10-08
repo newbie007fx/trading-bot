@@ -327,3 +327,34 @@ func isHoldedMoreThanDurationThreshold(config *models.CurrencyNotifConfig, resul
 
 	return false
 }
+
+func SellPattern(bandResult *models.BandResult) bool {
+	lastBand := bandResult.Bands[len(bandResult.Bands)-1]
+	secondLastBand := bandResult.Bands[len(bandResult.Bands)-2]
+	if BearishEngulfing(bandResult.Bands[len(bandResult.Bands)-3:]) {
+		return lastBand.Candle.Close < lastBand.Candle.Open && secondLastBand.Candle.Close < secondLastBand.Candle.Open
+	}
+
+	return false
+}
+
+func SpecialCondition(coin, shortInterval, midInterval, longInterval []models.Band) bool {
+	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
+	if err != nil {
+		log.Panicln(err.Error())
+	}
+
+	lastBand := shortInterval[len(shortInterval)-1]
+	changes := lastBand.Candle.Close - currencyConfig.HoldPrice
+	changesInPercent := changes / currencyConfig.HoldPrice * 100
+
+	if isLastBandCrossUpperAndPreviousBandNot(shortInterval) && changesInPercent > 3 {
+		if isLastBandCrossUpperAndPreviousBandNot(midInterval) {
+			if isLastBandCrossUpperAndPreviousBandNot(longInterval) {
+				return true
+			}
+		}
+	}
+
+	return false
+}

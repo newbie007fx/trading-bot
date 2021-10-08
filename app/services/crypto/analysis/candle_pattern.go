@@ -49,16 +49,6 @@ func GetCandlePattern(bandResult *models.BandResult) []int8 {
 	return result
 }
 
-func SellPattern(bandResult *models.BandResult) bool {
-	lastBand := bandResult.Bands[len(bandResult.Bands)-1]
-	secondLastBand := bandResult.Bands[len(bandResult.Bands)-2]
-	if BearishEngulfing(bandResult.Bands[len(bandResult.Bands)-3:]) {
-		return lastBand.Candle.Close < lastBand.Candle.Open && secondLastBand.Candle.Close < secondLastBand.Candle.Open
-	}
-
-	return false
-}
-
 func BearishEngulfing(bands []models.Band) bool {
 	isContainBearishEngulfing := false
 	for i := 0; i < len(bands)-1; i++ {

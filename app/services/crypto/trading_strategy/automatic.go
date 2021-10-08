@@ -96,8 +96,10 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					continue
 				}
 
-				holdCoinLong := crypto.CheckCoin(coin.Symbol, "1h", 0, GetEndDate(checkingTime))
-				if analysis.IsNeedToSell(coin, *masterCoin, ats.isTimeToCheckAltCoinPrice(checkingTime), holdCoinLong.Trend, masterCoinLongInterval.Trend) {
+				holdCoinMid := crypto.CheckCoin(coin.Symbol, "1h", 0, GetEndDate(checkingTime))
+				holdCoinLong := crypto.CheckCoin(coin.Symbol, "4h", 0, GetEndDate(checkingTime))
+				isNeedTosell := analysis.IsNeedToSell(coin, *masterCoin, ats.isTimeToCheckAltCoinPrice(checkingTime), holdCoinMid.Trend, masterCoinLongInterval.Trend)
+				if isNeedTosell || analysis.SpecialCondition(coin.Bands, holdCoinMid.Bands, holdCoinLong.Bands) {
 					currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
 					if err == nil {
 						bands := coin.Bands

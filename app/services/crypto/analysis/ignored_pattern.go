@@ -174,6 +174,13 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	if isLastBandOrPreviousBandCrossSMA(shortInterval.Bands) {
+		if shortInterval.Trend == models.TREND_DOWN || result.Trend == models.TREND_DOWN {
+			ignoredReason = "short interval cross  sma and mid interval or short interval trend down"
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -256,10 +263,13 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	secondLastBand := result.Bands[len(result.Bands)-2]
-	if secondLastBand.Candle.Open > secondLastBand.Candle.Close && requestTime.Minute() <= 17 && requestTime.Minute() > 1 {
-		ignoredReason = "previous band is down, skip"
-		return true
+	if isLastBandCrossUpperAndPreviousBandNot(shortInterval.Bands) {
+		if isLastBandCrossUpperAndPreviousBandNot(midInterval.Bands) {
+			if isLastBandCrossUpperAndPreviousBandNot(result.Bands) {
+				ignoredReason = "band above upper and just one in all interval, skip"
+				return true
+			}
+		}
 	}
 
 	return false
@@ -303,6 +313,15 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		return true
 	}
 
+	return false
+}
+
+func isLastBandCrossUpperAndPreviousBandNot(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+	if lastBand.Candle.Open < lastBand.Candle.Close {
+		secondLastBand := bands[len(bands)-2]
+		return !(secondLastBand.Candle.Open < secondLastBand.Candle.Close)
+	}
 	return false
 }
 
