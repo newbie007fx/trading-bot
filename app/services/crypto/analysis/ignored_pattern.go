@@ -579,7 +579,7 @@ func afterUpThenDown(result *models.BandResult) bool {
 		higestIndex := getIndexHigestCrossUpper(result.Bands)
 		if higestIndex >= 0 && higestIndex < len(result.Bands)-4 {
 			trend := CalculateTrendsDetail(result.Bands[higestIndex:])
-			return trend.FirstTrend == models.TREND_DOWN || CalculateTrendShort(result.Bands[higestIndex:higestIndex+4]) == models.TREND_DOWN
+			return trend.FirstTrend == models.TREND_DOWN
 		}
 	}
 
