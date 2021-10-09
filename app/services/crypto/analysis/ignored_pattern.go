@@ -539,7 +539,7 @@ func isUpSignificanAndNotUp(result *models.BandResult) bool {
 }
 
 func getIndexBandDoubleLong(bands []models.Band) int {
-	var total float32
+	var total float32 = 0
 	for _, band := range bands {
 		if band.Candle.Close > band.Candle.Open {
 			total += band.Candle.Close - band.Candle.Open
@@ -564,7 +564,7 @@ func getIndexBandDoubleLong(bands []models.Band) int {
 func afterUpThenDown(result *models.BandResult) bool {
 	if result.Position == models.ABOVE_SMA {
 		higestIndex := getIndexHigestCrossUpper(result.Bands[len(result.Bands):])
-		if higestIndex > 4 {
+		if higestIndex < len(result.Bands)-4 {
 			trend := CalculateTrendsDetail(result.Bands[higestIndex:])
 			return trend.FirstTrend == models.TREND_DOWN || CalculateTrendShort(result.Bands[higestIndex:higestIndex+4]) == models.TREND_DOWN
 		}
@@ -575,7 +575,7 @@ func afterUpThenDown(result *models.BandResult) bool {
 
 func getIndexHigestCrossUpper(bands []models.Band) int {
 	higestIndex := -1
-	var total float32
+	var total float32 = 0
 	for i, band := range bands {
 		if band.Candle.Close > float32(band.Upper) {
 			if higestIndex != -1 {
@@ -593,7 +593,7 @@ func getIndexHigestCrossUpper(bands []models.Band) int {
 		}
 	}
 
-	if highestIndex > 4 {
+	if higestIndex < len(bands)-4 {
 		hightBand := bands[higestIndex]
 		hight := hightBand.Candle.Close - hightBand.Candle.Open
 		total -= hight
