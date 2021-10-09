@@ -135,7 +135,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 
 		secondLastBand := result.Bands[len(result.Bands)-2]
-		if CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 || (secondLastBand.Candle.Close > secondLastBand.Candle.Open && secondLastBand.Candle.Close > float32(secondLastBand.Upper)) {
+		if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 || (secondLastBand.Candle.Close > secondLastBand.Candle.Open && secondLastBand.Candle.Close > float32(secondLastBand.Upper)) {
 			ignoredReason = "position above upper but previous band not upper or count up bellow 3"
 			return true
 		}
