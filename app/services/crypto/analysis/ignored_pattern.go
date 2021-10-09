@@ -214,7 +214,7 @@ func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
 	return isLastBandCrossSMA || isSecondLastBandCrossSMA
 }
 
-func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult, midInterval *models.BandResult, requestTime time.Time) bool {
+func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult, midInterval *models.BandResult, masterTrend, masterMidTrend int8) bool {
 	if isInAboveUpperBandAndDownTrend(result) {
 		ignoredReason = "isInAboveUpperBandAndDownTrend"
 		return true
@@ -242,9 +242,9 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 	isMidIntervalTrendNotUp := CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-4:]) != models.TREND_UP
 	isLongIntervalTrendNotUp := CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP
-	if shortInterval.Position == models.ABOVE_UPPER || midInterval.Position == models.ABOVE_UPPER || result.Position == models.ABOVE_UPPER {
+	if shortInterval.Position == models.ABOVE_UPPER || midInterval.Position == models.ABOVE_UPPER || result.Position == models.ABOVE_UPPER || masterTrend == models.TREND_DOWN || masterMidTrend == models.TREND_DOWN {
 		if shortInterval.Trend != models.TREND_UP || isMidIntervalTrendNotUp || isLongIntervalTrendNotUp {
-			ignoredReason = "when above upper and trend not up"
+			ignoredReason = "when above upper or master trend down and trend not up"
 			return true
 		}
 
@@ -563,14 +563,10 @@ func getIndexBandDoubleLong(bands []models.Band) int {
 
 func afterUpThenDown(result *models.BandResult) bool {
 	if result.Position == models.ABOVE_SMA {
-		mid := len(result.Bands) / 2
-		higestIndex := getIndexHigestCrossUpper(result.Bands[len(result.Bands)-mid:])
-		if higestIndex > -1 {
-			realIndex := len(result.Bands)%2 + mid + higestIndex
-			if len(result.Bands)-(mid+higestIndex) > 4 {
-				trend := CalculateTrendsDetail(result.Bands[realIndex:])
-				return trend.FirstTrend == models.TREND_DOWN
-			}
+		higestIndex := getIndexHigestCrossUpper(result.Bands[len(result.Bands):])
+		if higestIndex > 4 {
+			trend := CalculateTrendsDetail(result.Bands[higestIndex:])
+			return trend.FirstTrend == models.TREND_DOWN && trend.FirstTrendPercent < 60
 		}
 	}
 

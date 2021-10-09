@@ -113,6 +113,16 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	}
 
 	masterCoin := MakeCryptoRequest(*masterCoinConfig, request)
+	request = CandleRequest{
+		Symbol:       masterCoinConfig.Symbol,
+		StartDate:    0,
+		EndDate:      timeInMili,
+		Limit:        int(models.CandleLimit),
+		Resolution:   "1h",
+		ResponseChan: responseChan,
+	}
+
+	masterCoinMid := MakeCryptoRequest(*masterCoinConfig, request)
 	weight := analysis.CalculateWeight(result, *masterCoin)
 	msg := GenerateMsg(*result)
 	msg += fmt.Sprintf("\nweight log %s for coin %s: %.2f", datetime.Format("January 2, 2006 15:04:05"), config.Symbol, weight)
@@ -172,7 +182,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
 	}
 
-	longIgnored := analysis.IsIgnoredLongInterval(resultLong, result, resultMid, datetime)
+	longIgnored := analysis.IsIgnoredLongInterval(resultLong, result, resultMid, masterCoin.Trend, masterCoinMid.Trend)
 	msg += fmt.Sprintf("ignord long interval: %t\n", longIgnored)
 	if longIgnored {
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())

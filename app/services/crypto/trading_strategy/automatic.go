@@ -13,6 +13,8 @@ import (
 
 var checkingTime time.Time
 var holdCount int64 = 0
+var masterTmp models.BandResult
+var masterMidTmp models.BandResult
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
@@ -140,6 +142,8 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 			log.Println("checking alt coin skipped")
 			continue
 		}
+		masterTmp = *masterCoin
+		masterMidTmp = *masterCoinLongInterval
 		altCoins := checkCryptoAltCoinPrice(checkingTime)
 		msg := ""
 		if len(altCoins) > 0 {
@@ -268,16 +272,15 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	results := []models.BandResult{}
 	timeInMilli := GetEndDate(checkingTime)
 	for i := range altCoins {
-		waitMasterCoinProcessed()
 		resultMid := crypto.CheckCoin(altCoins[i].Symbol, "1h", 0, timeInMilli)
-		midWeight := getWeightCustomInterval(*resultMid, altCoins[i], *masterCoin, "1h", nil)
+		midWeight := getWeightCustomInterval(*resultMid, altCoins[i], "1h", nil)
 		if midWeight == 0 {
 			continue
 		}
 		altCoins[i].Weight += midWeight
 		if altCoins[i].Weight > 1.7 {
 			resultLong := crypto.CheckCoin(altCoins[i].Symbol, "4h", 0, timeInMilli)
-			longWight := getWeightCustomInterval(*resultLong, altCoins[i], *masterCoin, "4h", resultMid)
+			longWight := getWeightCustomInterval(*resultLong, altCoins[i], "4h", resultMid)
 			if longWight == 0 {
 				continue
 			}
@@ -296,14 +299,14 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	return nil
 }
 
-func getWeightCustomInterval(result, coin models.BandResult, masterCoinLocal models.BandResult, interval string, previous *models.BandResult) float32 {
-	weight := analysis.CalculateWeightLongInterval(&result, masterCoinLocal.Trend)
+func getWeightCustomInterval(result, coin models.BandResult, interval string, previous *models.BandResult) float32 {
+	weight := analysis.CalculateWeightLongInterval(&result, masterTmp.Trend)
 	ignored := false
 
 	if interval == "1h" {
 		ignored = analysis.IsIgnoredMidInterval(&result, &coin)
 	} else {
-		ignored = analysis.IsIgnoredLongInterval(&result, &coin, previous, checkingTime)
+		ignored = analysis.IsIgnoredLongInterval(&result, &coin, previous, masterTmp.Trend, masterMidTmp.Trend)
 	}
 
 	if ignored || result.Direction == analysis.BAND_DOWN {
@@ -322,7 +325,7 @@ func sendHoldMsg(result *models.BandResult) string {
 }
 
 func checkMasterDown() bool {
-	if masterCoin.Trend == models.TREND_DOWN && masterCoinLongInterval.Trend != models.TREND_UP {
+	if masterCoin.Trend == models.TREND_DOWN && masterCoinLongInterval.Trend == models.TREND_DOWN {
 		return true
 	}
 
@@ -330,15 +333,7 @@ func checkMasterDown() bool {
 }
 
 func skippedProcess() bool {
-	if checkingTime.Minute()%60 != 0 {
-		return false
-	}
-
-	if masterCoin.Trend != models.TREND_UP && masterCoinLongInterval.Trend == models.TREND_DOWN && masterCoin.Direction == analysis.BAND_DOWN {
-		return true
-	}
-
-	if masterCoin.Trend != models.TREND_SIDEWAY && masterCoinLongInterval.Trend == models.TREND_SIDEWAY && masterCoin.Direction == analysis.BAND_DOWN {
+	if masterCoin.Trend == models.TREND_DOWN && masterCoinLongInterval.Trend != models.TREND_DOWN {
 		return true
 	}
 
@@ -346,7 +341,7 @@ func skippedProcess() bool {
 		return true
 	}
 
-	return false
+	return masterCoin.Direction == analysis.BAND_DOWN
 }
 
 func checkIsOnLongIntervalChangePeriode() bool {

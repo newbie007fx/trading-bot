@@ -70,6 +70,11 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			return true
 		}
 
+		if aboveUpperAndHeigt3xAvg(result) && changesInPercent > 5 {
+			reason = "above upper and heigt 3x avg"
+			return true
+		}
+
 		if sellOnUp(result, currencyConfig, coinLongTrend, isCandleComplete, masterCoin.Trend, masterCoinLongTrend) {
 			return true
 		}
@@ -357,4 +362,26 @@ func SpecialCondition(symbol string, shortInterval, midInterval, longInterval []
 	}
 
 	return false
+}
+
+func aboveUpperAndHeigt3xAvg(result models.BandResult) bool {
+	if result.Position != models.ABOVE_UPPER || result.Direction != BAND_UP {
+		return false
+	}
+
+	var total float32
+	mid := len(result.Bands) / 2
+	bands := result.Bands[mid : len(result.Bands)-1]
+	for _, band := range bands {
+		if band.Candle.Close > band.Candle.Open {
+			total += band.Candle.Close - band.Candle.Open
+		} else {
+			total += band.Candle.Open - band.Candle.Close
+		}
+	}
+	average := total / float32(len(bands))
+	lastBand := result.Bands[len(result.Bands)-1]
+	lastBandHeight := lastBand.Candle.Close - lastBand.Candle.Open
+
+	return average*3 < lastBandHeight
 }
