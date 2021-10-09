@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -538,11 +539,48 @@ func isUpSignificanAndNotUp(result *models.BandResult) bool {
 	return false
 }
 
+func getIndexBandDoubleLong(bands []models.Band) int {
+	longestIndex := -1
+	var total float32 = 0
+	var bandLong float32 = 0
+	for i, band := range bands {
+		if band.Candle.Close > band.Candle.Open {
+			bandLong = band.Candle.Close - band.Candle.Open
+		} else {
+			bandLong = band.Candle.Open - band.Candle.Close
+		}
+
+		if band.Candle.Close > band.Candle.Open {
+			if longestIndex != -1 {
+				if bands[longestIndex].Candle.Close-bands[longestIndex].Candle.Open < bandLong {
+					longestIndex = i
+				}
+			} else {
+				longestIndex = i
+			}
+		}
+
+		total += bandLong
+	}
+
+	if longestIndex >= 0 && longestIndex < len(bands)-4 {
+		hightBand := bands[longestIndex]
+		hight := hightBand.Candle.Close - hightBand.Candle.Open
+		total -= hight
+		if (total/float32(len(bands)-1))*2 > hight {
+			return -1
+		}
+	}
+
+	return longestIndex
+}
+
 func afterUpThenDown(result *models.BandResult) bool {
 	if result.Position == models.ABOVE_SMA {
-		higestIndex := getIndexBandDoubleLong(result.Bands[len(result.Bands):])
+		higestIndex := getIndexHigestCrossUpper(result.Bands[len(result.Bands):])
 		if higestIndex >= 0 && higestIndex < len(result.Bands)-4 {
 			trend := CalculateTrendsDetail(result.Bands[higestIndex:])
+			log.Println("higest index:", higestIndex)
 			return trend.FirstTrend == models.TREND_DOWN || CalculateTrendShort(result.Bands[higestIndex:higestIndex+4]) == models.TREND_DOWN
 		}
 	}
@@ -550,9 +588,8 @@ func afterUpThenDown(result *models.BandResult) bool {
 	return false
 }
 
-func getIndexBandDoubleLong(bands []models.Band) int {
+func getIndexHigestCrossUpper(bands []models.Band) int {
 	higestIndex := -1
-	var total float32 = 0
 	for i, band := range bands {
 		if band.Candle.Close > float32(band.Upper) {
 			if higestIndex != -1 {
@@ -562,20 +599,6 @@ func getIndexBandDoubleLong(bands []models.Band) int {
 			} else {
 				higestIndex = i
 			}
-		}
-		if band.Candle.Close > band.Candle.Open {
-			total += band.Candle.Close - band.Candle.Open
-		} else {
-			total += band.Candle.Open - band.Candle.Close
-		}
-	}
-
-	if higestIndex >= 0 && higestIndex < len(bands)-4 {
-		hightBand := bands[higestIndex]
-		hight := hightBand.Candle.Close - hightBand.Candle.Open
-		total -= hight
-		if (total/float32(len(bands)-1))*2 > hight {
-			return -1
 		}
 	}
 
