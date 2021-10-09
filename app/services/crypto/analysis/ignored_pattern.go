@@ -566,7 +566,7 @@ func afterUpThenDown(result *models.BandResult) bool {
 		higestIndex := getIndexHigestCrossUpper(result.Bands[len(result.Bands):])
 		if higestIndex > 4 {
 			trend := CalculateTrendsDetail(result.Bands[higestIndex:])
-			return trend.FirstTrend == models.TREND_DOWN && trend.FirstTrendPercent < 70
+			return trend.FirstTrend == models.TREND_DOWN
 		}
 	}
 
