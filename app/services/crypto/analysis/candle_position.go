@@ -12,7 +12,7 @@ func CheckLastCandleIsUp(bollingerBands []models.Band) bool {
 	size := len(bollingerBands)
 	if size > 0 {
 		candle := bollingerBands[size-1].Candle
-		if candle.Close > candle.Open {
+		if candle.Close >= candle.Open {
 			return true
 		}
 	}
