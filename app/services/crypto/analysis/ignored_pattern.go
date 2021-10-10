@@ -94,6 +94,11 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
+	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrendPercent > 70 {
+		ignoredReason = "above sma and just minor up"
+		return true
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -332,6 +337,11 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 
 	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-5:]) < 4 {
 		ignoredReason = "count up bellow 2"
+		return true
+	}
+
+	if midInterval.Trend != models.TREND_DOWN || midInterval.AllTrend.FirstTrend == models.TREND_UP {
+		ignoredReason = "trend not down or first trend is up"
 		return true
 	}
 

@@ -75,6 +75,11 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			return true
 		}
 
+		if previousBandUpThenDown(result, changesInPercent, currencyConfig.HoldPrice) {
+			reason = "previous band up then down"
+			return true
+		}
+
 		if sellOnUp(result, currencyConfig, coinLongTrend, isCandleComplete, masterCoin.Trend, masterCoinLongTrend) {
 			return true
 		}
@@ -384,4 +389,18 @@ func aboveUpperAndHeigt3xAvg(result models.BandResult) bool {
 	lastBandHeight := lastBand.Candle.Close - lastBand.Candle.Open
 
 	return average*3 < lastBandHeight
+}
+
+func previousBandUpThenDown(result models.BandResult, changeInPercent float32, holdPrice float32) bool {
+	heightIndex := getIndexHigestCrossUpper(result.Bands)
+	if heightIndex == -1 || heightIndex > len(result.Bands)-5 || result.Direction != BAND_DOWN {
+		return false
+	}
+
+	heightBand := result.Bands[heightIndex]
+	percentFromHeight := (heightBand.Candle.Close - holdPrice) / holdPrice * 100
+	if percentFromHeight > 4 && percentFromHeight < 5 {
+		return changeInPercent/percentFromHeight*100 < 70 && changeInPercent >= 3
+	}
+	return false
 }
