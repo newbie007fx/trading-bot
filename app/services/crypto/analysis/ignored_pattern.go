@@ -303,13 +303,16 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 }
 
 func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, checkingTime time.Time) bool {
-	if isNotInLower(result.Bands, false) {
-		ignoredReason = "is not in lower"
-		return true
+	if IsLastCandleNotCrossLower(midInterval.Bands, 4) {
+		midLowestIndex := getLowestIndex(midInterval.Bands)
+		if midLowestIndex < len(midInterval.Bands)-4 {
+			ignoredReason = "mid interval is not in lower"
+			return true
+		}
 	}
 
-	if isNotInLower(midInterval.Bands, true) {
-		ignoredReason = "min interval is not in lower"
+	if isNotInLower(result.Bands) {
+		ignoredReason = "is not in lower"
 		return true
 	}
 
@@ -357,11 +360,11 @@ func isLastBandCrossUpperAndPreviousBandNot(bands []models.Band) bool {
 	return false
 }
 
-func isNotInLower(bands []models.Band, skipCrossLowCheck bool) bool {
+func isNotInLower(bands []models.Band) bool {
 	lowestIndex := getLowestIndex(bands)
-	if IsLastCandleNotCrossLower(bands, 5) || skipCrossLowCheck {
-		if !IsLastCandleNotCrossLower(bands, 15) || skipCrossLowCheck {
-			return lowestIndex < len(bands)-6
+	if IsLastCandleNotCrossLower(bands, 5) {
+		if !IsLastCandleNotCrossLower(bands, 20) {
+			return lowestIndex < len(bands)-5
 		}
 		return true
 	}
@@ -446,14 +449,14 @@ func getHighestIndex(bands []models.Band) int {
 }
 
 func getLowestIndex(bands []models.Band) int {
-	hiIndex := 0
+	lowIndex := 0
 	for i, band := range bands {
-		if bands[hiIndex].Candle.Close < band.Candle.Close {
-			hiIndex = i
+		if bands[lowIndex].Candle.Close > band.Candle.Close {
+			lowIndex = i
 		}
 	}
 
-	return hiIndex
+	return lowIndex
 }
 
 func whenHeightTripleAverage(result *models.BandResult) bool {
