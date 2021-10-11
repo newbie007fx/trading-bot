@@ -400,7 +400,7 @@ func previousBandUpThenDown(result models.BandResult, changeInPercent float32, h
 	heightBand := result.Bands[heightIndex]
 	percentFromHeight := (heightBand.Candle.Close - holdPrice) / holdPrice * 100
 	if percentFromHeight > 4 && percentFromHeight < 5 {
-		return changeInPercent/percentFromHeight*100 < 70 && changeInPercent >= 3
+		return changeInPercent/percentFromHeight*100 < 76 && changeInPercent >= 3
 	}
 	return false
 }
