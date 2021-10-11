@@ -255,11 +255,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 
 		lenData := len(result.Bands)
-		hight := getHighestIndex(result.Bands[lenData-lenData/3:])
-		low := getLowestIndex(result.Bands[lenData-lenData/3:])
+		hight := getHighestIndex(result.Bands[lenData-lenData/4:])
+		low := getLowestIndex(result.Bands[lenData-lenData/4:])
 		difference := hight - low
 		percent := float32(difference) / float32(low) * 100
-		if percent > 15 {
+		if percent > 17 {
 			ignoredReason = "up more than 15"
 			return true
 		}
