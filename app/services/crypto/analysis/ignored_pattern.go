@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"fmt"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -303,12 +304,16 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 }
 
 func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, checkingTime time.Time) bool {
+	minPercentChanges := 2
+
 	if IsLastCandleNotCrossLower(midInterval.Bands, 4) {
 		midLowestIndex := getLowestIndex(midInterval.Bands)
 		if midLowestIndex < len(midInterval.Bands)-4 {
 			ignoredReason = "mid interval is not in lower"
 			return true
 		}
+
+		minPercentChanges = 3
 	}
 
 	if isNotInLower(result.Bands) {
@@ -328,8 +333,8 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 
 	lastBand := result.Bands[len(result.Bands)-1]
 	marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	if marginFromUpper < 3 {
-		ignoredReason = "margin from upper is bellow 3"
+	if marginFromUpper < float64(minPercentChanges) {
+		ignoredReason = fmt.Sprintf("margin from upper is bellow %d", minPercentChanges)
 		return true
 	}
 
