@@ -43,7 +43,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		secondDown := result.Bands[len(result.Bands)-2].Candle.Close < result.Bands[len(result.Bands)-2].Candle.Open
 		thirdDown := result.Bands[len(result.Bands)-3].Candle.Close < result.Bands[len(result.Bands)-3].Candle.Open
 		if CountUpBand(result.Bands[len(result.Bands)-5:]) < 3 || (secondDown && thirdDown) {
-			ignoredReason = "count up when trend up"
+			ignoredReason = fmt.Sprintf("count up when trend up: %d", CountUpBand(result.Bands[len(result.Bands)-5:]))
 			return true
 		}
 	} else {
@@ -259,8 +259,8 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		low := getLowestIndex(result.Bands[lenData-lenData/4:])
 		difference := hight - low
 		percent := float32(difference) / float32(low) * 100
-		if percent > 17 {
-			ignoredReason = "up more than 15"
+		if percent > 45 {
+			ignoredReason = "up more than 45"
 			return true
 		}
 	}
@@ -313,12 +313,17 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 			return true
 		}
 
-		minPercentChanges = 3
-	}
+		if isNotInLower(result.Bands, false) {
+			ignoredReason = "is not in lower"
+			return true
+		}
 
-	if isNotInLower(result.Bands) {
-		ignoredReason = "is not in lower"
-		return true
+		minPercentChanges = 3
+	} else {
+		if isNotInLower(result.Bands, true) {
+			ignoredReason = "is not in lower"
+			return true
+		}
 	}
 
 	if midInterval.Direction == BAND_DOWN {
@@ -343,7 +348,8 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		return true
 	}
 
-	if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP && CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 {
+	isHammer := IsHammer(result.Bands[len(midInterval.Bands)-3:]) || IsHammer(result.Bands[len(midInterval.Bands)-3:len(midInterval.Bands)-1])
+	if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP && (CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 || isHammer) {
 		ignoredReason = "last three band not up"
 		return true
 	}
@@ -365,10 +371,10 @@ func isLastBandCrossUpperAndPreviousBandNot(bands []models.Band) bool {
 	return false
 }
 
-func isNotInLower(bands []models.Band) bool {
+func isNotInLower(bands []models.Band, skipped bool) bool {
 	lowestIndex := getLowestIndex(bands)
 	if IsLastCandleNotCrossLower(bands, 5) {
-		if !IsLastCandleNotCrossLower(bands, 20) {
+		if !IsLastCandleNotCrossLower(bands, 20) || skipped {
 			return lowestIndex < len(bands)-5
 		}
 		return true
@@ -417,10 +423,10 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 
 func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
 	index := getHighestIndex(result.Bands)
-	if index > 5 {
-		index = 5
+	if index < len(result.Bands)-5 {
+		index = len(result.Bands) - 5
 	}
-	lastDataFromHight := result.Bands[len(result.Bands)-index:]
+	lastDataFromHight := result.Bands[index:]
 	if isHeighestOnHalfEndAndAboveUpper(result) && CalculateTrendShort(lastDataFromHight) != models.TREND_UP {
 		return true
 	}
@@ -593,9 +599,10 @@ func getIndexBandDoubleLong(bands []models.Band) int {
 }
 
 func afterUpThenDown(result *models.BandResult) bool {
+	sizeData := len(result.Bands)
 	if result.Position == models.ABOVE_SMA {
-		higestIndex := getIndexHigestCrossUpper(result.Bands)
-		if higestIndex >= 0 && higestIndex < len(result.Bands)-4 {
+		higestIndex := getIndexHigestCrossUpper(result.Bands[sizeData/5:])
+		if higestIndex >= 0 && higestIndex < sizeData-4 {
 			trend := CalculateTrendsDetail(result.Bands[higestIndex:])
 			return trend.FirstTrend == models.TREND_DOWN
 		}
