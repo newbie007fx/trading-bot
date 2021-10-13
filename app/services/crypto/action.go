@@ -101,6 +101,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	}
 
 	result := MakeCryptoRequest(config, request)
+	closeBand := result.Bands[len(result.Bands)-1]
 
 	masterCoinConfig, _ := repositories.GetMasterCoinConfig()
 	request = CandleRequest{
@@ -113,6 +114,8 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	}
 
 	masterCoin := MakeCryptoRequest(*masterCoinConfig, request)
+	closeBandMaster := masterCoin.Bands[len(masterCoin.Bands)-1]
+
 	request = CandleRequest{
 		Symbol:       masterCoinConfig.Symbol,
 		StartDate:    0,
@@ -122,7 +125,8 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		ResponseChan: responseChan,
 	}
 
-	masterCoinMid := MakeCryptoRequest(*masterCoinConfig, request)
+	masterCoinMid := MakeCryptoRequestUpdateLasCandle(*masterCoinConfig, request, closeBandMaster.Candle.Close, closeBandMaster.Candle.Hight)
+
 	weight := analysis.CalculateWeight(result, *masterCoin)
 	msg := GenerateMsg(*result)
 	msg += fmt.Sprintf("\nweight log %s for coin %s: %.2f", datetime.Format("January 2, 2006 15:04:05"), config.Symbol, weight)
@@ -142,7 +146,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		ResponseChan: responseChanMid,
 	}
 
-	resultMid := MakeCryptoRequest(config, requestMid)
+	resultMid := MakeCryptoRequestUpdateLasCandle(config, requestMid, closeBand.Candle.Close, closeBand.Candle.Hight)
 	weightMid := analysis.CalculateWeightLongInterval(resultMid, masterCoin.Trend)
 	msg += fmt.Sprintf("\nweight midInterval for coin %s: %.2f", config.Symbol, weightMid)
 	msg += "\n"
@@ -161,7 +165,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		ResponseChan: responseChanLong,
 	}
 
-	resultLong := MakeCryptoRequest(config, requestLong)
+	resultLong := MakeCryptoRequestUpdateLasCandle(config, requestLong, closeBand.Candle.Close, closeBand.Candle.Hight)
 	weightLong := analysis.CalculateWeightLongInterval(resultLong, masterCoin.Trend)
 	msg += fmt.Sprintf("\nweight long Interval for coin %s: %.2f", config.Symbol, weightLong)
 	msg += "\n"

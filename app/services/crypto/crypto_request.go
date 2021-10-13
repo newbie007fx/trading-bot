@@ -59,6 +59,65 @@ func MakeCryptoRequest(data models.CurrencyNotifConfig, request CandleRequest) *
 	return &result
 }
 
+func MakeCryptoRequestUpdateLasCandle(data models.CurrencyNotifConfig, request CandleRequest, close, hight float32) *models.BandResult {
+	DispatchRequestJob(request)
+
+	response := <-request.ResponseChan
+	if response.Err != nil {
+		log.Println("error: ", response.Err.Error())
+		return nil
+	}
+
+	if len(response.CandleData) < 20 {
+		log.Println("invalid candle data value")
+	}
+
+	bands := analysis.GetCurrentBollingerBands(updateLastCandle(response.CandleData, close, hight))
+	if len(bands.Data) < 13 {
+		log.Println("invalid number of band, skipped")
+		return nil
+	}
+
+	direction := analysis.BAND_UP
+	if !analysis.CheckLastCandleIsUp(bands.Data) {
+		direction = analysis.BAND_DOWN
+	}
+
+	lastBand := bands.Data[len(bands.Data)-1]
+
+	result := models.BandResult{
+		Symbol:        request.Symbol,
+		Direction:     direction,
+		CurrentPrice:  lastBand.Candle.Close,
+		CurrentVolume: lastBand.Candle.Volume,
+		Trend:         bands.Trend,
+		AllTrend:      bands.AllTrend,
+		PriceChanges:  bands.PriceChanges,
+		VolumeChanges: bands.VolumeAverageChanges,
+		Position:      bands.Position,
+		Bands:         bands.Data,
+	}
+
+	if data.IsMaster || data.IsOnHold {
+		if result.Direction == analysis.BAND_UP {
+			result.Note = upTrendChecking(data, bands)
+		} else {
+			result.Note = downTrendChecking(data, bands, request)
+		}
+	}
+
+	return &result
+}
+
+func updateLastCandle(candles []models.CandleData, close, hight float32) []models.CandleData {
+	lastCandle := candles[len(candles)-1]
+	lastCandle.Close = close
+	lastCandle.Hight = hight
+	candles[len(candles)-1] = lastCandle
+
+	return candles
+}
+
 func upTrendChecking(data models.CurrencyNotifConfig, bands models.Bands) string {
 	if analysis.CheckPositionOnUpperBand(bands.Data) {
 		return "Posisi naik upper band"
