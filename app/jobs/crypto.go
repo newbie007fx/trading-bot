@@ -31,8 +31,10 @@ func StartCryptoWorker() {
 			updateVolumeChan <- true
 		}
 
+		log.Println("sleep")
 		sleep := 60 - currentTime.Second()
 		time.Sleep(time.Duration(sleep) * time.Second)
+		log.Println("recheck")
 	}
 }
 
