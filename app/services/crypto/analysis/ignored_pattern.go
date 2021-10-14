@@ -358,6 +358,7 @@ func isReversal(bands []models.Band) bool {
 	trend := CalculateTrends(bands[:len(bands)-1])
 	shortTrend := CalculateTrendShort(bands[len(bands)-4:])
 	log.Println("trend: ", trend)
+	log.Println("trend short: ", shortTrend)
 	return trend == models.TREND_DOWN && shortTrend == models.TREND_UP
 }
 
