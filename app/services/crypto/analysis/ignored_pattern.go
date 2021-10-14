@@ -206,20 +206,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	return false
 }
 
-func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
-	lastBand := bands[len(bands)-1]
-	secondLastBand := bands[len(bands)-2]
-	var isSecondLastBandCrossSMA bool
-	if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
-		isSecondLastBandCrossSMA = secondLastBand.Candle.Open <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
-	} else {
-		isSecondLastBandCrossSMA = secondLastBand.Candle.Low <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
-	}
-	isLastBandCrossSMA := lastBand.Candle.Open <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.SMA)
-
-	return isLastBandCrossSMA || isSecondLastBandCrossSMA
-}
-
 func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult, midInterval *models.BandResult, masterTrend, masterMidTrend int8) bool {
 	if isInAboveUpperBandAndDownTrend(result) {
 		ignoredReason = "isInAboveUpperBandAndDownTrend"
@@ -359,6 +345,20 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		return true
 	}
 
+	if isCrossLowerWhenSignificanDown(midInterval) {
+		ignoredReason = "mid interval cross lower on significan down"
+		return true
+	}
+
+	return false
+}
+
+func isCrossLowerWhenSignificanDown(result *models.BandResult) bool {
+	lastBand := result.Bands[len(result.Bands)-1]
+	if lastBand.Candle.Open < float32(lastBand.Lower) && lastBand.Candle.Close > float32(lastBand.Lower) {
+		return result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.SecondTrendPercent < 50
+	}
+
 	return false
 }
 
@@ -395,6 +395,20 @@ func IsLastCandleNotCrossLower(bands []models.Band, number int) bool {
 	}
 
 	return !crossLowerBand
+}
+
+func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+	secondLastBand := bands[len(bands)-2]
+	var isSecondLastBandCrossSMA bool
+	if secondLastBand.Candle.Open < secondLastBand.Candle.Close {
+		isSecondLastBandCrossSMA = secondLastBand.Candle.Open <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
+	} else {
+		isSecondLastBandCrossSMA = secondLastBand.Candle.Low <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
+	}
+	isLastBandCrossSMA := lastBand.Candle.Open <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.SMA)
+
+	return isLastBandCrossSMA || isSecondLastBandCrossSMA
 }
 
 func isUpThreeOnMidIntervalChange(result *models.BandResult, requestTime time.Time) bool {
