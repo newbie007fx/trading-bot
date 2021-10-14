@@ -324,7 +324,7 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 
 	lastBand := result.Bands[len(result.Bands)-1]
 	marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	if marginFromUpper < float64(minPercentChanges) {
+	if marginFromUpper < float64(minPercentChanges) && !isReversal(midInterval.Bands) {
 		ignoredReason = fmt.Sprintf("margin from upper is bellow %d", minPercentChanges)
 		return true
 	}
@@ -351,6 +351,13 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 	}
 
 	return false
+}
+
+func isReversal(bands []models.Band) bool {
+	trend := CalculateTrends(bands[:len(bands)-1])
+	shortTrend := CalculateTrendShort(bands[len(bands)-4:])
+
+	return trend == models.TREND_DOWN && shortTrend == models.TREND_UP
 }
 
 func isCrossLowerWhenSignificanDown(result *models.BandResult) bool {
