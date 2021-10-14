@@ -533,7 +533,7 @@ func whenHeightTripleAverage(result *models.BandResult) bool {
 	average := totalHeight / float32(6)
 	percent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
 
-	return lastBandHeight*2.8 > average && percent > 2.5
+	return lastBandHeight > 3*average && percent > 2.5
 }
 
 func lastBandHeadDoubleBody(result *models.BandResult) bool {
