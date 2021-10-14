@@ -48,7 +48,8 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		}
 	}
 
-	if SellPattern(&result) && isCandleComplete && (changesInPercent > 1 || result.AllTrend.SecondTrend == models.TREND_DOWN) {
+	whenDown := result.Trend == models.TREND_DOWN || (lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA))
+	if SellPattern(&result) && isCandleComplete && (changesInPercent > 1 || result.AllTrend.SecondTrend == models.TREND_DOWN) && !whenDown {
 		reason = "sell with criteria bearish engulfing"
 		return true
 	}
