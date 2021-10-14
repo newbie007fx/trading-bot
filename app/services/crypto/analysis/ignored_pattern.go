@@ -373,9 +373,9 @@ func isLastBandCrossUpperAndPreviousBandNot(bands []models.Band) bool {
 
 func isNotInLower(bands []models.Band, skipped bool) bool {
 	lowestIndex := getLowestIndex(bands)
-	if IsLastCandleNotCrossLower(bands, 5) {
+	if IsLastCandleNotCrossLower(bands, 10) {
 		if !IsLastCandleNotCrossLower(bands, 20) || skipped {
-			return lowestIndex < len(bands)-5
+			return lowestIndex < len(bands)-10
 		}
 		return true
 	}
