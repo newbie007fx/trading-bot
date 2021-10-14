@@ -16,7 +16,9 @@ func WorkerRunCommand() *cobra.Command {
 	cmd.Long = `Run Worker`
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
-		jobs.StartCryptoWorker()
+		coba := make(chan bool)
+		go jobs.StartCryptoWorker()
+		<-coba
 	}
 
 	return cmd

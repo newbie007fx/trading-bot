@@ -29,8 +29,10 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	condition := map[string]interface{}{"is_on_hold": true}
 	holdCount = repositories.CountNotifConfig(&condition)
 
-	if ats.isTimeToCheckAltCoinPrice(currentTime) || holdCount > 0 || checkingTime.Minute()%2 == 1 {
+	if ats.isTimeToCheckAltCoinPrice(currentTime) || holdCount > 0 || currentTime.Minute()%2 == 1 {
 		ats.masterCoinChan <- true
+	} else {
+		log.Println("skipped")
 	}
 
 	if holdCount > 0 {

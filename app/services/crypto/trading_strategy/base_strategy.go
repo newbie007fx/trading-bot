@@ -59,7 +59,6 @@ func checkCryptoMasterCoinPrice(requestTime time.Time) {
 
 	masterCoin = crypto.MakeCryptoRequest(*masterCoinConfig, request)
 
-	log.Println("crypto check price worker is done")
 	waitMasterCoin = false
 }
 
@@ -91,8 +90,6 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 
 		holdCoin = append(holdCoin, *result)
 	}
-
-	log.Println("crypto check price worker is done")
 
 	return holdCoin
 }
@@ -131,8 +128,6 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 		}
 
 	}
-
-	log.Println("crypto check price worker is done")
 
 	return altCoin
 }
