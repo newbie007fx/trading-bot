@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"fmt"
+	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -356,7 +357,7 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 func isReversal(bands []models.Band) bool {
 	trend := CalculateTrends(bands[:len(bands)-1])
 	shortTrend := CalculateTrendShort(bands[len(bands)-4:])
-
+	log.Println("trend: ", trend)
 	return trend == models.TREND_DOWN && shortTrend == models.TREND_UP
 }
 
