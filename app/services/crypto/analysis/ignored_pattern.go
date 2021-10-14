@@ -293,7 +293,7 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 	minPercentChanges := 2
 
 	if IsLastCandleNotCrossLower(midInterval.Bands, 4) {
-		midLowestIndex := getLowestIndex(midInterval.Bands)
+		midLowestIndex := getLowestIndexSecond(midInterval.Bands)
 		if midLowestIndex < len(midInterval.Bands)-4 {
 			ignoredReason = "mid interval is not in lower"
 			return true
@@ -482,6 +482,32 @@ func getLowestIndex(bands []models.Band) int {
 	}
 
 	return lowIndex
+}
+
+func getLowestIndexSecond(bands []models.Band) int {
+	firstLow := 0
+	for i, band := range bands {
+		if bands[firstLow].Candle.Close > band.Candle.Close {
+			firstLow = i
+		}
+	}
+
+	secondLow := -1
+	for i, band := range bands {
+		if i != firstLow {
+			if secondLow < 0 {
+				secondLow = i
+			} else if bands[secondLow].Candle.Close > band.Candle.Close {
+				secondLow = i
+			}
+		}
+	}
+
+	if firstLow > secondLow {
+		return firstLow
+	}
+
+	return secondLow
 }
 
 func whenHeightTripleAverage(result *models.BandResult) bool {
