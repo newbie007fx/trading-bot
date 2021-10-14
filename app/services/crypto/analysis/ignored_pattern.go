@@ -142,7 +142,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 
 		secondLastBand := result.Bands[len(result.Bands)-2]
-		if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 || (secondLastBand.Candle.Close > secondLastBand.Candle.Open && secondLastBand.Candle.Close > float32(secondLastBand.Upper)) {
+		if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 || !(secondLastBand.Candle.Close > secondLastBand.Candle.Open && secondLastBand.Candle.Close > float32(secondLastBand.Upper)) {
 			ignoredReason = "position above upper but previous band not upper or count up bellow 3"
 			return true
 		}
@@ -242,8 +242,8 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 
 		lenData := len(result.Bands)
-		hight := getHighestIndex(result.Bands[lenData-lenData/4:])
-		low := getLowestIndex(result.Bands[lenData-lenData/4:])
+		hight := getHigestHightPrice(result.Bands[lenData-lenData/4:])
+		low := getLowestPrice(result.Bands[lenData-lenData/4:])
 		difference := hight - low
 		percent := float32(difference) / float32(low) * 100
 		if percent > 45 {
