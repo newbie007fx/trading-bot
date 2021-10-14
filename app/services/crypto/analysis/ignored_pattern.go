@@ -446,7 +446,7 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 
 func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
 	index := getHighestIndex(result.Bands)
-	if index < len(result.Bands)-5 {
+	if index > len(result.Bands)-5 {
 		index = len(result.Bands) - 5
 	}
 	lastDataFromHight := result.Bands[index:]
