@@ -146,7 +146,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		ResponseChan: responseChanMid,
 	}
 
-	resultMid := MakeCryptoRequestUpdateLasCandle(config, requestMid, closeBand.Candle.Close, closeBand.Candle.Hight)
+	resultMid := MakeCryptoRequest(config, requestMid)
 	weightMid := analysis.CalculateWeightLongInterval(resultMid, masterCoin.Trend)
 	msg += fmt.Sprintf("\nweight midInterval for coin %s: %.2f", config.Symbol, weightMid)
 	msg += "\n"
