@@ -86,6 +86,8 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	var midle_counter int = 0
 
 	middleIndex := (len(data) / 2) - 1
+	lowestIndexFirst := 0
+	lowestIndexMiddle := (len(data) / 2)
 	for i, val := range data {
 		if data[highestIndex].Candle.Close < val.Candle.Close {
 			highestIndex = i
@@ -107,6 +109,16 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 		if i >= len(data)-limit {
 			totalLastData += val.Candle.Close
 		}
+
+		if i <= middleIndex {
+			if data[lowestIndexFirst].Candle.Close > val.Candle.Close {
+				lowestIndexFirst = i
+			}
+		} else {
+			if data[lowestIndexMiddle].Candle.Close > val.Candle.Close {
+				lowestIndexMiddle = i
+			}
+		}
 	}
 
 	firstAvg := totalFirstData / float32(limit)
@@ -114,8 +126,8 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	midleAvg := totalMidleData / float32(midle_counter)
 	baseLinePoint := data[lowestIndex].Candle.Close
 
-	firstPercent, firstToMidleTrend := getTrend(baseLinePoint, firstAvg, midleAvg)
-	secondPercent, midleToLastTrend := getTrend(baseLinePoint, midleAvg, lastAvg)
+	firstPercent, firstToMidleTrend := getTrend(data[lowestIndexFirst].Candle.Close, firstAvg, midleAvg)
+	secondPercent, midleToLastTrend := getTrend(data[lowestIndexMiddle].Candle.Close, midleAvg, lastAvg)
 	trend.FirstTrend = firstToMidleTrend
 	trend.FirstTrendPercent = firstPercent
 	trend.SecondTrend = midleToLastTrend

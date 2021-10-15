@@ -31,8 +31,6 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 
 	if ats.isTimeToCheckAltCoinPrice(currentTime) || holdCount > 0 || currentTime.Minute()%2 == 1 {
 		ats.masterCoinChan <- true
-	} else {
-		log.Println("skipped")
 	}
 
 	if holdCount > 0 {
