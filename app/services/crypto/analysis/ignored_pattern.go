@@ -195,7 +195,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 
 	lastBand := result.Bands[len(result.Bands)-1]
 	if lastBand.Candle.Open > float32(lastBand.Upper) {
-		ignoredReason = "open close above upper"
+		ignoredReason = fmt.Sprintf("open close above upper, %.2f, %.2f", lastBand.Candle.Open, lastBand.Upper)
 		return true
 	}
 
