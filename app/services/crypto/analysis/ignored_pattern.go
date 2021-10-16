@@ -199,7 +199,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if shortInterval.Position == models.ABOVE_SMA && result.Trend != models.TREND_UP {
+	if shortInterval.Position == models.ABOVE_SMA && result.Trend != models.TREND_UP && !isReversal(result.Bands) {
 		ignoredReason = "above sma and trend not up"
 		return true
 	}
@@ -561,7 +561,7 @@ func lastBandHeadDoubleBody(result *models.BandResult) bool {
 
 func ignored(result, masterCoin *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Low <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.Upper) {
+	if lastBand.Candle.Open <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.Upper) {
 		ignoredReason = "up from bellow sma to upper"
 		return true
 	}
