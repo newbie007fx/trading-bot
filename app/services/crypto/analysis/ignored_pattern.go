@@ -257,27 +257,29 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if result.Position == models.ABOVE_SMA && midInterval.Position == models.ABOVE_SMA && shortInterval.Position == models.ABOVE_SMA {
-		longLastBand := result.Bands[len(result.Bands)-1]
-		midLastBand := midInterval.Bands[len(result.Bands)-1]
-		shortLastBand := shortInterval.Bands[len(result.Bands)-1]
+	if midInterval.Position == models.ABOVE_SMA && shortInterval.Position == models.ABOVE_SMA {
+		if result.Position == models.ABOVE_SMA {
+			longLastBand := result.Bands[len(result.Bands)-1]
+			midLastBand := midInterval.Bands[len(result.Bands)-1]
+			shortLastBand := shortInterval.Bands[len(result.Bands)-1]
 
-		percentLong := (float32(longLastBand.Upper) - longLastBand.Candle.Close) / longLastBand.Candle.Close * float32(100)
-		percentMid := (float32(midLastBand.Upper) - midLastBand.Candle.Close) / midLastBand.Candle.Close * float32(100)
-		percentshort := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * float32(100)
+			percentLong := (float32(longLastBand.Upper) - longLastBand.Candle.Close) / longLastBand.Candle.Close * float32(100)
+			percentMid := (float32(midLastBand.Upper) - midLastBand.Candle.Close) / midLastBand.Candle.Close * float32(100)
+			percentshort := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * float32(100)
 
-		if (percentLong < 3.3 && percentMid < 3.3 && percentshort < 3.3) && (shortInterval.Trend != models.TREND_UP || isMidIntervalTrendNotUp || isLongIntervalTrendNotUp) {
-			ignoredReason = "all band bellow 3.1 from upper or not up trend"
-			return true
+			if (percentLong < 3.3 && percentMid < 3.3 && percentshort < 3.3) && (shortInterval.Trend != models.TREND_UP || isMidIntervalTrendNotUp || isLongIntervalTrendNotUp) {
+				ignoredReason = "all band bellow 3.1 from upper or not up trend"
+				return true
+			}
 		}
 
 		if isLastBandOrPreviousBandCrossSMA(result.Bands) {
-			ignoredReason = "all above sma but long interval cross sma"
+			ignoredReason = "short and mid above sma but long interval cross sma"
 			return true
 		}
 
 		if result.AllTrend.SecondTrend == models.TREND_DOWN {
-			ignoredReason = "all above sma but long interval second wave down trend"
+			ignoredReason = "short and mid above sma but long interval second wave down trend"
 			return true
 		}
 	}
