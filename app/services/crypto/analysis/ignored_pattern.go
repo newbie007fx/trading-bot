@@ -96,7 +96,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
-	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrendPercent > 70 {
+	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrendPercent > 70 && !isReversal(result.Bands) {
 		ignoredReason = "above sma and just minor up"
 		return true
 	}
@@ -186,7 +186,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	if isLastBandOrPreviousBandCrossSMA(shortInterval.Bands) {
+	if isLastBandOrPreviousBandCrossSMA(shortInterval.Bands) && !isReversal(shortInterval.Bands) {
 		if shortInterval.Trend == models.TREND_DOWN || result.Trend == models.TREND_DOWN {
 			ignoredReason = "short interval cross  sma and mid interval or short interval trend down"
 			return true
