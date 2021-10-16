@@ -270,6 +270,16 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			ignoredReason = "all band bellow 3.1 from upper or not up trend"
 			return true
 		}
+
+		if isLastBandOrPreviousBandCrossSMA(result.Bands) {
+			ignoredReason = "all above sma but long interval cross sma"
+			return true
+		}
+
+		if result.AllTrend.SecondTrend == models.TREND_DOWN {
+			ignoredReason = "all above sma but long interval second wave down trend"
+			return true
+		}
 	}
 
 	if isLastBandCrossUpperAndPreviousBandNot(shortInterval.Bands) {
