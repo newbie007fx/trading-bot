@@ -130,7 +130,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 {
+	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 && !isReversal(result.Bands) {
 		ignoredReason = "count up"
 		return true
 	}
@@ -208,7 +208,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 }
 
 func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult, midInterval *models.BandResult, masterTrend, masterMidTrend int8) bool {
-	if isInAboveUpperBandAndDownTrend(result) {
+	if isInAboveUpperBandAndDownTrend(result) && CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
 		ignoredReason = "isInAboveUpperBandAndDownTrend"
 		return true
 	}
@@ -553,7 +553,7 @@ func lastBandHeadDoubleBody(result *models.BandResult) bool {
 	if lastBand.Candle.Close > lastBand.Candle.Open {
 		head := lastBand.Candle.Hight - lastBand.Candle.Close
 		body := lastBand.Candle.Close - lastBand.Candle.Open
-		return head > body*2.5
+		return head > body*2.99
 	}
 
 	return false
