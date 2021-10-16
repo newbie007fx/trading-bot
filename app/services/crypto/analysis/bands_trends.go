@@ -110,11 +110,13 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 			totalLastData += val.Candle.Close
 		}
 
-		if i <= middleIndex {
+		if i <= middleIndex || (i > middleIndex-(limit/2) && i <= middleIndex+(limit/2)) {
 			if data[lowestIndexFirst].Candle.Close > val.Candle.Close {
 				lowestIndexFirst = i
 			}
-		} else {
+		}
+
+		if i > middleIndex || (i > middleIndex-(limit/2) && i <= middleIndex+(limit/2)) {
 			if data[lowestIndexMiddle].Candle.Close > val.Candle.Close {
 				lowestIndexMiddle = i
 			}
