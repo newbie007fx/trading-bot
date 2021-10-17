@@ -2,7 +2,6 @@ package analysis
 
 import (
 	"fmt"
-	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -204,6 +203,11 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
+	if afterUpThenDown(result) {
+		ignoredReason = "after up then down"
+		return true
+	}
+
 	return false
 }
 
@@ -363,14 +367,25 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		return true
 	}
 
+	if isGetBearishEngulfingAfterLowest(result.Bands) {
+		ignoredReason = "contain bearish engulfing"
+		return true
+	}
+
+	return false
+}
+
+func isGetBearishEngulfingAfterLowest(bands []models.Band) bool {
+	lowestIndex := getLowestLowIndex(bands)
+	if lowestIndex >= len(bands)-7 {
+		return BearishEngulfing(bands[len(bands)-7:])
+	}
 	return false
 }
 
 func isReversal(bands []models.Band) bool {
 	trend := CalculateTrends(bands[:len(bands)-1])
 	shortTrend := CalculateTrendShort(bands[len(bands)-4:])
-	log.Println("trend: ", trend)
-	log.Println("trend short: ", shortTrend)
 	return trend == models.TREND_DOWN && shortTrend == models.TREND_UP
 }
 
@@ -498,6 +513,17 @@ func getLowestIndex(bands []models.Band) int {
 	lowIndex := 0
 	for i, band := range bands {
 		if bands[lowIndex].Candle.Close > band.Candle.Close {
+			lowIndex = i
+		}
+	}
+
+	return lowIndex
+}
+
+func getLowestLowIndex(bands []models.Band) int {
+	lowIndex := 0
+	for i, band := range bands {
+		if bands[lowIndex].Candle.Low > band.Candle.Low {
 			lowIndex = i
 		}
 	}
