@@ -700,8 +700,9 @@ func afterUpThenDown(result *models.BandResult) bool {
 
 func getIndexHigestCrossUpper(bands []models.Band) int {
 	higestIndex := -1
+	lastBand := bands[len(bands)-1]
 	for i, band := range bands {
-		if band.Candle.Hight > float32(band.Upper) {
+		if band.Candle.Close > float32(band.Upper) || band.Candle.Close > lastBand.Candle.Close {
 			if higestIndex != -1 {
 				if bands[higestIndex].Candle.Close < band.Candle.Close {
 					higestIndex = i
