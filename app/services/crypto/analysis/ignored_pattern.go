@@ -687,10 +687,11 @@ func getIndexBandDoubleLong(bands []models.Band) int {
 
 func afterUpThenDown(result *models.BandResult) bool {
 	sizeData := len(result.Bands)
+	bands := result.Bands[sizeData/5:]
 	if result.Position == models.ABOVE_SMA {
-		higestIndex := getIndexHigestCrossUpper(result.Bands[sizeData/5:])
+		higestIndex := getIndexHigestCrossUpper(bands)
 		if higestIndex >= 0 && higestIndex < sizeData-4 {
-			trend := CalculateTrendsDetail(result.Bands[higestIndex:])
+			trend := CalculateTrendsDetail(bands[higestIndex:])
 			return trend.FirstTrend == models.TREND_DOWN
 		}
 	}
