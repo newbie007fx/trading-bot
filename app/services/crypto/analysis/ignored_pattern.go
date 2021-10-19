@@ -213,6 +213,31 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
+	if shortInterval.AllTrend.FirstTrend == models.TREND_DOWN && shortInterval.AllTrend.SecondTrend == models.TREND_UP {
+		shortIntervalHalfBands := shortInterval.Bands[:len(shortInterval.Bands)/2]
+		if (shortInterval.AllTrend.FirstTrendPercent <= 50 || isHasCrossLower(shortIntervalHalfBands)) && shortInterval.AllTrend.SecondTrendPercent <= 50 {
+			if shortInterval.Position == models.ABOVE_SMA {
+				shortLastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
+				shortPercentFromUpper := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * 100
+				if result.Position == models.BELOW_SMA {
+					percentFromSMA := (float32(lastBand.SMA) - lastBand.Candle.Close) / lastBand.Candle.Close * 100
+					if shortPercentFromUpper < 3 && percentFromSMA < 3 {
+						ignoredReason = "up down, and margin form up bellow threshold"
+						return true
+					}
+				}
+
+				if result.Position == models.ABOVE_SMA {
+					percentFromUpper := (float32(lastBand.Upper) - lastBand.Candle.Close) / lastBand.Candle.Close * 100
+					if shortPercentFromUpper < 3 && percentFromUpper < 3 {
+						ignoredReason = "up down, and margin form up bellow threshold"
+						return true
+					}
+				}
+			}
+		}
+	}
+
 	return false
 }
 
@@ -314,7 +339,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, checkingTime time.Time) bool {
 	minPercentChanges := 2
 
-	if IsLastCandleNotCrossLower(midInterval.Bands, 4) {
+	if !isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-4:]) {
 		midLowestIndex := getLowestIndexSecond(midInterval.Bands)
 		if midLowestIndex < len(midInterval.Bands)-4 {
 			ignoredReason = "mid interval is not in lower"
@@ -423,8 +448,8 @@ func isHasCrossUpper(bands []models.Band) bool {
 
 func isNotInLower(bands []models.Band, skipped bool) bool {
 	lowestIndex := getLowestIndex(bands)
-	if IsLastCandleNotCrossLower(bands, 10) {
-		if !IsLastCandleNotCrossLower(bands, 20) || skipped {
+	if !isHasCrossLower(bands[len(bands)-10:]) {
+		if isHasCrossLower(bands[len(bands)-20:]) || skipped {
 			return lowestIndex < len(bands)-10
 		}
 		return true
@@ -433,18 +458,16 @@ func isNotInLower(bands []models.Band, skipped bool) bool {
 	return false
 }
 
-func IsLastCandleNotCrossLower(bands []models.Band, number int) bool {
-	lastFour := bands[len(bands)-number:]
-
+func isHasCrossLower(bands []models.Band) bool {
 	crossLowerBand := false
-	for _, data := range lastFour {
+	for _, data := range bands {
 		if data.Candle.Low < float32(data.Lower) {
 			crossLowerBand = true
 			break
 		}
 	}
 
-	return !crossLowerBand
+	return crossLowerBand
 }
 
 func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
