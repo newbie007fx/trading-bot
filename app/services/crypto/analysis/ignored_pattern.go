@@ -213,7 +213,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if shortInterval.AllTrend.FirstTrend == models.TREND_DOWN && shortInterval.AllTrend.SecondTrend == models.TREND_UP {
+	if shortInterval.AllTrend.FirstTrend != models.TREND_UP && shortInterval.AllTrend.SecondTrend == models.TREND_UP {
 		shortIntervalHalfBands := shortInterval.Bands[:len(shortInterval.Bands)/2]
 		if (shortInterval.AllTrend.FirstTrendPercent <= 50 || isHasCrossLower(shortIntervalHalfBands)) && shortInterval.AllTrend.SecondTrendPercent <= 50 {
 			if shortInterval.Position == models.ABOVE_SMA {
@@ -338,9 +338,8 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, checkingTime time.Time) bool {
 	minPercentChanges := 2
-
+	midLowestIndex := getLowestIndexSecond(midInterval.Bands)
 	if !isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-4:]) {
-		midLowestIndex := getLowestIndexSecond(midInterval.Bands)
 		if midLowestIndex < len(midInterval.Bands)-4 {
 			ignoredReason = "mid interval is not in lower"
 			return true
@@ -371,7 +370,7 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 
 	lastBand := result.Bands[len(result.Bands)-1]
 	marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	if marginFromUpper < float64(minPercentChanges) && !isReversal(midInterval.Bands) {
+	if marginFromUpper < float64(minPercentChanges) && !isReversal(midInterval.Bands) && midLowestIndex != len(midInterval.Bands)-1 {
 		ignoredReason = fmt.Sprintf("margin from upper is bellow %d", minPercentChanges)
 		return true
 	}
@@ -399,6 +398,13 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 
 	if isGetBearishEngulfingAfterLowest(result.Bands) {
 		ignoredReason = "contain bearish engulfing"
+		return true
+	}
+
+	secondLastBand := result.Bands[len(result.Bands)-2]
+	thirdLastBand := result.Bands[len(result.Bands)-3]
+	if result.Position == models.ABOVE_SMA && secondLastBand.Candle.Close < secondLastBand.Candle.Open && thirdLastBand.Candle.Hight > float32(thirdLastBand.Upper) {
+		ignoredReason = "sideway after hit sma"
 		return true
 	}
 
