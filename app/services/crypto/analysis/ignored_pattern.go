@@ -370,7 +370,7 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 
 	lastBand := result.Bands[len(result.Bands)-1]
 	marginFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	if marginFromUpper < float64(minPercentChanges) && !isReversal(midInterval.Bands) && midLowestIndex != len(midInterval.Bands)-1 {
+	if marginFromUpper < float64(minPercentChanges) && !isReversal(midInterval.Bands) && midLowestIndex < len(midInterval.Bands)-2 {
 		ignoredReason = fmt.Sprintf("margin from upper is bellow %d", minPercentChanges)
 		return true
 	}
@@ -412,6 +412,17 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		ignoredReason = "previous band hit SMA and current band bellow SMA"
 		return true
 	}
+
+	if lastBand.Candle.Close < secondLastBand.Candle.Close {
+		ignoredReason = "close below previous band"
+		return true
+	}
+
+	// kalo nemu 1 lg case baru dienable
+	// if checkingTime.Minute() < 18 {
+	// 	ignoredReason = "skip on mid interval time change"
+	// 	return true
+	// }
 
 	return false
 }
@@ -560,7 +571,7 @@ func getHighestIndex(bands []models.Band) int {
 func getLowestIndex(bands []models.Band) int {
 	lowIndex := 0
 	for i, band := range bands {
-		if lowestFromBand(bands[lowIndex]) > lowestFromBand(band) {
+		if lowestFromBand(bands[lowIndex]) >= lowestFromBand(band) {
 			lowIndex = i
 		}
 	}
