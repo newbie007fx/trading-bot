@@ -403,8 +403,13 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 
 	secondLastBand := result.Bands[len(result.Bands)-2]
 	thirdLastBand := result.Bands[len(result.Bands)-3]
-	if result.Position == models.ABOVE_SMA && secondLastBand.Candle.Close < secondLastBand.Candle.Open && thirdLastBand.Candle.Hight > float32(thirdLastBand.Upper) {
+	if result.Position == models.BELOW_SMA && secondLastBand.Candle.Close < secondLastBand.Candle.Open && thirdLastBand.Candle.Hight > float32(thirdLastBand.SMA) {
 		ignoredReason = "sideway after hit sma"
+		return true
+	}
+
+	if result.Position == models.BELOW_SMA && secondLastBand.Candle.Hight > float32(secondLastBand.SMA) {
+		ignoredReason = "previous band hit SMA and current band bellow SMA"
 		return true
 	}
 
@@ -555,12 +560,20 @@ func getHighestIndex(bands []models.Band) int {
 func getLowestIndex(bands []models.Band) int {
 	lowIndex := 0
 	for i, band := range bands {
-		if bands[lowIndex].Candle.Close > band.Candle.Close {
+		if lowestFromBand(bands[lowIndex]) > lowestFromBand(band) {
 			lowIndex = i
 		}
 	}
 
 	return lowIndex
+}
+
+func lowestFromBand(band models.Band) float32 {
+	if band.Candle.Open > band.Candle.Close {
+		return band.Candle.Close
+	}
+
+	return band.Candle.Open
 }
 
 func getLowestLowIndex(bands []models.Band) int {
