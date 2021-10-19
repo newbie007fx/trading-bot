@@ -375,13 +375,21 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		return true
 	}
 
+	midLastBand := midInterval.Bands[len(midInterval.Bands)-1]
+	if result.Position == models.ABOVE_SMA && (midInterval.Position == models.ABOVE_SMA || (midLastBand.Candle.Open < float32(midLastBand.SMA) && midLastBand.Candle.Hight > float32(midLastBand.SMA))) {
+		if marginFromUpper < float64(minPercentChanges) {
+			ignoredReason = fmt.Sprintf("2 margin from upper is bellow %d", minPercentChanges)
+			return true
+		}
+	}
+
 	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-5:]) < 4 {
 		ignoredReason = "count up bellow 2"
 		return true
 	}
 
 	isHammer := IsHammer(result.Bands[len(midInterval.Bands)-3:]) || IsHammer(result.Bands[len(midInterval.Bands)-3:len(midInterval.Bands)-1])
-	if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP && (CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 || isHammer) {
+	if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP && (CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 || isHammer) && midLowestIndex != len(midInterval.Bands)-1 {
 		ignoredReason = "last three band not up"
 		return true
 	}

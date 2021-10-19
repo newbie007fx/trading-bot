@@ -219,8 +219,9 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 func sellOnDown(result models.BandResult, currencyConfig *models.CurrencyNotifConfig, lastBand models.Band) bool {
 	changes := currencyConfig.HoldPrice - result.CurrentPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
+	secondLastBand := result.Bands[len(result.Bands)-2]
 	if changesInPercent >= 3 && result.Direction == BAND_DOWN {
-		if result.Position == models.BELOW_LOWER {
+		if result.Position == models.BELOW_LOWER && (changesInPercent > 3.3 || secondLastBand.Candle.Close < float32(secondLastBand.Lower)) {
 			reason = "sell on down with criteria 1"
 			return true
 		} else if result.Position == models.BELOW_SMA {
