@@ -81,6 +81,11 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			return true
 		}
 
+		if shortTrendOnPreviousBandNotUpAndDown25PercentFromHight(result, changesInPercent, currencyConfig.HoldPrice) {
+			reason = "short trend on previous band not up and last band down 25 percent from hight"
+			return true
+		}
+
 		if sellOnUp(result, currencyConfig, coinLongTrend, isCandleComplete, masterCoin.Trend, masterCoinLongTrend) {
 			return true
 		}
@@ -403,5 +408,18 @@ func previousBandUpThenDown(result models.BandResult, changeInPercent float32, h
 	if percentFromHeight > 4 && percentFromHeight < 7 {
 		return changeInPercent/percentFromHeight*100 < 76 && changeInPercent >= 3
 	}
+	return false
+}
+
+func shortTrendOnPreviousBandNotUpAndDown25PercentFromHight(result models.BandResult, changeInPercent float32, holdPrice float32) bool {
+	shortTrendPreviousBand := CalculateTrendShort(result.Bands[len(result.Bands)-6 : len(result.Bands)-1])
+	if shortTrendPreviousBand != models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP {
+		heightPrice := result.Bands[len(result.Bands)-1].Candle.Hight
+		percentFromHeight := (heightPrice - holdPrice) / holdPrice * 100
+		if percentFromHeight > 4 && percentFromHeight < 7 {
+			return changeInPercent/percentFromHeight*100 < 76 && changeInPercent >= 3
+		}
+	}
+
 	return false
 }

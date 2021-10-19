@@ -59,7 +59,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 	}
 
 	secondLastBand := result.Bands[len(result.Bands)-2]
-	if result.Position == models.ABOVE_UPPER && secondLastBand.Candle.Close < float32(secondLastBand.Upper) {
+	if result.Position == models.ABOVE_UPPER && !isHasCrossUpper(result.Bands[len(result.Bands)-4:len(result.Bands)-1]) {
 		ignoredReason = "position above uppper but previous band bellow upper"
 		return true
 	}
@@ -97,6 +97,11 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 
 	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrendPercent > 70 && !isReversal(result.Bands) {
 		ignoredReason = "above sma and just minor up"
+		return true
+	}
+
+	if isLastBandChangeMoreThan5AndHeadMoreThan3(lastBand) {
+		ignoredReason = "last band change more than 5 and head more than 3"
 		return true
 	}
 
@@ -403,6 +408,15 @@ func isLastBandCrossUpperAndPreviousBandNot(bands []models.Band) bool {
 	if lastBand.Candle.Open < lastBand.Candle.Close {
 		secondLastBand := bands[len(bands)-2]
 		return !(secondLastBand.Candle.Open < secondLastBand.Candle.Close)
+	}
+	return false
+}
+
+func isHasCrossUpper(bands []models.Band) bool {
+	for _, band := range bands {
+		if band.Candle.Open < float32(band.Upper) && band.Candle.Close > float32(band.Upper) {
+			return true
+		}
 	}
 	return false
 }
@@ -715,6 +729,12 @@ func getIndexHigestCrossUpper(bands []models.Band) int {
 	}
 
 	return higestIndex
+}
+
+func isLastBandChangeMoreThan5AndHeadMoreThan3(lastBand models.Band) bool {
+	percentBody := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
+	percentHead := (lastBand.Candle.Hight - lastBand.Candle.Close) / lastBand.Candle.Close * 100
+	return percentBody > 5 && percentHead > 3
 }
 
 func GetIgnoredReason() string {
