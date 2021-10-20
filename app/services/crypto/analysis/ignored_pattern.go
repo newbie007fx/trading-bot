@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"fmt"
+	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -760,7 +761,9 @@ func afterUpThenDown(result *models.BandResult) bool {
 	bands := result.Bands[sizeData/5:]
 	if result.Position == models.ABOVE_SMA {
 		higestIndex := getIndexHigestCrossUpper(bands)
-		if higestIndex >= 0 && higestIndex < sizeData-4 {
+		if higestIndex >= 0 && higestIndex < len(bands)-4 {
+			log.Println(higestIndex)
+			log.Println(len(bands))
 			trend := CalculateTrendsDetail(bands[higestIndex:])
 			return trend.FirstTrend == models.TREND_DOWN
 		}
