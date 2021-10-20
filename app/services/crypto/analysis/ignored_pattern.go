@@ -2,7 +2,6 @@ package analysis
 
 import (
 	"fmt"
-	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -81,9 +80,8 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
-	log.Println(lastBand.Candle.Open)
-	log.Println(lastBand.Upper)
-	if lastBand.Candle.Open >= float32(lastBand.Upper) {
+	buffer := lastBand.Candle.Close * 0.1 / 100
+	if lastBand.Candle.Open >= float32(lastBand.Upper)-buffer {
 		ignoredReason = "open close above upper"
 		return true
 	}
