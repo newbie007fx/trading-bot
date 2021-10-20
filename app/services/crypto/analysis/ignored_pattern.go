@@ -607,19 +607,14 @@ func getLowestLowIndex(bands []models.Band) int {
 }
 
 func getLowestIndexSecond(bands []models.Band) int {
-	firstLow := 0
-	for i, band := range bands {
-		if bands[firstLow].Candle.Close > band.Candle.Close {
-			firstLow = i
-		}
-	}
+	firstLow := getLowestIndex(bands)
 
 	secondLow := -1
 	for i, band := range bands {
 		if i != firstLow {
 			if secondLow < 0 {
 				secondLow = i
-			} else if bands[secondLow].Candle.Close > band.Candle.Close {
+			} else if lowestFromBand(bands[secondLow]) >= lowestFromBand(band) {
 				secondLow = i
 			}
 		}
