@@ -39,7 +39,7 @@ func CalculateTrends(data []models.Band) int8 {
 			totalFirstData += val.Candle.Close
 		}
 
-		if i > middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
+		if i >= middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
 			totalMidleData += val.Candle.Close
 			midle_counter++
 		}
@@ -101,7 +101,7 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 			totalFirstData += val.Candle.Close
 		}
 
-		if i > middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
+		if i >= middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
 			totalMidleData += val.Candle.Close
 			midle_counter++
 		}

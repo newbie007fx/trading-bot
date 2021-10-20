@@ -334,6 +334,14 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
+	if shortInterval.Position == models.ABOVE_UPPER && midInterval.Position == models.ABOVE_UPPER && result.Position == models.ABOVE_UPPER {
+		highestIndex := getHighestIndex(result.Bands)
+		if highestIndex == len(result.Bands)-1 {
+			ignoredReason = "all interval above upper and new hight created"
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -705,13 +713,13 @@ func isTrendUpLastThreeBandHasDoji(result *models.BandResult) bool {
 }
 
 func isUpSignificanAndNotUp(result *models.BandResult) bool {
-	if result.AllTrend.SecondTrendPercent < 40 {
+	if result.AllTrend.SecondTrendPercent < 40 && result.AllTrend.SecondTrend == models.TREND_UP {
 		mid := len(result.Bands) / 2
 		indexDoubleBody := getIndexBandDoubleLong(result.Bands[len(result.Bands)-mid:])
 		if indexDoubleBody > -1 {
 			realIndex := len(result.Bands)%2 + mid + indexDoubleBody
-			if len(result.Bands)-(mid+indexDoubleBody) > 4 {
-				trend := CalculateTrends(result.Bands[realIndex:])
+			if len(result.Bands)-realIndex > 4 {
+				trend := CalculateTrends(result.Bands[15:])
 				return trend != models.TREND_UP
 			}
 		}

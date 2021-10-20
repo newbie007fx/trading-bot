@@ -13,4 +13,5 @@ func init() {
 	cli.RegisterCommand(commands.AddNotifConfigCommand())
 	cli.RegisterCommand(commands.CronRunCommand())
 	cli.RegisterCommand(commands.WorkerRunCommand())
+	cli.RegisterCommand(commands.TestingWeightCommand())
 }
