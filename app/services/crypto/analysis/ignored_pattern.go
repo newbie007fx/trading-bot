@@ -80,7 +80,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Open > float32(lastBand.Upper) {
+	if lastBand.Candle.Open >= float32(lastBand.Upper) {
 		ignoredReason = "open close above upper"
 		return true
 	}
@@ -437,10 +437,10 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 
 func isGetBearishEngulfingAfterLowest(bands []models.Band) bool {
 	lowestIndex := getLowestLowIndex(bands)
-	if lowestIndex >= len(bands)-7 {
-		return BearishEngulfing(bands[len(bands)-7:])
+	if lowestIndex < len(bands)-7 {
+		lowestIndex = len(bands) - 7
 	}
-	return false
+	return BearishEngulfing(bands[lowestIndex:])
 }
 
 func isReversal(bands []models.Band) bool {
@@ -611,7 +611,7 @@ func getLowestIndexSecond(bands []models.Band) int {
 
 	secondLow := -1
 	for i, band := range bands {
-		if i != firstLow {
+		if i != firstLow && lowestFromBand(bands[firstLow]) != lowestFromBand(band) {
 			if secondLow < 0 {
 				secondLow = i
 			} else if lowestFromBand(bands[secondLow]) >= lowestFromBand(band) {

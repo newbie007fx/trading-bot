@@ -31,14 +31,14 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			}
 		}
 
-		crossLower := lastBand.Candle.Close <= float32(lastBand.Lower) && lastBand.Candle.Hight >= float32(lastBand.Lower)
-		if !safe && result.AllTrend.SecondTrend == models.TREND_DOWN && isCandleComplete && !crossLower {
+		crossLower := lastBand.Candle.Low <= float32(lastBand.Lower) && lastBand.Candle.Hight >= float32(lastBand.Lower)
+		if !safe && result.AllTrend.SecondTrend == models.TREND_DOWN && isCandleComplete {
 			var skipped bool = false
 			if result.CurrentPrice < currencyConfig.HoldPrice {
 				changesx := currencyConfig.HoldPrice - result.CurrentPrice
 				changesInPercentx := changesx / currencyConfig.HoldPrice * 100
 
-				skipped = changesInPercentx < 1.45
+				skipped = changesInPercentx < 2.5 && crossLower
 			}
 
 			if !skipped {
@@ -71,7 +71,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			return true
 		}
 
-		if aboveUpperAndHeigt3xAvg(result) && changesInPercent > 5 {
+		if aboveUpperAndHeigt3xAvg(result) && changesInPercent > 5 && down25PercentFromHight(result, changesInPercent, currencyConfig.HoldPrice, 10) {
 			reason = "above upper and heigt 3x avg"
 			return true
 		}
@@ -355,22 +355,36 @@ func SellPattern(bandResult *models.BandResult) bool {
 	return false
 }
 
-func SpecialCondition(symbol string, shortInterval, midInterval, longInterval []models.Band) bool {
+func SpecialCondition(symbol string, shortInterval, midInterval, longInterval models.BandResult) bool {
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
 	if err != nil {
 		log.Panicln(err.Error())
 	}
 
-	lastBand := shortInterval[len(shortInterval)-1]
+	lastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
 	changes := lastBand.Candle.Close - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
 
-	if isLastBandCrossUpperAndPreviousBandNot(shortInterval) && changesInPercent > 3 {
-		if isLastBandCrossUpperAndPreviousBandNot(midInterval) {
-			if isLastBandCrossUpperAndPreviousBandNot(longInterval) {
+	if isLastBandCrossUpperAndPreviousBandNot(shortInterval.Bands) && changesInPercent >= 3 {
+		if isLastBandCrossUpperAndPreviousBandNot(midInterval.Bands) {
+			if isLastBandCrossUpperAndPreviousBandNot(longInterval.Bands) {
+				reason = "last band cross upper and previous band not"
 				return true
 			}
 		}
+	}
+
+	if aboveUpperAndOtherIntervalAboveSMA(shortInterval, midInterval, longInterval, changesInPercent, currencyConfig.HoldPrice) && changesInPercent >= 3 {
+		reason = "above upper and other interval above sma"
+		return true
+	}
+
+	return false
+}
+
+func aboveUpperAndOtherIntervalAboveSMA(shortInterval, midInterval, longInterval models.BandResult, changeInpercent, holdPrice float32) bool {
+	if shortInterval.Position == models.ABOVE_UPPER && midInterval.Position == models.ABOVE_SMA && longInterval.Position == models.ABOVE_SMA {
+		return down25PercentFromHight(shortInterval, changeInpercent, holdPrice, 5)
 	}
 
 	return false
@@ -415,11 +429,17 @@ func previousBandUpThenDown(result models.BandResult, changeInPercent float32, h
 func shortTrendOnPreviousBandNotUpAndDown25PercentFromHight(result models.BandResult, changeInPercent float32, holdPrice float32) bool {
 	shortTrendPreviousBand := CalculateTrendShort(result.Bands[len(result.Bands)-6 : len(result.Bands)-1])
 	if shortTrendPreviousBand != models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP {
-		heightPrice := result.Bands[len(result.Bands)-1].Candle.Hight
-		percentFromHeight := (heightPrice - holdPrice) / holdPrice * 100
-		if percentFromHeight > 4 && percentFromHeight < 7 {
-			return changeInPercent/percentFromHeight*100 < 76 && changeInPercent >= 3
-		}
+		return down25PercentFromHight(result, changeInPercent, holdPrice, 7) && changeInPercent >= 3
+	}
+
+	return false
+}
+
+func down25PercentFromHight(result models.BandResult, changeInPercent float32, holdPrice float32, maxFromHight int) bool {
+	heightPrice := result.Bands[len(result.Bands)-1].Candle.Hight
+	percentFromHeight := (heightPrice - holdPrice) / holdPrice * 100
+	if percentFromHeight < float32(maxFromHight) {
+		return changeInPercent/percentFromHeight*100 < 78
 	}
 
 	return false
