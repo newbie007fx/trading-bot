@@ -81,6 +81,8 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
+	log.Println(lastBand.Candle.Open)
+	log.Println(lastBand.Upper)
 	if lastBand.Candle.Open >= float32(lastBand.Upper) {
 		ignoredReason = "open close above upper"
 		return true
@@ -762,8 +764,6 @@ func afterUpThenDown(result *models.BandResult) bool {
 	if result.Position == models.ABOVE_SMA {
 		higestIndex := getIndexHigestCrossUpper(bands)
 		if higestIndex >= 0 && higestIndex < len(bands)-4 {
-			log.Println(higestIndex)
-			log.Println(len(bands))
 			trend := CalculateTrendsDetail(bands[higestIndex:])
 			return trend.FirstTrend == models.TREND_DOWN
 		}
