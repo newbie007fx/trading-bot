@@ -239,6 +239,15 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	highest := getHigestPrice(result.Bands)
+	lowest := getLowestPrice(result.Bands)
+	difference := highest - lowest
+	percent := difference / lowest * 100
+	if percent <= 3 {
+		ignoredReason = "hight and low bellow 3"
+		return true
+	}
+
 	return false
 }
 
@@ -335,7 +344,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	}
 
 	if shortInterval.Position == models.ABOVE_UPPER && midInterval.Position == models.ABOVE_UPPER && result.Position == models.ABOVE_UPPER {
-		highestIndex := getHighestIndex(result.Bands)
+		highestIndex := getHighestHightIndex(result.Bands)
 		if highestIndex == len(result.Bands)-1 {
 			ignoredReason = "all interval above upper and new hight created"
 			return true
@@ -577,7 +586,18 @@ func isContaineBearishEngulfing(result *models.BandResult) bool {
 func getHighestIndex(bands []models.Band) int {
 	hiIndex := 0
 	for i, band := range bands {
-		if bands[hiIndex].Candle.Close < band.Candle.Close {
+		if bands[hiIndex].Candle.Close <= band.Candle.Close {
+			hiIndex = i
+		}
+	}
+
+	return hiIndex
+}
+
+func getHighestHightIndex(bands []models.Band) int {
+	hiIndex := 0
+	for i, band := range bands {
+		if bands[hiIndex].Candle.Hight <= band.Candle.Hight {
 			hiIndex = i
 		}
 	}
@@ -668,15 +688,6 @@ func ignored(result, masterCoin *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 	if lastBand.Candle.Open <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.Upper) {
 		ignoredReason = "up from bellow sma to upper"
-		return true
-	}
-
-	highest := getHigestPrice(result.Bands)
-	lowest := getLowestPrice(result.Bands)
-	difference := highest - lowest
-	percent := difference / lowest * 100
-	if percent <= 2.5 {
-		ignoredReason = "hight and low bellow 2.5"
 		return true
 	}
 
