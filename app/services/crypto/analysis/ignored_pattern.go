@@ -239,8 +239,8 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	highest := getHigestPrice(result.Bands)
-	lowest := getLowestPrice(result.Bands)
+	highest := getHigestHightPrice(result.Bands)
+	lowest := getLowestLowPrice(result.Bands)
 	difference := highest - lowest
 	percent := difference / lowest * 100
 	if percent <= 3 {

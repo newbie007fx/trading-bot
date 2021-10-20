@@ -271,7 +271,7 @@ func getHigestPrice(bands []models.Band) float32 {
 func getHigestHightPrice(bands []models.Band) float32 {
 	var highest float32 = 0
 	for _, band := range bands {
-		if highest < band.Candle.Close {
+		if highest < band.Candle.Hight {
 			highest = band.Candle.Hight
 		}
 	}
@@ -284,6 +284,17 @@ func getLowestPrice(bands []models.Band) float32 {
 	for _, band := range bands {
 		if lowest > band.Candle.Close {
 			lowest = band.Candle.Close
+		}
+	}
+
+	return lowest
+}
+
+func getLowestLowPrice(bands []models.Band) float32 {
+	var lowest float32 = bands[0].Candle.Low
+	for _, band := range bands {
+		if lowest > band.Candle.Low {
+			lowest = band.Candle.Low
 		}
 	}
 
