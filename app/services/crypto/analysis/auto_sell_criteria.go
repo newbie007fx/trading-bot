@@ -38,7 +38,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 				changesx := currencyConfig.HoldPrice - result.CurrentPrice
 				changesInPercentx := changesx / currencyConfig.HoldPrice * 100
 
-				skipped = changesInPercentx < 2.5 && crossLower
+				skipped = changesInPercentx < 2.5 || crossLower
 			}
 
 			if !skipped {

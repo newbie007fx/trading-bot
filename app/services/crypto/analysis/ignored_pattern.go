@@ -39,6 +39,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
+	isHaveCountDown := countDownBand(result.Bands[len(result.Bands)-5:]) > 0
 	if result.Trend == models.TREND_UP {
 		secondDown := result.Bands[len(result.Bands)-2].Candle.Close < result.Bands[len(result.Bands)-2].Candle.Open
 		thirdDown := result.Bands[len(result.Bands)-3].Candle.Close < result.Bands[len(result.Bands)-3].Candle.Open
@@ -47,7 +48,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 			return true
 		}
 	} else {
-		if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 {
+		if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 && isHaveCountDown {
 			ignoredReason = "count up when trend not up"
 			return true
 		}
@@ -96,7 +97,8 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
-	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrendPercent > 70 && !isReversal(result.Bands) {
+	isUp := result.AllTrend.Trend == models.TREND_UP && !isHaveCountDown
+	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrendPercent > 70 && !isReversal(result.Bands) && !isUp {
 		ignoredReason = "above sma and just minor up"
 		return true
 	}
@@ -272,15 +274,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if result.Position == models.ABOVE_UPPER && (result.Trend != models.TREND_UP || result.AllTrend.ShortTrend != models.TREND_UP) {
+	if result.Position == models.ABOVE_UPPER && result.AllTrend.ShortTrend != models.TREND_UP {
 		ignoredReason = "position above upper and not trend up"
 		return true
 	}
 
-	isMidIntervalTrendNotUp := CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-4:]) != models.TREND_UP
-	isLongIntervalTrendNotUp := CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP
+	isMidIntervalTrendNotUp := CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-4:]) == models.TREND_DOWN
+	isLongIntervalTrendNotUp := CalculateTrendShort(result.Bands[len(result.Bands)-3:]) == models.TREND_DOWN
 	if shortInterval.Position == models.ABOVE_UPPER || midInterval.Position == models.ABOVE_UPPER || result.Position == models.ABOVE_UPPER || masterTrend == models.TREND_DOWN || masterMidTrend == models.TREND_DOWN {
-		if shortInterval.Trend != models.TREND_UP || isMidIntervalTrendNotUp || isLongIntervalTrendNotUp {
+		if shortInterval.Trend == models.TREND_DOWN || isMidIntervalTrendNotUp || isLongIntervalTrendNotUp {
 			ignoredReason = "when above upper or master trend down and trend not up"
 			return true
 		}
@@ -317,7 +319,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			}
 		}
 
-		if isLastBandOrPreviousBandCrossSMA(result.Bands) {
+		if isLastBandOrPreviousBandCrossSMA(result.Bands) && midInterval.AllTrend.Trend != models.TREND_UP {
 			ignoredReason = "short and mid above sma but long interval cross sma"
 			return true
 		}
@@ -793,7 +795,7 @@ func getIndexHigestCrossUpper(bands []models.Band) int {
 	higestIndex := -1
 	lastBand := bands[len(bands)-1]
 	for i, band := range bands {
-		if band.Candle.Close > float32(band.Upper) || band.Candle.Close > lastBand.Candle.Close {
+		if band.Candle.Close > lastBand.Candle.Close {
 			if higestIndex != -1 {
 				if bands[higestIndex].Candle.Close < band.Candle.Close {
 					higestIndex = i
@@ -811,6 +813,17 @@ func isLastBandChangeMoreThan5AndHeadMoreThan3(lastBand models.Band) bool {
 	percentBody := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
 	percentHead := (lastBand.Candle.Hight - lastBand.Candle.Close) / lastBand.Candle.Close * 100
 	return percentBody > 5 && percentHead > 3
+}
+
+func countDownBand(bands []models.Band) int {
+	counter := 0
+	for _, band := range bands {
+		if band.Candle.Open > band.Candle.Close {
+			counter++
+		}
+	}
+
+	return counter
 }
 
 func GetIgnoredReason() string {
