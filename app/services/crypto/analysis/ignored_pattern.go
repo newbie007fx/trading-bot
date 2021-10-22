@@ -60,11 +60,6 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 	}
 
 	secondLastBand := result.Bands[len(result.Bands)-2]
-	if result.Position == models.ABOVE_UPPER && !isHasCrossUpper(result.Bands[len(result.Bands)-4:len(result.Bands)-1]) {
-		ignoredReason = "position above uppper but previous band bellow upper"
-		return true
-	}
-
 	if secondLastBand.Candle.Open > secondLastBand.Candle.Close && secondLastBand.Candle.Open > float32(secondLastBand.Upper) {
 		ignoredReason = "previous band down from upper"
 		return true
@@ -345,12 +340,17 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if shortInterval.Position == models.ABOVE_UPPER && midInterval.Position == models.ABOVE_UPPER && result.Position == models.ABOVE_UPPER {
+	if isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-4:]) && midInterval.Position == models.ABOVE_UPPER && result.Position == models.ABOVE_UPPER {
 		highestIndex := getHighestHightIndex(result.Bands)
 		if highestIndex == len(result.Bands)-1 {
 			ignoredReason = "all interval above upper and new hight created"
 			return true
 		}
+	}
+
+	if shortInterval.Position == models.ABOVE_UPPER && !isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-5:len(shortInterval.Bands)-1]) && (midInterval.Trend != models.TREND_UP || result.Trend != models.TREND_UP) {
+		ignoredReason = "short interval position above uppper but previous band bellow upper and mid/long interval not up trend"
+		return true
 	}
 
 	return false
