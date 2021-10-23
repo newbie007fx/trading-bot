@@ -70,13 +70,30 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 		Symbol:       config.Symbol,
 		EndDate:      timeInMili,
 		Limit:        40,
-		Resolution:   resolution,
+		Resolution:   "15m",
 		ResponseChan: responseChan,
 	}
 
 	result := MakeCryptoRequest(config, request)
 	if result == nil {
 		return "invalid requested date"
+	}
+
+	if resolution != "15m" {
+		responseChanMid := make(chan CandleResponse)
+		requestMid := CandleRequest{
+			Symbol:       config.Symbol,
+			StartDate:    0,
+			EndDate:      timeInMili,
+			Limit:        int(models.CandleLimit),
+			Resolution:   resolution,
+			ResponseChan: responseChanMid,
+		}
+		closeBand := result.Bands[len(result.Bands)-1]
+		result = MakeCryptoRequestUpdateLasCandle(config, requestMid, closeBand.Candle.Close, closeBand.Candle.Hight)
+		if result == nil {
+			return "invalid requested date"
+		}
 	}
 
 	msg := GenerateMsg(*result)

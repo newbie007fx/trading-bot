@@ -446,6 +446,11 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		return true
 	}
 
+	if midInterval.AllTrend.FirstTrendPercent > 10 && midInterval.AllTrend.SecondTrendPercent > 10 {
+		ignoredReason = "not significan down"
+		return true
+	}
+
 	// kalo nemu 1 lg case baru dienable
 	// if checkingTime.Minute() < 18 {
 	// 	ignoredReason = "skip on mid interval time change"
