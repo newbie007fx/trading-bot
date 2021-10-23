@@ -87,13 +87,13 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 
 func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
-		waitMasterCoinProcessed()
 		holdCoin := checkCryptoHoldCoinPrice(checkingTime)
 		msg := ""
 		if len(holdCoin) > 0 {
 
 			tmpMsg := ""
 			for _, coin := range holdCoin {
+				waitMasterCoinProcessed()
 				if masterCoin == nil {
 					continue
 				}

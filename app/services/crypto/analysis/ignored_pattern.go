@@ -143,8 +143,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 			return true
 		}
 
-		secondLastBand := result.Bands[len(result.Bands)-2]
-		if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 || !(secondLastBand.Candle.Close > secondLastBand.Candle.Open && secondLastBand.Candle.Close > float32(secondLastBand.Upper)) {
+		if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 || !isHasCrossUpper(result.Bands[len(result.Bands)-4:len(result.Bands)-1]) {
 			ignoredReason = "position above upper but previous band not upper or count up bellow 3"
 			return true
 		}
@@ -340,10 +339,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-4:]) && midInterval.Position == models.ABOVE_UPPER && result.Position == models.ABOVE_UPPER {
-		highestIndex := getHighestHightIndex(result.Bands)
-		if highestIndex == len(result.Bands)-1 {
-			ignoredReason = "all interval above upper and new hight created"
+	allTrendUp := shortInterval.Trend == models.TREND_UP && midInterval.Trend == models.TREND_UP && result.Trend == models.TREND_UP
+	allAboveUpper := isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-4:]) && midInterval.Position == models.ABOVE_UPPER && result.Position == models.ABOVE_UPPER
+	if allAboveUpper || allTrendUp {
+		highestHightIndex := getHighestHightIndex(result.Bands)
+		highestIndex := getHighestIndex(result.Bands)
+		higestHightBand := result.Bands[highestHightIndex]
+		percent := (higestHightBand.Candle.Hight - lastBand.Candle.Close) / lastBand.Candle.Close * 100
+		if highestHightIndex == len(result.Bands)-1 || (percent <= 3 && highestIndex == len(result.Bands)-1) {
+			ignoredReason = "all interval above upper or all trend up and new hight created"
 			return true
 		}
 	}
@@ -565,6 +569,10 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 
 func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
 	index := getHighestIndex(result.Bands)
+	if index == len(result.Bands)-1 {
+		return false
+	}
+
 	if index > len(result.Bands)-5 {
 		index = len(result.Bands) - 5
 	}
