@@ -33,7 +33,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 
 		crossLower := lastBand.Candle.Low <= float32(lastBand.Lower) && lastBand.Candle.Hight >= float32(lastBand.Lower)
 		if !safe && result.AllTrend.SecondTrend == models.TREND_DOWN && isCandleComplete {
-			var skipped bool = false
+			var skipped bool = true
 			if result.CurrentPrice < currencyConfig.HoldPrice {
 				changesx := currencyConfig.HoldPrice - result.CurrentPrice
 				changesInPercentx := changesx / currencyConfig.HoldPrice * 100
