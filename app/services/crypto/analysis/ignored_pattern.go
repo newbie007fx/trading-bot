@@ -54,10 +54,10 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		}
 	}
 
-	if isUpThreeOnMidIntervalChange(result, requestTime) {
-		ignoredReason = "isUpThreeOnMidIntervalChange"
-		return true
-	}
+	// if isUpThreeOnMidIntervalChange(result, requestTime) {
+	// 	ignoredReason = "isUpThreeOnMidIntervalChange"
+	// 	return true
+	// }
 
 	secondLastBand := result.Bands[len(result.Bands)-2]
 	if secondLastBand.Candle.Open > secondLastBand.Candle.Close && secondLastBand.Candle.Open > float32(secondLastBand.Upper) {
@@ -151,13 +151,14 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	lastBand := result.Bands[len(result.Bands)-1]
 	if shortInterval.Position == models.ABOVE_UPPER {
 		if CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP || shortInterval.Trend != models.TREND_UP {
 			ignoredReason = "short interval above upper and mid trend down or trend not up"
 			return true
 		}
 
-		if result.Trend != models.TREND_UP {
+		if result.Trend != models.TREND_UP && !(isHasCrossLower(result.Bands[len(result.Bands)/2:]) && lastBand.Candle.Close > float32(lastBand.SMA) && result.Trend != models.TREND_DOWN) {
 			ignoredReason = "short interval above upper and mid inteval trend not up"
 			return true
 		}
@@ -196,7 +197,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	lastBand := result.Bands[len(result.Bands)-1]
 	if lastBand.Candle.Open >= float32(lastBand.Upper) {
 		ignoredReason = fmt.Sprintf("open close above upper, %.2f, %.2f", lastBand.Candle.Open, lastBand.Upper)
 		return true
@@ -551,18 +551,18 @@ func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
 	return isLastBandCrossSMA || isSecondLastBandCrossSMA
 }
 
-func isUpThreeOnMidIntervalChange(result *models.BandResult, requestTime time.Time) bool {
-	lastBand := result.Bands[len(result.Bands)-1]
-	isCrossSMA := lastBand.Candle.Low < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA)
-	isCrossUpper := lastBand.Candle.Low < float32(lastBand.Upper) && lastBand.Candle.Hight > float32(lastBand.Upper)
-	if isCrossSMA || isCrossUpper {
-		if CountSquentialUpBand(result.Bands[len(result.Bands)-4:]) >= 3 && requestTime.Minute() < 17 {
-			return true
-		}
-	}
+// func isUpThreeOnMidIntervalChange(result *models.BandResult, requestTime time.Time) bool {
+// 	lastBand := result.Bands[len(result.Bands)-1]
+// 	isCrossSMA := lastBand.Candle.Low < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA)
+// 	isCrossUpper := lastBand.Candle.Low < float32(lastBand.Upper) && lastBand.Candle.Hight > float32(lastBand.Upper)
+// 	if isCrossSMA || isCrossUpper {
+// 		if CountSquentialUpBand(result.Bands[len(result.Bands)-4:]) >= 3 && requestTime.Minute() < 17 {
+// 			return true
+// 		}
+// 	}
 
-	return false
-}
+// 	return false
+// }
 
 func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
@@ -849,3 +849,5 @@ func countDownBand(bands []models.Band) int {
 func GetIgnoredReason() string {
 	return ignoredReason
 }
+
+// tambah kondisi untuk bearish engulfing onsell, ketika kurang dari 3 check mid interval bearish engulfing jg? candle complete? atau udah turun 0.5 %

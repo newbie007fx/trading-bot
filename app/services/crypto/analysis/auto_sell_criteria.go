@@ -20,6 +20,10 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 	changes := result.CurrentPrice - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
 
+	if changesInPercent >= 3 && currencyConfig.ReachTargerProfitAt == 0 {
+		repositories.UpdateCurrencyNotifConfig(currencyConfig.ID, map[string]interface{"reach_target_profit_at": time.Now().Unix()})
+	}
+
 	if isCandleComplete && masterCoin.Direction == BAND_DOWN {
 		var masterDown, resultDown, safe = false, false, false
 		for i := len(result.Bands) - 1; i >= len(result.Bands)-2; i-- {
@@ -45,6 +49,13 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 				reason = "sell with criteria 0"
 				return true
 			}
+		}
+	}
+
+	if currencyConfig.ReachTargerProfitAt > 0 {
+		if sellWhenDoubleUpTargetProfi(*currencyConfig, result, changesInPercent) {
+			reason = "sell with double up target profit"
+			return true
 		}
 	}
 
@@ -249,6 +260,17 @@ func sellOnDown(result models.BandResult, currencyConfig *models.CurrencyNotifCo
 	} else if changesInPercent > 4 {
 		reason = "sell on down with criteria 5"
 		return true
+	}
+
+	return false
+}
+
+func sellWhenDoubleUpTargetProfi(config models.CurrencyNotifConfig, result models.BandResult, changeInPercent float32) bool {
+	if changeInPercent >= 3 && changeInPercent < 3.847 && result.Direction == BAND_DOWN {
+		sixHourInSecond := 60 * 60 * 5
+		diff := time.Now().Unix() - config.ReachTargerProfitAt
+
+		return diff/int64(sixHourInSecond) >= 1
 	}
 
 	return false
