@@ -21,7 +21,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
 
 	if changesInPercent >= 3 && currencyConfig.ReachTargerProfitAt == 0 {
-		repositories.UpdateCurrencyNotifConfig(currencyConfig.ID, map[string]interface{"reach_target_profit_at": time.Now().Unix()})
+		repositories.UpdateCurrencyNotifConfig(currencyConfig.ID, map[string]interface{}{"reach_target_profit_at": time.Now().Unix()})
 	}
 
 	if isCandleComplete && masterCoin.Direction == BAND_DOWN {
