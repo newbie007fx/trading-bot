@@ -245,7 +245,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 }
 
 func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult, midInterval *models.BandResult, masterTrend, masterMidTrend int8) bool {
-	if isInAboveUpperBandAndDownTrend(result) && CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 {
+	if isInAboveUpperBandAndDownTrend(result) && CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && !isLastBandOrPreviousBandCrossSMA(result.Bands) {
 		ignoredReason = "isInAboveUpperBandAndDownTrend"
 		return true
 	}
@@ -272,7 +272,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 	isMidIntervalTrendNotUp := CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-4:]) == models.TREND_DOWN
 	isLongIntervalTrendNotUp := CalculateTrendShort(result.Bands[len(result.Bands)-3:]) == models.TREND_DOWN
-	if shortInterval.Position == models.ABOVE_UPPER || midInterval.Position == models.ABOVE_UPPER || result.Position == models.ABOVE_UPPER || masterTrend == models.TREND_DOWN || masterMidTrend == models.TREND_DOWN {
+	if shortInterval.Position == models.ABOVE_UPPER || midInterval.Position == models.ABOVE_UPPER || result.Position == models.ABOVE_UPPER {
 		if shortInterval.AllTrend.SecondTrend == models.TREND_DOWN || isMidIntervalTrendNotUp || isLongIntervalTrendNotUp {
 			ignoredReason = "when above upper or master trend down and trend not up"
 			return true
@@ -377,11 +377,6 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		}
 
 		minPercentChanges = 3
-	} else {
-		if isNotInLower(result.Bands, true) {
-			ignoredReason = "is not in lower"
-			return true
-		}
 	}
 
 	if midInterval.Direction == BAND_DOWN {
@@ -452,7 +447,9 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		return true
 	}
 
-	if midInterval.AllTrend.FirstTrendPercent > 10 && midInterval.AllTrend.SecondTrendPercent > 10 {
+	oneDownTrend := midInterval.AllTrend.FirstTrendPercent > 10 && midInterval.AllTrend.SecondTrendPercent > 10
+	bothDownTrend := midInterval.AllTrend.FirstTrend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.AllTrend.FirstTrendPercent > 13 && midInterval.AllTrend.SecondTrendPercent > 15
+	if oneDownTrend && bothDownTrend {
 		ignoredReason = "not significan down"
 		return true
 	}
