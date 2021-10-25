@@ -7,18 +7,18 @@ import (
 
 func AddReachTargetProfitAtColumnCurrencyNotifTable() *gormigrate.Migration {
 	type CurrencyNotifConfig struct {
-		ReachTargerProfitAt int64 `gorm:"default:0"`
+		ReachTargetProfitAt int64 `gorm:"default:0"`
 	}
 
 	return &gormigrate.Migration{
 		ID: "202110241601",
 		Migrate: func(tx *gorm.DB) error {
-			err := tx.Migrator().AddColumn(&CurrencyNotifConfig{}, "ReachTargerProfitAt")
+			err := tx.Migrator().AddColumn(&CurrencyNotifConfig{}, "ReachTargetProfitAt")
 
 			return err
 		},
 		Rollback: func(tx *gorm.DB) error {
-			err := tx.Migrator().DropColumn(&CurrencyNotifConfig{}, "ReachTargerProfitAt")
+			err := tx.Migrator().DropColumn(&CurrencyNotifConfig{}, "ReachTargetProfitAt")
 
 			return err
 		},
