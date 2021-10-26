@@ -106,43 +106,31 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 
 func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 	timeInMili := datetime.Unix() * 1000
-
-	responseChan := make(chan CandleResponse)
-	request := CandleRequest{
-		Symbol:       config.Symbol,
-		StartDate:    0,
-		EndDate:      timeInMili,
-		Limit:        int(models.CandleLimit),
-		Resolution:   "15m",
-		ResponseChan: responseChan,
-	}
-
-	result := MakeCryptoRequest(config, request)
-	closeBand := result.Bands[len(result.Bands)-1]
+	var closeBand models.Band
+	var closeBandMaster models.Band
+	var result *models.BandResult
+	var masterCoin *models.BandResult
 
 	masterCoinConfig, _ := repositories.GetMasterCoinConfig()
-	request = CandleRequest{
-		Symbol:       masterCoinConfig.Symbol,
-		StartDate:    0,
-		EndDate:      timeInMili,
-		Limit:        int(models.CandleLimit),
-		Resolution:   "15m",
-		ResponseChan: responseChan,
+
+	isTimeOnFifteenMinute := datetime.Unix()%(15*60) == 0
+	if isTimeOnFifteenMinute {
+		result = CheckCoin(config, "15m", 0, timeInMili, nil)
+		closeBand = result.Bands[len(result.Bands)-1]
+
+		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, nil)
+		closeBandMaster = masterCoin.Bands[len(masterCoin.Bands)-1]
+	} else {
+		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, nil)
+		closeBand = oneMinuteResult.Bands[len(oneMinuteResult.Bands)-1]
+		result = CheckCoin(config, "15m", 0, timeInMili, &closeBand)
+
+		oneMinuteMaster := CheckCoin(*masterCoinConfig, "1m", 0, timeInMili, nil)
+		closeBandMaster = oneMinuteMaster.Bands[len(oneMinuteMaster.Bands)-1]
+		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, &closeBandMaster)
 	}
 
-	masterCoin := MakeCryptoRequest(*masterCoinConfig, request)
-	closeBandMaster := masterCoin.Bands[len(masterCoin.Bands)-1]
-
-	request = CandleRequest{
-		Symbol:       masterCoinConfig.Symbol,
-		StartDate:    0,
-		EndDate:      timeInMili,
-		Limit:        int(models.CandleLimit),
-		Resolution:   "1h",
-		ResponseChan: responseChan,
-	}
-
-	masterCoinMid := MakeCryptoRequestUpdateLasCandle(*masterCoinConfig, request, closeBandMaster.Candle.Close, closeBandMaster.Candle.Hight)
+	masterCoinMid := CheckCoin(*masterCoinConfig, "1h", 0, timeInMili, &closeBandMaster)
 
 	weight := analysis.CalculateWeight(result, *masterCoin)
 	msg := GenerateMsg(*result)
@@ -153,17 +141,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
 
-	responseChanMid := make(chan CandleResponse)
-	requestMid := CandleRequest{
-		Symbol:       config.Symbol,
-		StartDate:    0,
-		EndDate:      timeInMili,
-		Limit:        int(models.CandleLimit),
-		Resolution:   "1h",
-		ResponseChan: responseChanMid,
-	}
-
-	resultMid := MakeCryptoRequestUpdateLasCandle(config, requestMid, closeBand.Candle.Close, closeBand.Candle.Hight)
+	resultMid := CheckCoin(config, "1h", 0, timeInMili, &closeBand)
 	weightMid := analysis.CalculateWeightLongInterval(resultMid, masterCoin.Trend)
 	msg += fmt.Sprintf("\nweight midInterval for coin %s: %.2f", config.Symbol, weightMid)
 	msg += "\n"
@@ -172,17 +150,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
 
-	responseChanLong := make(chan CandleResponse)
-	requestLong := CandleRequest{
-		Symbol:       config.Symbol,
-		StartDate:    0,
-		EndDate:      timeInMili,
-		Limit:        int(models.CandleLimit),
-		Resolution:   "4h",
-		ResponseChan: responseChanLong,
-	}
-
-	resultLong := MakeCryptoRequestUpdateLasCandle(config, requestLong, closeBand.Candle.Close, closeBand.Candle.Hight)
+	resultLong := CheckCoin(config, "4h", 0, timeInMili, &closeBand)
 	weightLong := analysis.CalculateWeightLongInterval(resultLong, masterCoin.Trend)
 	msg += fmt.Sprintf("\nweight long Interval for coin %s: %.2f", config.Symbol, weightLong)
 	msg += "\n"
@@ -216,6 +184,49 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	}
 
 	return msg
+}
+
+func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
+	timeInMili := datetime.Unix() * 1000
+	var closeBand models.Band
+	var closeBandMaster models.Band
+	var coin *models.BandResult
+	var masterCoin *models.BandResult
+
+	masterCoinConfig, _ := repositories.GetMasterCoinConfig()
+
+	isTimeOnFifteenMinute := datetime.Unix()%(15*60) == 0
+	if isTimeOnFifteenMinute {
+		coin = CheckCoin(config, "15m", 0, timeInMili, nil)
+		closeBand = coin.Bands[len(coin.Bands)-1]
+
+		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, nil)
+		closeBandMaster = masterCoin.Bands[len(masterCoin.Bands)-1]
+	} else {
+		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, nil)
+		closeBand = oneMinuteResult.Bands[len(oneMinuteResult.Bands)-1]
+		coin = CheckCoin(config, "15m", 0, timeInMili, &closeBand)
+
+		oneMinuteMaster := CheckCoin(*masterCoinConfig, "1m", 0, timeInMili, nil)
+		closeBandMaster = oneMinuteMaster.Bands[len(oneMinuteMaster.Bands)-1]
+		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, &closeBandMaster)
+	}
+
+	masterCoinMid := CheckCoin(*masterCoinConfig, "1h", 0, timeInMili, &closeBandMaster)
+
+	coinMid := CheckCoin(config, "1h", 0, timeInMili, &closeBand)
+	coinLong := CheckCoin(config, "1h", 0, timeInMili, &closeBand)
+	isNeedTosell := analysis.IsNeedToSell(*coin, *masterCoin, isTimeOnFifteenMinute, coinMid.Trend, masterCoinMid.Trend)
+	if isNeedTosell || analysis.SpecialCondition(coin.Symbol, *coin, *coinMid, *coinLong) {
+
+		msg := fmt.Sprintf("sell log on %s:\n", datetime.Format("January 2, 2006 15:04:05"))
+		msg += GenerateMsg(*coin)
+		msg += "\n"
+		msg += "alasan dijual: " + analysis.GetSellReason() + "\n\n"
+		return msg
+	}
+
+	return ""
 }
 
 func GetBalances() string {

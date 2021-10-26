@@ -93,13 +93,19 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 
 			tmpMsg := ""
 			for _, coin := range holdCoin {
+				currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
+				if err != nil {
+					log.Println(err.Error())
+					continue
+				}
+
 				waitMasterCoinProcessed()
 				if masterCoin == nil {
 					continue
 				}
 
-				holdCoinMid := crypto.CheckCoin(coin.Symbol, "1h", 0, GetEndDate(checkingTime))
-				holdCoinLong := crypto.CheckCoin(coin.Symbol, "4h", 0, GetEndDate(checkingTime))
+				holdCoinMid := crypto.CheckCoin(*currencyConfig, "1h", 0, GetEndDate(checkingTime), nil)
+				holdCoinLong := crypto.CheckCoin(*currencyConfig, "4h", 0, GetEndDate(checkingTime), nil)
 				isNeedTosell := analysis.IsNeedToSell(coin, *masterCoin, ats.isTimeToCheckAltCoinPrice(checkingTime), holdCoinMid.Trend, masterCoinLongInterval.Trend)
 				if isNeedTosell || analysis.SpecialCondition(coin.Symbol, coin, *holdCoinMid, *holdCoinLong) {
 					currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
@@ -231,7 +237,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 				continue
 			}
 
-			midInterval := crypto.CheckCoin(result.Symbol, "1h", 0, GetEndDate(checkingTime))
+			midInterval := crypto.CheckCoin(data, "1h", 0, GetEndDate(checkingTime), nil)
 			if !analysis.IsIgnoredMasterDown(result, midInterval, masterCoin, checkingTime) {
 				altCoins = append(altCoins, *result)
 			}
@@ -272,14 +278,20 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 	results := []models.BandResult{}
 	timeInMilli := GetEndDate(checkingTime)
 	for i := range altCoins {
-		resultMid := crypto.CheckCoin(altCoins[i].Symbol, "1h", 0, timeInMilli)
+		currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(altCoins[i].Symbol)
+		if err != nil {
+			log.Println(err.Error())
+			continue
+		}
+
+		resultMid := crypto.CheckCoin(*currencyConfig, "1h", 0, timeInMilli, nil)
 		midWeight := getWeightCustomInterval(*resultMid, altCoins[i], "1h", nil)
 		if midWeight == 0 {
 			continue
 		}
 		altCoins[i].Weight += midWeight
 		if altCoins[i].Weight > 1.7 {
-			resultLong := crypto.CheckCoin(altCoins[i].Symbol, "4h", 0, timeInMilli)
+			resultLong := crypto.CheckCoin(*currencyConfig, "4h", 0, timeInMilli, nil)
 			longWight := getWeightCustomInterval(*resultLong, altCoins[i], "4h", resultMid)
 			if longWight == 0 {
 				continue

@@ -122,6 +122,16 @@ func ProcessTeleWebhook(c echo.Context) error {
 				responseMsg = msg
 			}
 		}
+	} else if cmd == "/sell-log" {
+		responseMsg = "invalid format lur"
+		if len(msgData) > 2 {
+			msg, err := handlerSellLog(msgData[1], msgData[2])
+			if err != nil {
+				responseMsg = err.Error()
+			} else {
+				responseMsg = msg
+			}
+		}
 	} else {
 		responseMsg = "command gak valid lur"
 	}
@@ -186,6 +196,21 @@ func handlerWeightLog(symbol, date string) (string, error) {
 	}
 	tm := time.Unix(i, 0)
 	msg := crypto.GetWeightLog(*currencyConfig, tm)
+	return msg, nil
+}
+
+func handlerSellLog(symbol, date string) (string, error) {
+	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
+	if err != nil {
+		log.Println(err.Error())
+		return "", errors.New("invalid symbol lur")
+	}
+	i, err := strconv.ParseInt(date, 10, 64)
+	if err != nil {
+		return "", errors.New("invalid log date value")
+	}
+	tm := time.Unix(i, 0)
+	msg := crypto.GetSellLog(*currencyConfig, tm)
 	return msg, nil
 }
 
