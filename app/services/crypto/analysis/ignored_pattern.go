@@ -305,8 +305,13 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			percentMid := (float32(midLastBand.Upper) - midLastBand.Candle.Close) / midLastBand.Candle.Close * float32(100)
 			percentshort := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * float32(100)
 
-			if (percentLong < 3.3 && percentMid < 3.3 && percentshort < 3.3) && (shortInterval.AllTrend.SecondTrend != models.TREND_UP || isMidIntervalTrendNotUp || isLongIntervalTrendNotUp) {
+			if (percentLong < 3.3 && percentMid < 3.3 && percentshort < 3.3) && (shortInterval.AllTrend.SecondTrend != models.TREND_UP || midInterval.AllTrend.SecondTrend != models.TREND_UP || isLongIntervalTrendNotUp) {
 				ignoredReason = "all band bellow 3.1 from upper or not up trend"
+				return true
+			}
+
+			if isHasCrossSMA(result.Bands[len(result.Bands)-1 : len(result.Bands)]) {
+				ignoredReason = "all interval above upper and long interval cross sma"
 				return true
 			}
 		}
@@ -451,6 +456,11 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 	bothDownTrend := midInterval.AllTrend.FirstTrend == models.TREND_UP || midInterval.AllTrend.SecondTrend == models.TREND_UP || (midInterval.AllTrend.FirstTrendPercent > 13 && midInterval.AllTrend.SecondTrendPercent > 15)
 	if oneDownTrend && bothDownTrend {
 		ignoredReason = "not significan down"
+		return true
+	}
+
+	if midInterval.AllTrend.FirstTrend == models.TREND_DOWN && isHasCrossUpper(midInterval.Bands[:len(midInterval.Bands)/2]) {
+		ignoredReason = "mid interval down but cross upper"
 		return true
 	}
 
@@ -726,12 +736,13 @@ func isTrendUpLastThreeBandHasDoji(result *models.BandResult) bool {
 		return false
 	}
 
-	lastThreeBand := result.Bands[len(result.Bands)-3:]
+	lastThreeBand := result.Bands[len(result.Bands)-2:]
 	var difference float32 = 0
 	var percent float32 = 0
 	for _, band := range lastThreeBand {
 		if band.Candle.Close > band.Candle.Open {
-			continue
+			difference = band.Candle.Close - band.Candle.Open
+			percent = difference / band.Candle.Open * 100
 		} else {
 			difference = band.Candle.Open - band.Candle.Close
 			percent = difference / band.Candle.Close * 100
@@ -851,3 +862,5 @@ func GetIgnoredReason() string {
 }
 
 // tambah kondisi untuk bearish engulfing onsell, ketika kurang dari 3 check mid interval bearish engulfing jg? candle complete? atau udah turun 0.5 %
+// on master trend down. check juga logn interval. kalo down after up, skip kecuali reversal, dan cross band
+// adjust sell log bos
