@@ -364,6 +364,12 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
+	percentFromHeight := (lastBand.Candle.Hight - lastBand.Candle.Close) / lastBand.Candle.Close * 100
+	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrend == models.TREND_SIDEWAY && percentFromHeight < 3 {
+		ignoredReason = "sideway, above sma and percent from upper bellow 3"
+		return true
+	}
+
 	return false
 }
 
