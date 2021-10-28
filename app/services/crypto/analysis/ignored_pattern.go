@@ -248,6 +248,13 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
+	if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN {
+		if isHasCrossUpper(result.Bands[:len(result.Bands)/2]) && result.Position == models.BELOW_SMA {
+			ignoredReason = "down-down from upper and position bellow sma"
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -372,7 +379,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	}
 
 	percentFromHeight := (lastBand.Candle.Hight - lastBand.Candle.Close) / lastBand.Candle.Close * 100
-	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrend == models.TREND_SIDEWAY && percentFromHeight < 3 {
+	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrend == models.TREND_SIDEWAY && percentFromHeight < 3 && !isHasCrossLower(result.Bands[len(result.Bands)/2:]) {
 		ignoredReason = "sideway, above sma and percent from upper bellow 3"
 		return true
 	}
