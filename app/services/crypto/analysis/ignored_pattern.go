@@ -59,11 +59,11 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 	// 	return true
 	// }
 
-	secondLastBand := result.Bands[len(result.Bands)-2]
-	if secondLastBand.Candle.Open > secondLastBand.Candle.Close && secondLastBand.Candle.Open > float32(secondLastBand.Upper) {
-		ignoredReason = "previous band down from upper"
-		return true
-	}
+	// secondLastBand := result.Bands[len(result.Bands)-2]
+	// if secondLastBand.Candle.Open > secondLastBand.Candle.Close && secondLastBand.Candle.Open > float32(secondLastBand.Upper) {
+	// 	ignoredReason = "previous band down from upper"
+	// 	return true
+	// }
 
 	if IsHammer(result.Bands) && result.AllTrend.SecondTrend != models.TREND_DOWN {
 		ignoredReason = "hammer pattern"
@@ -145,8 +145,15 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 			return true
 		}
 
-		if CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 || !isHasCrossUpper(result.Bands[len(result.Bands)-4:len(result.Bands)-1]) {
+		if (CountUpBand(result.Bands[len(result.Bands)-3:]) < 2 || !isHasCrossUpper(result.Bands[len(result.Bands)-4:len(result.Bands)-1])) && (result.AllTrend.FirstTrend != models.TREND_UP || result.AllTrend.SecondTrend != models.TREND_UP) {
 			ignoredReason = "position above upper but previous band not upper or count up bellow 3"
+			return true
+		}
+
+		lastBandShort := result.Bands[len(result.Bands)-1]
+		marginFromUpper := (lastBandShort.Upper - float64(lastBandShort.Candle.Close)) / float64(lastBandShort.Candle.Close) * 100
+		if shortInterval.Position == models.ABOVE_SMA && marginFromUpper < 3 {
+			ignoredReason = "above upper and short below upper and margin < 3"
 			return true
 		}
 	}
