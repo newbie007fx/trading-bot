@@ -100,12 +100,17 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 				}
 
 				waitMasterCoinProcessed()
-				if masterCoin == nil {
+				if masterCoin == nil || masterCoinLongInterval == nil {
+					log.Println("error master coin nil")
 					continue
 				}
 
 				holdCoinMid := crypto.CheckCoin(*currencyConfig, "1h", 0, GetEndDate(checkingTime), nil)
 				holdCoinLong := crypto.CheckCoin(*currencyConfig, "4h", 0, GetEndDate(checkingTime), nil)
+				if holdCoinMid == nil || holdCoinLong == nil {
+					log.Println("error hold coin nil. skip need to sell checking process")
+					continue
+				}
 				isNeedTosell := analysis.IsNeedToSell(coin, *masterCoin, ats.isTimeToCheckAltCoinPrice(checkingTime), holdCoinMid.Trend, masterCoinLongInterval.Trend)
 				if isNeedTosell || analysis.SpecialCondition(coin.Symbol, coin, *holdCoinMid, *holdCoinLong) {
 					currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
@@ -233,12 +238,13 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 			}
 
 			result.Weight = analysis.CalculateWeightOnDown(result)
-			if result.Weight == 0 {
+			if result.Weight == 0 || (result.AllTrend.FirstTrend != models.TREND_DOWN && result.AllTrend.SecondTrend != models.TREND_DOWN) {
 				continue
 			}
 
 			midInterval := crypto.CheckCoin(data, "1h", 0, GetEndDate(checkingTime), nil)
-			if !analysis.IsIgnoredMasterDown(result, midInterval, masterCoin, checkingTime) {
+			longInterval := crypto.CheckCoin(data, "4h", 0, GetEndDate(checkingTime), nil)
+			if !analysis.IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin, checkingTime) {
 				altCoins = append(altCoins, *result)
 			}
 		}

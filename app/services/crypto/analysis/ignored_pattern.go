@@ -387,7 +387,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	return false
 }
 
-func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, checkingTime time.Time) bool {
+func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.BandResult, checkingTime time.Time) bool {
 	minPercentChanges := 2
 	midLowestIndex := getLowestIndexSecond(midInterval.Bands)
 	if !isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-4:]) {
@@ -484,6 +484,11 @@ func IsIgnoredMasterDown(result, midInterval, masterCoin *models.BandResult, che
 		return true
 	}
 
+	if isInAboveUpperBandAndDownTrend(longInterval) && longInterval.AllTrend.ShortTrend != models.TREND_UP {
+		ignoredReason = "long interval down from hight, cross sma not reversal"
+		return true
+	}
+
 	// kalo nemu 1 lg case baru dienable
 	// if checkingTime.Minute() < 18 {
 	// 	ignoredReason = "skip on mid interval time change"
@@ -527,7 +532,7 @@ func isLastBandCrossUpperAndPreviousBandNot(bands []models.Band) bool {
 
 func isHasCrossUpper(bands []models.Band) bool {
 	for _, band := range bands {
-		if band.Candle.Open < float32(band.Upper) && band.Candle.Close > float32(band.Upper) {
+		if band.Candle.Open < float32(band.Upper) && band.Candle.Hight > float32(band.Upper) {
 			return true
 		}
 	}
@@ -576,7 +581,7 @@ func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
 	} else {
 		isSecondLastBandCrossSMA = secondLastBand.Candle.Low <= float32(secondLastBand.SMA) && secondLastBand.Candle.Hight >= float32(secondLastBand.SMA)
 	}
-	isLastBandCrossSMA := lastBand.Candle.Open <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.SMA)
+	isLastBandCrossSMA := lastBand.Candle.Low <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.SMA)
 
 	return isLastBandCrossSMA || isSecondLastBandCrossSMA
 }
@@ -625,7 +630,7 @@ func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
 func isHeighestOnHalfEndAndAboveUpper(result *models.BandResult) bool {
 	hiIndex := getHighestIndex(result.Bands)
 	if hiIndex >= len(result.Bands)/2 {
-		return result.Bands[hiIndex].Candle.Close > float32(result.Bands[hiIndex].Upper)
+		return isHasCrossUpper(result.Bands[len(result.Bands)-5:])
 	}
 
 	return false
@@ -882,5 +887,4 @@ func GetIgnoredReason() string {
 }
 
 // tambah kondisi untuk bearish engulfing onsell, ketika kurang dari 3 check mid interval bearish engulfing jg? candle complete? atau udah turun 0.5 %
-// on master trend down. check juga logn interval. kalo down after up, skip kecuali reversal, dan cross band
 // adjust sell log bos
