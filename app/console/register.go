@@ -14,4 +14,5 @@ func init() {
 	cli.RegisterCommand(commands.CronRunCommand())
 	cli.RegisterCommand(commands.WorkerRunCommand())
 	cli.RegisterCommand(commands.TestingWeightCommand())
+	cli.RegisterCommand(commands.TestingSellCommand())
 }

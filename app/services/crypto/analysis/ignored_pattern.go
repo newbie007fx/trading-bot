@@ -473,7 +473,7 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 	}
 
 	oneDownTrend := midInterval.AllTrend.FirstTrendPercent > 10 && midInterval.AllTrend.SecondTrendPercent > 10
-	bothDownTrend := midInterval.AllTrend.FirstTrend == models.TREND_UP || midInterval.AllTrend.SecondTrend == models.TREND_UP || (midInterval.AllTrend.FirstTrendPercent > 13 && midInterval.AllTrend.SecondTrendPercent > 15)
+	bothDownTrend := midInterval.AllTrend.FirstTrend != models.TREND_DOWN || midInterval.AllTrend.SecondTrend != models.TREND_DOWN || (midInterval.AllTrend.FirstTrendPercent > 20 && midInterval.AllTrend.SecondTrendPercent > 20)
 	if oneDownTrend && bothDownTrend {
 		ignoredReason = "not significan down"
 		return true

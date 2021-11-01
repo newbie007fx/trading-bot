@@ -1,7 +1,6 @@
 package analysis
 
 import (
-	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"time"
@@ -9,18 +8,14 @@ import (
 
 var reason string = ""
 
-func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCandleComplete bool, coinLongTrend, masterCoinLongTrend int8) bool {
+func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.BandResult, masterCoin models.BandResult, requestTime time.Time, resultMid *models.BandResult, masterCoinLongTrend int8) bool {
 	reason = ""
-	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)
-	if err != nil {
-		log.Panicln(err.Error())
-	}
-
 	lastBand := result.Bands[len(result.Bands)-1]
 	changes := result.CurrentPrice - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
+	isCandleComplete := checkIsCandleComplete(requestTime, 15)
 
-	if changesInPercent >= 3 && currencyConfig.ReachTargerProfitAt == 0 {
+	if changesInPercent >= 3 && currencyConfig.ReachTargetProfitAt == 0 {
 		repositories.UpdateCurrencyNotifConfig(currencyConfig.ID, map[string]interface{}{"reach_target_profit_at": time.Now().Unix()})
 	}
 
@@ -52,8 +47,8 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 		}
 	}
 
-	if currencyConfig.ReachTargerProfitAt > 0 {
-		if sellWhenDoubleUpTargetProfi(*currencyConfig, result, changesInPercent) {
+	if currencyConfig.ReachTargetProfitAt > 0 {
+		if sellWhenDoubleUpTargetProfit(*currencyConfig, result, changesInPercent, requestTime) {
 			reason = "sell with double up target profit"
 			return true
 		}
@@ -61,8 +56,12 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 
 	whenDown := result.Trend == models.TREND_DOWN || (lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA))
 	if SellPattern(&result) && isCandleComplete && (changesInPercent > 1 || result.AllTrend.SecondTrend == models.TREND_DOWN) && !whenDown {
-		reason = "sell with criteria bearish engulfing"
-		return true
+		if changesInPercent < 3 && (!checkIsCandleComplete(requestTime, 60) || resultMid.Direction != BAND_DOWN) {
+
+		} else {
+			reason = "sell with criteria bearish engulfing"
+			return true
+		}
 	}
 
 	if currencyConfig.HoldPrice > result.CurrentPrice {
@@ -97,7 +96,7 @@ func IsNeedToSell(result models.BandResult, masterCoin models.BandResult, isCand
 			return true
 		}
 
-		if sellOnUp(result, currencyConfig, coinLongTrend, isCandleComplete, masterCoin.Trend, masterCoinLongTrend) {
+		if sellOnUp(result, currencyConfig, resultMid.Trend, isCandleComplete, masterCoin.Trend, masterCoinLongTrend) {
 			return true
 		}
 	}
@@ -265,10 +264,10 @@ func sellOnDown(result models.BandResult, currencyConfig *models.CurrencyNotifCo
 	return false
 }
 
-func sellWhenDoubleUpTargetProfi(config models.CurrencyNotifConfig, result models.BandResult, changeInPercent float32) bool {
+func sellWhenDoubleUpTargetProfit(config models.CurrencyNotifConfig, result models.BandResult, changeInPercent float32, requestTime time.Time) bool {
 	if changeInPercent >= 3 && changeInPercent < 3.847 && result.Direction == BAND_DOWN {
 		sixHourInSecond := 60 * 60 * 5
-		diff := time.Now().Unix() - config.ReachTargerProfitAt
+		diff := requestTime.Unix() - config.ReachTargetProfitAt
 
 		return diff/int64(sixHourInSecond) >= 1
 	}
@@ -388,12 +387,7 @@ func SellPattern(bandResult *models.BandResult) bool {
 	return false
 }
 
-func SpecialCondition(symbol string, shortInterval, midInterval, longInterval models.BandResult) bool {
-	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
-	if err != nil {
-		log.Panicln(err.Error())
-	}
-
+func SpecialCondition(currencyConfig *models.CurrencyNotifConfig, symbol string, shortInterval, midInterval, longInterval models.BandResult) bool {
 	lastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
 	changes := lastBand.Candle.Close - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
@@ -476,4 +470,9 @@ func down25PercentFromHight(result models.BandResult, changeInPercent float32, h
 	}
 
 	return false
+}
+
+func checkIsCandleComplete(requestTime time.Time, intervalMinute int) bool {
+	minute := requestTime.Minute()
+	return minute%intervalMinute == 0
 }

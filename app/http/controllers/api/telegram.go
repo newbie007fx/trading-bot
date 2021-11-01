@@ -124,8 +124,8 @@ func ProcessTeleWebhook(c echo.Context) error {
 		}
 	} else if cmd == "/sell-log" {
 		responseMsg = "invalid format lur"
-		if len(msgData) > 2 {
-			msg, err := handlerSellLog(msgData[1], msgData[2])
+		if len(msgData) > 5 {
+			msg, err := handlerSellLog(msgData[1], msgData[2], msgData[3], msgData[4], msgData[5])
 			if err != nil {
 				responseMsg = err.Error()
 			} else {
@@ -199,7 +199,7 @@ func handlerWeightLog(symbol, date string) (string, error) {
 	return msg, nil
 }
 
-func handlerSellLog(symbol, date string) (string, error) {
+func handlerSellLog(symbol, date, holdPrice, holdAt, reachTargetProfitAt string) (string, error) {
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
 	if err != nil {
 		log.Println(err.Error())
@@ -209,6 +209,26 @@ func handlerSellLog(symbol, date string) (string, error) {
 	if err != nil {
 		return "", errors.New("invalid log date value")
 	}
+
+	price, err := strconv.ParseFloat(holdPrice, 32)
+	if err != nil {
+		return "", errors.New("invalid hold price")
+	}
+
+	holdTime, err := strconv.ParseInt(holdAt, 10, 64)
+	if err != nil {
+		return "", errors.New("invalid hold at value")
+	}
+
+	reachTargetTime, err := strconv.ParseInt(reachTargetProfitAt, 10, 64)
+	if err != nil {
+		return "", errors.New("invalid reach target profit at value")
+	}
+
+	currencyConfig.HoldPrice = float32(price)
+	currencyConfig.HoldedAt = holdTime
+	currencyConfig.ReachTargetProfitAt = reachTargetTime
+
 	tm := time.Unix(i, 0)
 	msg := crypto.GetSellLog(*currencyConfig, tm)
 	return msg, nil

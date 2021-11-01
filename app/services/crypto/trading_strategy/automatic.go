@@ -111,26 +111,23 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					log.Println("error hold coin nil. skip need to sell checking process")
 					continue
 				}
-				isNeedTosell := analysis.IsNeedToSell(coin, *masterCoin, ats.isTimeToCheckAltCoinPrice(checkingTime), holdCoinMid.Trend, masterCoinLongInterval.Trend)
-				if isNeedTosell || analysis.SpecialCondition(coin.Symbol, coin, *holdCoinMid, *holdCoinLong) {
-					currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
-					if err == nil {
-						bands := coin.Bands
-						lastBand := bands[len(bands)-1]
-						err = crypto.ReleaseCoin(*currencyConfig, lastBand.Candle)
-						if err != nil {
-							tmpMsg = err.Error()
-						} else {
-							tmpMsg = fmt.Sprintf("coin berikut akan dijual %d:\n", GetEndDate(checkingTime))
-							tmpMsg += crypto.GenerateMsg(coin)
-							tmpMsg += "\n"
-							tmpMsg += crypto.HoldCoinMessage(*currencyConfig, &coin)
-							tmpMsg += "\n"
-							tmpMsg += "alasan dijual: " + analysis.GetSellReason() + "\n\n"
+				isNeedTosell := analysis.IsNeedToSell(currencyConfig, coin, *masterCoin, checkingTime, holdCoinMid, masterCoinLongInterval.Trend)
+				if isNeedTosell || analysis.SpecialCondition(currencyConfig, coin.Symbol, coin, *holdCoinMid, *holdCoinLong) {
+					bands := coin.Bands
+					lastBand := bands[len(bands)-1]
+					err = crypto.ReleaseCoin(*currencyConfig, lastBand.Candle)
+					if err != nil {
+						tmpMsg = err.Error()
+					} else {
+						tmpMsg = fmt.Sprintf("coin berikut akan dijual %d:\n", GetEndDate(checkingTime))
+						tmpMsg += crypto.GenerateMsg(coin)
+						tmpMsg += "\n"
+						tmpMsg += crypto.HoldCoinMessage(*currencyConfig, &coin)
+						tmpMsg += "\n"
+						tmpMsg += "alasan dijual: " + analysis.GetSellReason() + "\n\n"
 
-							balance := crypto.GetBalanceFromConfig()
-							tmpMsg += fmt.Sprintf("saldo saat ini: %f\n", balance)
-						}
+						balance := crypto.GetBalanceFromConfig()
+						tmpMsg += fmt.Sprintf("saldo saat ini: %f\n", balance)
 					}
 					msg += tmpMsg
 				}

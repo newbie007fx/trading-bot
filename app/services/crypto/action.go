@@ -63,18 +63,21 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 		currentTime = *requestTime
 	}
 
+	var closeBand models.Band
+	var result *models.BandResult
+
 	timeInMili := currentTime.Unix() * 1000
 
-	responseChan := make(chan CandleResponse)
-	request := CandleRequest{
-		Symbol:       config.Symbol,
-		EndDate:      timeInMili,
-		Limit:        40,
-		Resolution:   "15m",
-		ResponseChan: responseChan,
+	isTimeOnFifteenMinute := currentTime.Unix()%(15*60) == 0
+	if isTimeOnFifteenMinute {
+		result = CheckCoin(config, "15m", 0, timeInMili, nil)
+		closeBand = result.Bands[len(result.Bands)-1]
+	} else {
+		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, nil)
+		closeBand = oneMinuteResult.Bands[len(oneMinuteResult.Bands)-1]
+		result = CheckCoin(config, "15m", 0, timeInMili, &closeBand)
 	}
 
-	result := MakeCryptoRequest(config, request)
 	if result == nil {
 		return "invalid requested date"
 	}
@@ -215,10 +218,9 @@ func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 	masterCoinMid := CheckCoin(*masterCoinConfig, "1h", 0, timeInMili, &closeBandMaster)
 
 	coinMid := CheckCoin(config, "1h", 0, timeInMili, &closeBand)
-	coinLong := CheckCoin(config, "1h", 0, timeInMili, &closeBand)
-	isNeedTosell := analysis.IsNeedToSell(*coin, *masterCoin, isTimeOnFifteenMinute, coinMid.Trend, masterCoinMid.Trend)
-	if isNeedTosell || analysis.SpecialCondition(coin.Symbol, *coin, *coinMid, *coinLong) {
-
+	coinLong := CheckCoin(config, "4h", 0, timeInMili, &closeBand)
+	isNeedTosell := analysis.IsNeedToSell(&config, *coin, *masterCoin, datetime, coinMid, masterCoinMid.Trend)
+	if isNeedTosell || analysis.SpecialCondition(&config, coin.Symbol, *coin, *coinMid, *coinLong) {
 		msg := fmt.Sprintf("sell log on %s:\n", datetime.Format("January 2, 2006 15:04:05"))
 		msg += GenerateMsg(*coin)
 		msg += "\n"
