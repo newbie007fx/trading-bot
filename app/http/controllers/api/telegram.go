@@ -139,6 +139,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 	err := external.SendToTelegram(req.Message.Chat.ID, responseMsg)
 	if err != nil {
 		log.Println(err)
+		log.Println(responseMsg)
 	}
 
 	return c.JSON(http.StatusOK, helper.SuccessResponse(http.StatusOK, nil, "success"))

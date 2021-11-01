@@ -112,7 +112,11 @@ func MakeCryptoRequestUpdateLasCandle(data models.CurrencyNotifConfig, request C
 func updateLastCandle(candles []models.CandleData, close, hight float32) []models.CandleData {
 	lastCandle := candles[len(candles)-1]
 	lastCandle.Close = close
-	lastCandle.Hight = hight
+	if hight > lastCandle.Open {
+		lastCandle.Hight = hight
+	} else {
+		lastCandle.Hight = lastCandle.Open
+	}
 	candles[len(candles)-1] = lastCandle
 
 	return candles

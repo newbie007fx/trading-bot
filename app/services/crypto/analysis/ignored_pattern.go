@@ -204,8 +204,8 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	if lastBand.Candle.Open >= float32(lastBand.Upper) {
-		ignoredReason = fmt.Sprintf("open close above upper, %.2f, %.2f", lastBand.Candle.Open, lastBand.Upper)
+	if lastBand.Candle.Open >= float32(lastBand.Upper) && lastBand.Candle.Close > float32(lastBand.Upper) {
+		ignoredReason = fmt.Sprintf("open close above upper, %.4f, %.4f", lastBand.Candle.Open, lastBand.Upper)
 		return true
 	}
 
@@ -251,6 +251,15 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN {
 		if isHasCrossUpper(result.Bands[:len(result.Bands)/2], false) && result.Position == models.BELOW_SMA {
 			ignoredReason = "down-down from upper and position bellow sma"
+			return true
+		}
+	}
+
+	if result.Trend == models.TREND_UP && result.AllTrend.SecondTrendPercent < 5 {
+		longestIndex := getLongestCandleIndex(result.Bands[len(result.Bands)/2:])
+		secondWaveTrendDetail := CalculateTrendsDetail(result.Bands[longestIndex+len(result.Bands)/2:])
+		if secondWaveTrendDetail.FirstTrend != models.TREND_UP || secondWaveTrendDetail.SecondTrend != models.TREND_UP {
+			ignoredReason = "after significan up and not up up"
 			return true
 		}
 	}
@@ -356,14 +365,20 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	}
 
 	allTrendUp := shortInterval.Trend == models.TREND_UP && midInterval.Trend == models.TREND_UP && result.Trend == models.TREND_UP
-	allAboveUpper := isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-4:], false) && midInterval.Position == models.ABOVE_UPPER && result.Position == models.ABOVE_UPPER
-	if allAboveUpper || allTrendUp {
-		highestHightIndex := getHighestHightIndex(result.Bands)
-		highestIndex := getHighestIndex(result.Bands)
-		higestHightBand := result.Bands[highestHightIndex]
-		percent := (higestHightBand.Candle.Hight - lastBand.Candle.Close) / lastBand.Candle.Close * 100
-		if highestHightIndex == len(result.Bands)-1 || (percent <= 3 && highestIndex == len(result.Bands)-1) {
-			ignoredReason = "all interval above upper or all trend up and new hight created"
+	if (isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-4:], false) && midInterval.Position == models.ABOVE_UPPER) || allTrendUp {
+		if result.Position == models.ABOVE_UPPER {
+			highestHightIndex := getHighestHightIndex(result.Bands)
+			highestIndex := getHighestIndex(result.Bands)
+			higestHightBand := result.Bands[highestHightIndex]
+			percent := (higestHightBand.Candle.Hight - lastBand.Candle.Close) / lastBand.Candle.Close * 100
+			if highestHightIndex == len(result.Bands)-1 || (percent <= 3 && highestIndex == len(result.Bands)-1) {
+				ignoredReason = "all interval above upper or all trend up and new hight created"
+				return true
+			}
+		}
+
+		if result.Trend == models.TREND_DOWN && lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close > float32(lastBand.SMA) {
+			ignoredReason = "short and mid above upper and long down cross sma"
 			return true
 		}
 	}
@@ -398,6 +413,11 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 
 		if isNotInLower(result.Bands, false) {
 			ignoredReason = "is not in lower"
+			return true
+		}
+
+		if checkingTime.Minute() < 18 {
+			ignoredReason = "mid not cross lower and on mid interval time change"
 			return true
 		}
 
@@ -494,11 +514,11 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 		return true
 	}
 
-	// kalo nemu 1 lg case baru dienable
-	// if checkingTime.Minute() < 18 {
-	// 	ignoredReason = "skip on mid interval time change"
-	// 	return true
-	// }
+	longLastBand := longInterval.Bands[len(longInterval.Bands)-1]
+	if longInterval.AllTrend.ShortTrend == models.TREND_DOWN && longLastBand.Candle.Low < float32(longLastBand.SMA) && longLastBand.Candle.Hight > float32(longLastBand.SMA) {
+		ignoredReason = "long interval down and cross sma"
+		return true
+	}
 
 	return false
 }
@@ -838,6 +858,19 @@ func getIndexBandDoubleLong(bands []models.Band) int {
 		total -= hight
 		if (total/float32(len(bands)-1))*2 > hight {
 			return -1
+		}
+	}
+
+	return longestIndex
+}
+
+func getLongestCandleIndex(bands []models.Band) int {
+	longestIndex := 0
+	for i, band := range bands {
+		if band.Candle.Close > band.Candle.Open {
+			if bands[longestIndex].Candle.Close-bands[longestIndex].Candle.Open < band.Candle.Close-band.Candle.Open {
+				longestIndex = i
+			}
 		}
 	}
 

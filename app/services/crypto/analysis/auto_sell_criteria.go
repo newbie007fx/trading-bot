@@ -56,7 +56,7 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 
 	whenDown := result.Trend == models.TREND_DOWN || (lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA))
 	if SellPattern(&result) && isCandleComplete && (changesInPercent > 1 || result.AllTrend.SecondTrend == models.TREND_DOWN) && !whenDown {
-		if changesInPercent < 3 && (!checkIsCandleComplete(requestTime, 60) || resultMid.Direction != BAND_DOWN) {
+		if changesInPercent < 3 && resultMid.Direction != BAND_DOWN {
 
 		} else {
 			reason = "sell with criteria bearish engulfing"
