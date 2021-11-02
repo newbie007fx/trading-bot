@@ -139,14 +139,33 @@ func dragonflyDoji(bands []models.Band) bool {
 	if secondLastBand.Candle.Open > secondLastBand.Candle.Close {
 
 		if lastBand.Candle.Low <= float32(lastBand.Lower) || secondLastBand.Candle.Low <= float32(secondLastBand.Lower) {
-			different := lastBand.Candle.Close - lastBand.Candle.Open
-			candleBody := lastBand.Candle.Hight - lastBand.Candle.Low
+			return IsDoji(lastBand, true)
+		}
+	}
+
+	return false
+}
+
+func IsDoji(band models.Band, isUp bool) bool {
+	if isUp && band.Candle.Close > band.Candle.Open {
+		different := band.Candle.Close - band.Candle.Open
+		candleBody := band.Candle.Hight - band.Candle.Low
+		percent := different / candleBody * 100
+		if percent < 15 {
+			different = band.Candle.Open - band.Candle.Low
 			percent := different / candleBody * 100
-			if percent < 20 {
-				different = lastBand.Candle.Open - lastBand.Candle.Low
-				percent := different / candleBody * 100
-				return percent >= 60
-			}
+			return percent >= 60
+		}
+	}
+
+	if !isUp && band.Candle.Close < band.Candle.Open {
+		different := band.Candle.Open - band.Candle.Close
+		candleBody := band.Candle.Hight - band.Candle.Low
+		percent := different / candleBody * 100
+		if percent < 15 {
+			different = band.Candle.Close - band.Candle.Low
+			percent := different / candleBody * 100
+			return percent >= 60
 		}
 	}
 
