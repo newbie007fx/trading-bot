@@ -272,6 +272,13 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	if result.AllTrend.FirstTrend != models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.SecondTrendPercent > 20 {
+		if lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA) {
+			ignoredReason = "on down, not significan and cross sma"
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -414,6 +421,28 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.FirstTrendPercent < 20 && result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.SecondTrendPercent < 20 {
+		index := getHighestIndex(result.Bands[len(result.Bands)/2:])
+		if index < len(result.Bands)/2 && CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && !isLastBandOrPreviousBandCrossSMA(result.Bands) {
+			if index < (len(result.Bands)/2)-4 {
+				index = (len(result.Bands) / 2) - 4
+			}
+			lastDataFromHight := result.Bands[(len(result.Bands)/2)+index:]
+			if CalculateTrendShort(lastDataFromHight) != models.TREND_UP {
+				ignoredReason = "down and up significan then down trend"
+				return true
+			}
+		}
+	}
+
+	secondLastBand := result.Bands[len(result.Bands)-2]
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.SecondTrend < 10 {
+		if lastBand.Candle.Hight < float32(lastBand.Upper) && secondLastBand.Candle.Hight < float32(secondLastBand.Upper) {
+			ignoredReason = "up significan but last two band not cross upper"
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -498,7 +527,7 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 	}
 
 	if result.Position == models.BELOW_SMA && secondLastBand.Candle.Hight > float32(secondLastBand.SMA) {
-		ignoredReason = "previous band hit SMA and current band bellow SMA"
+		ignoredReason = "short interval previous band hit SMA and current band bellow SMA"
 		return true
 	}
 
@@ -555,6 +584,12 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 			ignoredReason = "long interval down cross upper, but band not up"
 			return true
 		}
+	}
+
+	longSecondBand := longInterval.Bands[len(longInterval.Bands)-2]
+	if longInterval.Position == models.BELOW_SMA && longSecondBand.Candle.Hight > float32(longSecondBand.SMA) && longInterval.AllTrend.SecondTrend != models.TREND_UP {
+		ignoredReason = "long interval previous band hit SMA and current band bellow SMA"
+		return true
 	}
 
 	return false
