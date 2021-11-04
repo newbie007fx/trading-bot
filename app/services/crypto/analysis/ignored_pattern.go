@@ -70,7 +70,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
-	if ThreeBlackCrowds((result.Bands[len(result.Bands)-5:])) {
+	if ThreeBlackCrowds((result.Bands[len(result.Bands)-4:])) {
 		ignoredReason = "three black crowds pattern"
 		return true
 	}
@@ -109,6 +109,11 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 			ignoredReason = "below sma and previous band down from upper"
 			return true
 		}
+	}
+
+	if result.Position == models.ABOVE_UPPER && !isHasCrossUpper(result.Bands[len(result.Bands)-5:len(result.Bands)-1], true) {
+		ignoredReason = "above upper and just one"
+		return true
 	}
 
 	return ignored(result, masterCoin)
