@@ -597,6 +597,17 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 		return true
 	}
 
+	if countCrossLower(longInterval.Bands[len(longInterval.Bands)-4:len(longInterval.Bands)-1]) == 3 {
+		ignoredReason = "long interval 3 band cross lower"
+		return true
+	}
+
+	trendDetail := CalculateTrendsDetail(longInterval.Bands[len(longInterval.Bands)/2:])
+	if trendDetail.SecondTrendPercent < 5 && longInterval.Position == models.ABOVE_SMA {
+		ignoredReason = "above sma and significan down"
+		return true
+	}
+
 	return false
 }
 
@@ -678,6 +689,17 @@ func isHasCrossLower(bands []models.Band) bool {
 	}
 
 	return crossLowerBand
+}
+
+func countCrossLower(bands []models.Band) int {
+	count := 0
+	for _, data := range bands {
+		if data.Candle.Low < float32(data.Lower) && data.Candle.Hight > float32(data.Lower) {
+			count++
+		}
+	}
+
+	return count
 }
 
 func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
