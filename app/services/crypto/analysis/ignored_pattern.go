@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"fmt"
+	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -111,7 +112,9 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		}
 	}
 
-	if result.Position == models.ABOVE_UPPER && !isHasCrossUpper(result.Bands[len(result.Bands)-5:len(result.Bands)-1], true) {
+	log.Println(lastBand.Candle.Hight)
+	log.Println(lastBand.Upper)
+	if lastBand.Candle.Hight > float32(lastBand.Upper) && !isHasCrossUpper(result.Bands[len(result.Bands)-5:len(result.Bands)-1], true) {
 		ignoredReason = "above upper and just one"
 		return true
 	}
@@ -338,15 +341,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
+	shortLastBand := shortInterval.Bands[len(result.Bands)-1]
+	percentshort := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * float32(100)
 	if midInterval.Position == models.ABOVE_SMA && shortInterval.Position == models.ABOVE_SMA {
 		if result.Position == models.ABOVE_SMA {
 			longLastBand := result.Bands[len(result.Bands)-1]
 			midLastBand := midInterval.Bands[len(result.Bands)-1]
-			shortLastBand := shortInterval.Bands[len(result.Bands)-1]
 
 			percentLong := (float32(longLastBand.Upper) - longLastBand.Candle.Close) / longLastBand.Candle.Close * float32(100)
 			percentMid := (float32(midLastBand.Upper) - midLastBand.Candle.Close) / midLastBand.Candle.Close * float32(100)
-			percentshort := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * float32(100)
 
 			if (percentLong < 3.3 && percentMid < 3.3 && percentshort < 3.3) && (shortInterval.AllTrend.SecondTrend != models.TREND_UP || midInterval.AllTrend.SecondTrend != models.TREND_UP || isLongIntervalTrendNotUp) {
 				ignoredReason = "all band bellow 3.1 from upper or not up trend"
@@ -446,6 +449,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			ignoredReason = "up significan but last two band not cross upper"
 			return true
 		}
+	}
+
+	if countCrossLower(result.Bands[len(result.Bands)-4:len(result.Bands)-1]) == 3 && percentshort <= 3 {
+		ignoredReason = "long interval 3 band cross lower and mergin form short below 3"
+		return true
 	}
 
 	return false
@@ -604,8 +612,10 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 
 	trendDetail := CalculateTrendsDetail(longInterval.Bands[len(longInterval.Bands)/2:])
 	if trendDetail.SecondTrendPercent < 5 && longInterval.Position == models.ABOVE_SMA {
-		ignoredReason = "above sma and significan down"
-		return true
+		if countDownBand(longInterval.Bands[len(longInterval.Bands)-5:]) > 2 && !isHasCrossSMA(longInterval.Bands[len(longInterval.Bands)-5:]) {
+			ignoredReason = "above sma and significan down"
+			return true
+		}
 	}
 
 	return false
