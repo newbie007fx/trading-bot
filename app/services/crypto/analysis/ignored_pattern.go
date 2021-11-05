@@ -112,8 +112,6 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		}
 	}
 
-	log.Println(lastBand.Candle.Hight)
-	log.Println(lastBand.Upper)
 	if lastBand.Candle.Hight > float32(lastBand.Upper) && !isHasCrossUpper(result.Bands[len(result.Bands)-5:len(result.Bands)-1], true) {
 		ignoredReason = "above upper and just one"
 		return true
@@ -387,8 +385,8 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	allTrendUp := shortInterval.Trend == models.TREND_UP && midInterval.Trend == models.TREND_UP && result.Trend == models.TREND_UP
-	if (isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-4:], false) && midInterval.Position == models.ABOVE_UPPER) || allTrendUp {
+	allTrendUp := midInterval.Trend == models.TREND_UP && result.Trend == models.TREND_UP
+	if isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-4:], false) || allTrendUp {
 		if result.Position == models.ABOVE_UPPER {
 			highestHightIndex := getHighestHightIndex(result.Bands)
 			highestIndex := getHighestIndex(result.Bands)
@@ -400,7 +398,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			}
 		}
 
-		if result.Trend == models.TREND_DOWN && lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close > float32(lastBand.SMA) {
+		if midInterval.Position == models.ABOVE_UPPER && result.Trend == models.TREND_DOWN && lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close > float32(lastBand.SMA) {
 			ignoredReason = "short and mid above upper and long down cross sma"
 			return true
 		}
@@ -454,6 +452,21 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	if countCrossLower(result.Bands[len(result.Bands)-4:len(result.Bands)-1]) == 3 && percentshort <= 3 {
 		ignoredReason = "long interval 3 band cross lower and mergin form short below 3"
 		return true
+	}
+
+	if midInterval.Trend == models.TREND_DOWN && result.Trend == models.TREND_DOWN {
+		if midInterval.Position == models.BELOW_SMA && result.Position == models.BELOW_SMA && percentshort <= 3 {
+			ignoredReason = "mi and long interval down and below sma and mergin form short below 3"
+			return true
+		}
+	}
+
+	if result.Trend == models.TREND_DOWN && countBelowSMA(result.Bands[len(result.Bands)-6:len(result.Bands)-1]) == 5 {
+		log.Println("ghjghj")
+		if lastBand.Candle.Low < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA) && percentshort <= 3 {
+			ignoredReason = "long interval down and below sma (5) and cross sma && mergin form short below 3"
+			return true
+		}
 	}
 
 	return false
@@ -705,6 +718,17 @@ func countCrossLower(bands []models.Band) int {
 	count := 0
 	for _, data := range bands {
 		if data.Candle.Low < float32(data.Lower) && data.Candle.Hight > float32(data.Lower) {
+			count++
+		}
+	}
+
+	return count
+}
+
+func countBelowSMA(bands []models.Band) int {
+	count := 0
+	for _, data := range bands {
+		if data.Candle.Close < float32(data.SMA) {
 			count++
 		}
 	}
