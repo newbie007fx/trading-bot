@@ -35,7 +35,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
-	if lastFourCandleNotUpTrend(result.Bands) {
+	if lastFourCandleNotUpTrend(result.Bands) && !reversalFromLower(*result) {
 		ignoredReason = "lastFourCandleNotUpTrend"
 		return true
 	}
@@ -121,7 +121,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 }
 
 func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
-	if isInAboveUpperBandAndDownTrend(result) {
+	if isInAboveUpperBandAndDownTrend(result) && !isLastBandOrPreviousBandCrossSMA(result.Bands) && !reversalFromLower(*shortInterval) {
 		ignoredReason = "isInAboveUpperBandAndDownTrend"
 		return true
 	}
@@ -148,7 +148,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 && !isReversal(result.Bands) {
+	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 && !isReversal(result.Bands) && !reversalFromLower(*shortInterval) {
 		ignoredReason = "count up"
 		return true
 	}
@@ -190,7 +190,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if isContaineBearishEngulfing(result) {
+	if isContaineBearishEngulfing(result) && !isLastBandOrPreviousBandCrossSMA(result.Bands) {
 		ignoredReason = "isContaineBearishEngulfing"
 		return true
 	}
@@ -491,6 +491,11 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 			return true
 		}
 
+		if (result.AllTrend.FirstTrend != models.TREND_DOWN || result.AllTrend.FirstTrendPercent > 10) && (result.AllTrend.SecondTrend != models.TREND_DOWN || result.AllTrend.SecondTrendPercent > 10) {
+			ignoredReason = "mid not cross lower and short interval not significan down"
+			return true
+		}
+
 		minPercentChanges = 3
 	}
 
@@ -565,7 +570,7 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 	oneDownTrend := midInterval.AllTrend.FirstTrendPercent > 10 && midInterval.AllTrend.SecondTrendPercent > 10
 	bothDownTrend := midInterval.AllTrend.FirstTrend != models.TREND_DOWN || midInterval.AllTrend.SecondTrend != models.TREND_DOWN || (midInterval.AllTrend.FirstTrendPercent > 20 && midInterval.AllTrend.SecondTrendPercent > 20)
 	if oneDownTrend && bothDownTrend {
-		ignoredReason = "not significan down"
+		ignoredReason = "mid interval not significan down"
 		return true
 	}
 
@@ -646,6 +651,27 @@ func isReversal(bands []models.Band) bool {
 	trend := CalculateTrends(bands[:len(bands)-1])
 	shortTrend := CalculateTrendShort(bands[len(bands)-4:])
 	return trend == models.TREND_DOWN && shortTrend == models.TREND_UP
+}
+
+func reversalFromLower(result models.BandResult) bool {
+	trend := CalculateTrendsDetail(result.Bands[:len(result.Bands)-1])
+	if isHasCrossLower(result.Bands[len(result.Bands)-4:]) && isLowerDifferentValid(result.Bands) {
+		return trend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_UP
+	}
+	return false
+}
+
+func isLowerDifferentValid(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+	midBand := bands[len(bands)/2]
+	var percent float32 = 0
+	if lastBand.Lower > midBand.Lower {
+		percent = float32(midBand.Lower) / float32(lastBand.Lower) * 100
+	} else {
+		percent = float32(lastBand.Lower) / float32(midBand.Lower) * 100
+	}
+
+	return percent > 98.898
 }
 
 func isCrossLowerWhenSignificanDown(result *models.BandResult) bool {
@@ -801,7 +827,7 @@ func isHeighestOnHalfEndAndAboveUpper(result *models.BandResult) bool {
 }
 
 func isContaineBearishEngulfing(result *models.BandResult) bool {
-	hiIndex := len(result.Bands) - (len(result.Bands) / 4)
+	hiIndex := len(result.Bands) - 4
 	return BearishEngulfing(result.Bands[hiIndex:]) && CalculateTrendShort(result.Bands[hiIndex:]) == models.TREND_DOWN
 }
 
