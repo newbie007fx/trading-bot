@@ -2,7 +2,6 @@ package analysis
 
 import (
 	"fmt"
-	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -153,7 +152,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if result.Position == models.ABOVE_UPPER {
+	if result.Position == models.ABOVE_UPPER && shortInterval.Trend != models.TREND_UP {
 		if result.Trend != models.TREND_UP || result.AllTrend.ShortTrend != models.TREND_UP {
 			ignoredReason = "position above upper trend not up"
 			return true
@@ -365,7 +364,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			return true
 		}
 
-		if result.AllTrend.SecondTrend == models.TREND_DOWN {
+		if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend != models.TREND_UP {
 			ignoredReason = "short and mid above sma but long interval second wave down trend"
 			return true
 		}
@@ -461,8 +460,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	if result.Trend == models.TREND_DOWN && countBelowSMA(result.Bands[len(result.Bands)-6:len(result.Bands)-1]) == 5 {
-		log.Println("ghjghj")
+	if result.Trend == models.TREND_DOWN && countBelowSMA(result.Bands[len(result.Bands)-6:len(result.Bands)-1]) == 5 && result.AllTrend.ShortTrend != models.TREND_UP {
 		if lastBand.Candle.Low < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA) && percentshort <= 3 {
 			ignoredReason = "long interval down and below sma (5) and cross sma && mergin form short below 3"
 			return true
