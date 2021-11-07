@@ -460,7 +460,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	if result.Trend == models.TREND_DOWN && countBelowSMA(result.Bands[len(result.Bands)-6:len(result.Bands)-1]) == 5 && result.AllTrend.ShortTrend != models.TREND_UP {
+	if result.Trend == models.TREND_DOWN && countBelowSMA(result.Bands[len(result.Bands)-6:len(result.Bands)-1], false) == 5 && result.AllTrend.ShortTrend != models.TREND_UP {
 		if lastBand.Candle.Low < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA) && percentshort <= 3 {
 			ignoredReason = "long interval down and below sma (5) and cross sma && mergin form short below 3"
 			return true
@@ -538,10 +538,10 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 		return true
 	}
 
-	if isCrossLowerWhenSignificanDown(midInterval) {
-		ignoredReason = "mid interval cross lower on significan down"
-		return true
-	}
+	// if isCrossLowerWhenSignificanDown(midInterval) {
+	// 	ignoredReason = "mid interval cross lower on significan down"
+	// 	return true
+	// }
 
 	if isGetBearishEngulfingAfterLowest(result.Bands) {
 		ignoredReason = "contain bearish engulfing"
@@ -634,6 +634,16 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 		}
 	}
 
+	if midInterval.AllTrend.FirstTrend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+		longFirstBand := longInterval.Bands[0]
+		if countBelowSMA(longInterval.Bands[len(longInterval.Bands)-2:], true) == 2 && marginFromUpper < 3 {
+			if countCrossLower(longInterval.Bands[len(longInterval.Bands)-4:]) < 2 || longFirstBand.Candle.Close < lastBand.Candle.Close {
+				ignoredReason = "mid down-down, long interval below sma not cross lower"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
@@ -672,14 +682,14 @@ func isLowerDifferentValid(bands []models.Band) bool {
 	return percent > 98.898
 }
 
-func isCrossLowerWhenSignificanDown(result *models.BandResult) bool {
-	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Open < float32(lastBand.Lower) && lastBand.Candle.Close > float32(lastBand.Lower) {
-		return result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.SecondTrendPercent < 50
-	}
+// func isCrossLowerWhenSignificanDown(result *models.BandResult) bool {
+// 	lastBand := result.Bands[len(result.Bands)-1]
+// 	if lastBand.Candle.Open < float32(lastBand.Lower) && lastBand.Candle.Close > float32(lastBand.Lower) {
+// 		return result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.SecondTrendPercent < 50
+// 	}
 
-	return false
-}
+// 	return false
+// }
 
 func isLastBandCrossUpperAndPreviousBandNot(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
@@ -749,11 +759,17 @@ func countCrossLower(bands []models.Band) int {
 	return count
 }
 
-func countBelowSMA(bands []models.Band) int {
+func countBelowSMA(bands []models.Band, strict bool) int {
 	count := 0
 	for _, data := range bands {
-		if data.Candle.Close < float32(data.SMA) {
-			count++
+		if strict {
+			if data.Candle.Close < float32(data.SMA) && data.Candle.Open < float32(data.SMA) {
+				count++
+			}
+		} else {
+			if data.Candle.Close < float32(data.SMA) {
+				count++
+			}
 		}
 	}
 

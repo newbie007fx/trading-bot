@@ -61,7 +61,7 @@ func CalculateTrends(data []models.Band) int8 {
 }
 
 func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
-	if len(data) == 0 {
+	if len(data) < 4 {
 		log.Println("invalid data when calculate trends")
 		return models.TrendDetail{
 			FirstTrend:  models.TREND_DOWN,

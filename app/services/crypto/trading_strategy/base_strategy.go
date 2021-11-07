@@ -147,6 +147,7 @@ func GetEndDate(baseTime time.Time) int64 {
 
 func waitMasterCoinProcessed() {
 	maxCount := 5
+	log.Println("wait master")
 	for waitMasterCoin {
 		time.Sleep(1 * time.Second)
 		maxCount--
@@ -154,4 +155,5 @@ func waitMasterCoinProcessed() {
 			waitMasterCoin = false
 		}
 	}
+	log.Println("done")
 }
