@@ -284,6 +284,11 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	if isDoubleUp(result.Bands) {
+		ignoredReason = "has double up"
+		return true
+	}
+
 	return false
 }
 
@@ -464,6 +469,17 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		if lastBand.Candle.Low < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA) && percentshort <= 3 {
 			ignoredReason = "long interval down and below sma (5) and cross sma && mergin form short below 3"
 			return true
+		}
+	}
+
+	if result.AllTrend.SecondTrendPercent < 20 {
+		secondWaveBands := result.Bands[len(result.Bands)/2:]
+		if countCrossUpper(secondWaveBands) > 2 {
+			secondLastBand := result.Bands[len(result.Bands)-2]
+			if secondLastBand.Candle.Open > secondLastBand.Candle.Close && secondLastBand.Candle.Open > float32(secondLastBand.Upper) {
+				ignoredReason = "previous band down from upper"
+				return true
+			}
 		}
 	}
 
@@ -702,13 +718,15 @@ func isLastBandCrossUpperAndPreviousBandNot(bands []models.Band) bool {
 
 func isHasCrossUpper(bands []models.Band, withHead bool) bool {
 	for _, band := range bands {
-		if withHead {
-			if band.Candle.Open < float32(band.Upper) && band.Candle.Hight > float32(band.Upper) {
-				return true
-			}
-		} else {
-			if band.Candle.Open < float32(band.Upper) && band.Candle.Close > float32(band.Upper) {
-				return true
+		if band.Candle.Open < band.Candle.Close {
+			if withHead {
+				if band.Candle.Open < float32(band.Upper) && band.Candle.Hight > float32(band.Upper) {
+					return true
+				}
+			} else {
+				if band.Candle.Open < float32(band.Upper) && band.Candle.Close > float32(band.Upper) {
+					return true
+				}
 			}
 		}
 	}
@@ -752,6 +770,17 @@ func countCrossLower(bands []models.Band) int {
 	count := 0
 	for _, data := range bands {
 		if data.Candle.Low < float32(data.Lower) && data.Candle.Hight > float32(data.Lower) {
+			count++
+		}
+	}
+
+	return count
+}
+
+func countCrossUpper(bands []models.Band) int {
+	count := 0
+	for _, data := range bands {
+		if data.Candle.Open < float32(data.Upper) && data.Candle.Hight > float32(data.Upper) {
 			count++
 		}
 	}
@@ -865,6 +894,34 @@ func getHighestHightIndex(bands []models.Band) int {
 	}
 
 	return hiIndex
+}
+
+func isDoubleUp(bands []models.Band) bool {
+	secondWaveBands := bands[len(bands)/2:]
+	if countCrossUpper(secondWaveBands) == 2 {
+		hiIndex := getHighestHightIndex(secondWaveBands)
+		secondHiIndex := 0
+		for i, band := range bands {
+			if secondHiIndex != hiIndex && bands[secondHiIndex].Candle.Hight <= band.Candle.Hight {
+				secondHiIndex = i
+			}
+		}
+
+		if hiIndex == len(secondWaveBands)-1 || secondHiIndex == len(secondWaveBands) {
+			different := 0
+			var percent float32 = 0
+			if hiIndex < secondHiIndex {
+				different = secondHiIndex - hiIndex
+				percent = secondWaveBands[hiIndex].Candle.Hight / secondWaveBands[secondHiIndex].Candle.Hight * 100
+			} else {
+				different = hiIndex - secondHiIndex
+				percent = secondWaveBands[secondHiIndex].Candle.Hight / secondWaveBands[hiIndex].Candle.Hight * 100
+			}
+
+			return different >= 5 && percent > 97
+		}
+	}
+	return false
 }
 
 func getLowestIndex(bands []models.Band) int {
