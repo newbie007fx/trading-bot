@@ -92,7 +92,7 @@ func IsHammer(bands []models.Band) bool {
 	if percent < 10 {
 		different = lastBand.Candle.Open - lastBand.Candle.Low
 		percent := different / candleBody * 100
-		return percent >= 60
+		return percent >= 65
 	}
 
 	return false
