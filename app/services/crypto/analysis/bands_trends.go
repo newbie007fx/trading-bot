@@ -84,8 +84,10 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	var totalMidleData float32 = 0
 
 	var midle_counter int = 0
+	var first_counter int = 0
+	var last_counter int = 0
 
-	middleIndex := (len(data) / 2) - 1
+	middleIndex := (len(data) / 2)
 	lowestIndexFirst := 0
 	lowestIndexMiddle := (len(data) / 2)
 	for i, val := range data {
@@ -99,6 +101,7 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 
 		if i < limit {
 			totalFirstData += val.Candle.Close
+			first_counter++
 		}
 
 		if i >= middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
@@ -108,6 +111,7 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 
 		if i >= len(data)-limit {
 			totalLastData += val.Candle.Close
+			last_counter++
 		}
 
 		if i <= middleIndex || (i > middleIndex-(limit/2) && i <= middleIndex+(limit/2)) {
@@ -123,8 +127,8 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 		}
 	}
 
-	firstAvg := totalFirstData / float32(limit)
-	lastAvg := totalLastData / float32(limit)
+	firstAvg := totalFirstData / float32(first_counter)
+	lastAvg := totalLastData / float32(last_counter)
 	midleAvg := totalMidleData / float32(midle_counter)
 	baseLinePoint := data[lowestIndex].Candle.Close
 
