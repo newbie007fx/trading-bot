@@ -111,7 +111,7 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		}
 	}
 
-	if lastBand.Candle.Hight > float32(lastBand.Upper) && !isHasCrossUpper(result.Bands[len(result.Bands)-5:len(result.Bands)-1], true) {
+	if lastBand.Candle.Hight > float32(lastBand.Upper) && !isHasCrossUpper(result.Bands[len(result.Bands)-6:len(result.Bands)-1], false) {
 		ignoredReason = "above upper and just one"
 		return true
 	}

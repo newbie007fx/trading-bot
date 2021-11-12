@@ -63,7 +63,8 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 			halfMidSecondLastBand := (midSecondLastBand.Candle.Close-midSecondLastBand.Candle.Open)/2 + midSecondLastBand.Candle.Open
 			previousMidBandValid = midLastBand.Candle.Close > halfMidSecondLastBand
 		}
-		if changesInPercent < 3 && (resultMid.Direction != BAND_DOWN || previousMidBandValid) {
+		lastbandCrossLower := lastBand.Candle.Low < float32(lastBand.Lower) && lastBand.Candle.Close > float32(lastBand.Lower)
+		if changesInPercent < 3 && (resultMid.Direction != BAND_DOWN || previousMidBandValid || lastbandCrossLower || masterCoin.Direction == BAND_UP) {
 
 		} else {
 			reason = "sell with criteria bearish engulfing"
