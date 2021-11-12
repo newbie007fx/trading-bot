@@ -54,7 +54,7 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 		}
 	}
 
-	whenDown := result.Trend == models.TREND_DOWN || (lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA))
+	whenDown := result.AllTrend.Trend == models.TREND_DOWN || (lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA))
 	if SellPattern(&result) && isCandleComplete && (changesInPercent > 1 || result.AllTrend.SecondTrend == models.TREND_DOWN) && !whenDown {
 		midLastBand := resultMid.Bands[len(result.Bands)-1]
 		midSecondLastBand := resultMid.Bands[len(result.Bands)-2]
@@ -104,7 +104,7 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 			return true
 		}
 
-		if sellOnUp(result, currencyConfig, resultMid.Trend, isCandleComplete, masterCoin.Trend, masterCoinLongTrend) {
+		if sellOnUp(result, currencyConfig, resultMid.AllTrend.Trend, isCandleComplete, masterCoin.AllTrend.Trend, masterCoinLongTrend) {
 			return true
 		}
 	}

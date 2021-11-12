@@ -29,7 +29,6 @@ type Band struct {
 
 type Bands struct {
 	Data                 []Band
-	Trend                int8
 	AllTrend             TrendDetail
 	PriceChanges         float32
 	VolumeAverageChanges float32
@@ -41,7 +40,6 @@ type BandResult struct {
 	Direction     int8
 	CurrentPrice  float32
 	CurrentVolume float32
-	Trend         int8
 	AllTrend      TrendDetail
 	PriceChanges  float32
 	VolumeChanges float32

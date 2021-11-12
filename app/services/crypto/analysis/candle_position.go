@@ -37,7 +37,7 @@ func CheckPositionSMAAfterLower(bands models.Bands) bool {
 	//candle posisi sekarang diatas sma, trend up.
 	lastBand := bands.Data[len(bands.Data)-1]
 	if lastBand.Candle.Open <= float32(lastBand.SMA) && float32(lastBand.SMA) <= lastBand.Candle.Close {
-		if bands.Trend == models.TREND_UP {
+		if bands.AllTrend.Trend == models.TREND_UP {
 			return true
 		}
 	}
@@ -78,7 +78,7 @@ func IsTrendUpAfterTrendDown(symbol string, bands models.Bands) bool {
 	result := false
 	var trend int8 = 0
 	store := helper.GetSimpleStore()
-	if bands.Trend == models.TREND_UP {
+	if bands.AllTrend.Trend == models.TREND_UP {
 		resultString := store.Get(symbol)
 		if resultString != nil {
 			tmp, err := strconv.ParseInt(*resultString, 10, 8)
@@ -90,7 +90,7 @@ func IsTrendUpAfterTrendDown(symbol string, bands models.Bands) bool {
 
 	result = trend == models.TREND_DOWN
 
-	store.Set(symbol, fmt.Sprint(bands.Trend))
+	store.Set(symbol, fmt.Sprint(bands.AllTrend.Trend))
 
 	return result
 }
@@ -99,7 +99,7 @@ func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
 	result := false
 	var trend int8 = 0
 	store := helper.GetSimpleStore()
-	if bands.Trend == models.TREND_DOWN {
+	if bands.AllTrend.Trend == models.TREND_DOWN {
 		resultString := store.Get(symbol)
 		if resultString != nil {
 			tmp, err := strconv.ParseInt(*resultString, 10, 8)
@@ -111,7 +111,7 @@ func IsTrendDownAfterTrendUp(symbol string, bands models.Bands) bool {
 
 	result = trend == models.TREND_UP
 
-	store.Set(symbol, fmt.Sprint(bands.Trend))
+	store.Set(symbol, fmt.Sprint(bands.AllTrend.Trend))
 
 	return result
 }
@@ -133,7 +133,7 @@ func CheckPositionSMAAfterUpper(bands models.Bands) bool {
 	//candle posisi sekarang diatas sma, trend down.
 	lastBand := bands.Data[len(bands.Data)-1]
 	if lastBand.Candle.Open >= float32(lastBand.SMA) && float32(lastBand.SMA) >= lastBand.Candle.Close {
-		if bands.Trend == models.TREND_DOWN {
+		if bands.AllTrend.Trend == models.TREND_DOWN {
 			return true
 		}
 	}

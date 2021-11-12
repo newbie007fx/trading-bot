@@ -6,60 +6,6 @@ import (
 	"telebot-trading/app/models"
 )
 
-func CalculateTrends(data []models.Band) int8 {
-	if len(data) == 0 {
-		log.Println("invalid data when calculate trends")
-		return models.TREND_DOWN
-	}
-
-	highestIndex, lowestIndex := 0, 0
-	thirtyPercent := float64(len(data)) * float64(15) / float64(100)
-	limit := int(math.Floor(thirtyPercent))
-	if limit < 1 {
-		limit = 1
-	}
-
-	var totalFirstData float32 = 0
-	var totalLastData float32 = 0
-	var totalMidleData float32 = 0
-
-	var midle_counter int = 0
-
-	middleIndex := (len(data) / 2) - 1
-	for i, val := range data {
-		if data[highestIndex].Candle.Close < val.Candle.Close {
-			highestIndex = i
-		}
-
-		if data[lowestIndex].Candle.Close > val.Candle.Close {
-			lowestIndex = i
-		}
-
-		if i < limit {
-			totalFirstData += val.Candle.Close
-		}
-
-		if i >= middleIndex-(limit/2) && i <= middleIndex+(limit/2) {
-			totalMidleData += val.Candle.Close
-			midle_counter++
-		}
-
-		if i >= len(data)-limit {
-			totalLastData += val.Candle.Close
-		}
-	}
-
-	firstAvg := totalFirstData / float32(limit)
-	lastAvg := totalLastData / float32(limit)
-	midleAvg := totalMidleData / float32(midle_counter)
-	baseLinePoint := data[lowestIndex].Candle.Close
-
-	_, firstToMidleTrend := getTrend(baseLinePoint, firstAvg, midleAvg)
-	_, midleToLastTrend := getTrend(baseLinePoint, midleAvg, lastAvg)
-
-	return getConclusionTrend(firstToMidleTrend, midleToLastTrend, firstAvg, midleAvg, lastAvg, baseLinePoint)
-}
-
 func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	if len(data) < 4 {
 		log.Println("invalid data when calculate trends")
@@ -114,13 +60,13 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 			last_counter++
 		}
 
-		if i <= middleIndex || (i > middleIndex-(limit/2) && i <= middleIndex+(limit/2)) {
+		if i <= middleIndex+(limit/2) {
 			if data[lowestIndexFirst].Candle.Close > val.Candle.Close {
 				lowestIndexFirst = i
 			}
 		}
 
-		if i > middleIndex || (i > middleIndex-(limit/2) && i <= middleIndex+(limit/2)) {
+		if i >= middleIndex-(limit/2) {
 			if data[lowestIndexMiddle].Candle.Close > val.Candle.Close {
 				lowestIndexMiddle = i
 			}

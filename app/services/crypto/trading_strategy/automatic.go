@@ -111,7 +111,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					log.Println("error hold coin nil. skip need to sell checking process")
 					continue
 				}
-				isNeedTosell := analysis.IsNeedToSell(currencyConfig, coin, *masterCoin, checkingTime, holdCoinMid, masterCoinLongInterval.Trend)
+				isNeedTosell := analysis.IsNeedToSell(currencyConfig, coin, *masterCoin, checkingTime, holdCoinMid, masterCoinLongInterval.AllTrend.Trend)
 				if isNeedTosell || analysis.SpecialCondition(currencyConfig, coin.Symbol, coin, *holdCoinMid, *holdCoinLong) {
 					bands := coin.Bands
 					lastBand := bands[len(bands)-1]
@@ -315,13 +315,13 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 }
 
 func getWeightCustomInterval(result, coin models.BandResult, interval string, previous *models.BandResult) float32 {
-	weight := analysis.CalculateWeightLongInterval(&result, masterTmp.Trend)
+	weight := analysis.CalculateWeightLongInterval(&result, masterTmp.AllTrend.Trend)
 	ignored := false
 
 	if interval == "1h" {
 		ignored = analysis.IsIgnoredMidInterval(&result, &coin)
 	} else {
-		ignored = analysis.IsIgnoredLongInterval(&result, &coin, previous, masterTmp.Trend, masterMidTmp.Trend)
+		ignored = analysis.IsIgnoredLongInterval(&result, &coin, previous, masterTmp.AllTrend.Trend, masterMidTmp.AllTrend.Trend)
 	}
 
 	if ignored || result.Direction == analysis.BAND_DOWN {
@@ -340,7 +340,7 @@ func sendHoldMsg(result *models.BandResult) string {
 }
 
 func checkMasterDown() bool {
-	if masterCoin.Trend == models.TREND_DOWN && masterCoinLongInterval.Trend == models.TREND_DOWN {
+	if masterCoin.AllTrend.Trend == models.TREND_DOWN && masterCoinLongInterval.AllTrend.Trend == models.TREND_DOWN {
 		return true
 	}
 
@@ -348,7 +348,7 @@ func checkMasterDown() bool {
 }
 
 func skippedProcess() bool {
-	if masterCoin.Trend == models.TREND_DOWN && masterCoinLongInterval.Trend != models.TREND_DOWN {
+	if masterCoin.AllTrend.Trend == models.TREND_DOWN && masterCoinLongInterval.AllTrend.Trend != models.TREND_DOWN {
 		return true
 	}
 

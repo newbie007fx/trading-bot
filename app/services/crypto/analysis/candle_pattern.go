@@ -16,7 +16,7 @@ func GetCandlePattern(bandResult *models.BandResult) []int8 {
 	bands := bandResult.Bands
 	result := []int8{}
 
-	if bandResult.Trend == models.TREND_DOWN {
+	if bandResult.AllTrend.Trend == models.TREND_DOWN {
 		if hammer(bands) {
 			result = append(result, PATTERN_HAMMER)
 		}

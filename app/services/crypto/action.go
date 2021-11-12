@@ -145,7 +145,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	}
 
 	resultMid := CheckCoin(config, "1h", 0, timeInMili, &closeBand)
-	weightMid := analysis.CalculateWeightLongInterval(resultMid, masterCoin.Trend)
+	weightMid := analysis.CalculateWeightLongInterval(resultMid, masterCoin.AllTrend.Trend)
 	msg += fmt.Sprintf("\nweight midInterval for coin %s: %.2f", config.Symbol, weightMid)
 	msg += "\n"
 	msg += "detail weight: \n"
@@ -154,7 +154,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	}
 
 	resultLong := CheckCoin(config, "4h", 0, timeInMili, &closeBand)
-	weightLong := analysis.CalculateWeightLongInterval(resultLong, masterCoin.Trend)
+	weightLong := analysis.CalculateWeightLongInterval(resultLong, masterCoin.AllTrend.Trend)
 	msg += fmt.Sprintf("\nweight long Interval for coin %s: %.2f", config.Symbol, weightLong)
 	msg += "\n"
 	msg += "detail weight: \n"
@@ -174,7 +174,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
 	}
 
-	longIgnored := analysis.IsIgnoredLongInterval(resultLong, result, resultMid, masterCoin.Trend, masterCoinMid.Trend)
+	longIgnored := analysis.IsIgnoredLongInterval(resultLong, result, resultMid, masterCoin.AllTrend.Trend, masterCoinMid.AllTrend.Trend)
 	msg += fmt.Sprintf("ignord long interval: %t\n", longIgnored)
 	if longIgnored {
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
@@ -219,7 +219,7 @@ func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 
 	coinMid := CheckCoin(config, "1h", 0, timeInMili, &closeBand)
 	coinLong := CheckCoin(config, "4h", 0, timeInMili, &closeBand)
-	isNeedTosell := analysis.IsNeedToSell(&config, *coin, *masterCoin, datetime, coinMid, masterCoinMid.Trend)
+	isNeedTosell := analysis.IsNeedToSell(&config, *coin, *masterCoin, datetime, coinMid, masterCoinMid.AllTrend.Trend)
 	if isNeedTosell || analysis.SpecialCondition(&config, coin.Symbol, *coin, *coinMid, *coinLong) {
 		msg := fmt.Sprintf("sell log on %s:\n", datetime.Format("January 2, 2006 15:04:05"))
 		msg += GenerateMsg(*coin)
