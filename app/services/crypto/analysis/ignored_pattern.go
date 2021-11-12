@@ -910,7 +910,7 @@ func isDoubleUp(bands []models.Band) bool {
 	if countCrossUpper(secondWaveBands) == 2 {
 		hiIndex := getHighestHightIndex(secondWaveBands)
 		secondHiIndex := 0
-		for i, band := range bands {
+		for i, band := range secondWaveBands {
 			if secondHiIndex != hiIndex && bands[secondHiIndex].Candle.Hight <= band.Candle.Hight {
 				secondHiIndex = i
 			}
