@@ -92,11 +92,6 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
-	if afterUpThenDown(result) {
-		ignoredReason = "after up then down"
-		return true
-	}
-
 	isUp := result.AllTrend.Trend == models.TREND_UP && !isHaveCountDown
 	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrendPercent > 70 && !isReversal(result.Bands) && !isUp {
 		ignoredReason = "above sma and just minor up"
@@ -263,7 +258,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	lowest := getLowestLowPrice(result.Bands)
 	difference := highest - lowest
 	percent := difference / lowest * 100
-	if percent <= 3 {
+	if percent <= 2 {
 		ignoredReason = "hight and low bellow 3"
 		return true
 	}
@@ -305,9 +300,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if result.AllTrend.Trend == models.TREND_DOWN && shortInterval.AllTrend.Trend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) == models.TREND_DOWN {
-		ignoredReason = "first trend down and seconddown"
-		return true
+	if !isHasCrossLower(result.Bands[len(result.Bands)/2:]) && !isReversal(shortInterval.Bands) {
+		if result.AllTrend.Trend == models.TREND_DOWN && shortInterval.AllTrend.Trend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) == models.TREND_DOWN {
+			ignoredReason = "first trend down and seconddown"
+			return true
+		}
 	}
 
 	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP {
@@ -420,11 +417,6 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if afterUpThenDown(midInterval) && (result.AllTrend.Trend == BAND_DOWN || result.Direction == BAND_DOWN) {
-		ignoredReason = "mid interval after up then down"
-		return true
-	}
-
 	percentFromHeight := (lastBand.Candle.Hight - lastBand.Candle.Close) / lastBand.Candle.Close * 100
 	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrend == models.TREND_SIDEWAY && percentFromHeight < 3 && !isHasCrossLower(result.Bands[len(result.Bands)/2:]) {
 		ignoredReason = "sideway, above sma and percent from upper bellow 3"
@@ -467,8 +459,8 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	}
 
 	if midInterval.AllTrend.Trend == models.TREND_DOWN && result.AllTrend.Trend == models.TREND_DOWN {
-		if midInterval.Position == models.BELOW_SMA && result.Position == models.BELOW_SMA && percentshort <= 3 {
-			ignoredReason = "mi and long interval down and below sma and mergin form short below 3"
+		if midInterval.Position == models.BELOW_SMA && result.Position == models.BELOW_SMA && percentFromUpper <= 3 {
+			ignoredReason = "mid and long interval down and below sma and mergin form short below 3"
 			return true
 		}
 	}
@@ -515,6 +507,33 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 						return true
 					}
 				}
+			}
+		}
+	}
+
+	if lastBand.Candle.Close > float32(lastBand.Upper) && !isHasCrossUpper(result.Bands[:len(result.Bands)-1], false) {
+		midSecondLastBand := midInterval.Bands[len(result.Bands)-2]
+		midLastBand := midInterval.Bands[len(result.Bands)-1]
+		if midSecondLastBand.Candle.Open > float32(midSecondLastBand.Upper) && midSecondLastBand.Candle.Close < float32(midSecondLastBand.Upper) {
+			shortHigestIndex := getHighestIndex(shortInterval.Bands)
+			if midLastBand.Candle.Close < float32(midLastBand.Upper) && shortHigestIndex == len(shortInterval.Bands)-1 {
+				ignoredReason = "long interval above upper just one and mid interval below sma and previous band down from upper"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.FirstTrendPercent > 20 && result.AllTrend.SecondTrendPercent > 20 && !isHasCrossUpper(result.Bands, false) {
+		if result.AllTrend.FirstTrend != result.AllTrend.SecondTrend || (result.AllTrend.FirstTrend == models.TREND_SIDEWAY && result.AllTrend.SecondTrend == models.TREND_SIDEWAY) {
+			if result.Position == models.ABOVE_SMA && percentFromUpper < 3 {
+				ignoredReason = "long interval above sma sideway and percent from upper below threshold"
+				return true
+			}
+
+			percentFromSMA := (float32(lastBand.SMA) - lastBand.Candle.Close) / lastBand.Candle.Close * 100
+			if result.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.Position == models.ABOVE_UPPER && result.Position == models.BELOW_SMA && percentFromSMA < 3 {
+				ignoredReason = "mid interval above upper and long interval cross sma sideway"
+				return true
 			}
 		}
 	}
@@ -708,7 +727,8 @@ func isGetBearishEngulfingAfterLowest(bands []models.Band) bool {
 }
 
 func isReversal(bands []models.Band) bool {
-	trend := CalculateTrendsDetail(bands[:len(bands)-1])
+	lowestIndex := getLowestIndex(bands[len(bands)-4:])
+	trend := CalculateTrendsDetail(bands[:len(bands)-4+lowestIndex])
 	shortTrend := CalculateTrendShort(bands[len(bands)-4:])
 	return trend.Trend == models.TREND_DOWN && shortTrend == models.TREND_UP
 }
@@ -1158,20 +1178,6 @@ func getLongestCandleIndex(bands []models.Band) int {
 	}
 
 	return longestIndex
-}
-
-func afterUpThenDown(result *models.BandResult) bool {
-	sizeData := len(result.Bands)
-	bands := result.Bands[sizeData/5:]
-	if result.Position == models.ABOVE_SMA {
-		higestIndex := getIndexHigestCrossUpper(bands)
-		if higestIndex >= 0 && higestIndex < len(bands)-4 {
-			trend := CalculateTrendsDetail(bands[higestIndex:])
-			return trend.FirstTrend == models.TREND_DOWN
-		}
-	}
-
-	return false
 }
 
 func getIndexHigestCrossUpper(bands []models.Band) int {
