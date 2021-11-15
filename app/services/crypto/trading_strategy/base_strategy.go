@@ -21,7 +21,7 @@ var waitMasterCoin bool = true
 
 func StartCheckMasterCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
-		checkCryptoMasterCoinPrice(checkingTime)
+		checkCryptoMasterCoinPrice(baseCheckingTime)
 	}
 }
 

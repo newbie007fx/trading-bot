@@ -60,8 +60,6 @@ func setStrategy() {
 
 	if mode == "automatic" || mode == "simulation" {
 		strategy = &trading_strategy.AutomaticTradingStrategy{}
-	} else {
-		strategy = &trading_strategy.ManualTradingStrategy{}
 	}
 
 	log.Println("mode: " + mode)
