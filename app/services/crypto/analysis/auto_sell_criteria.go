@@ -414,6 +414,19 @@ func SpecialCondition(currencyConfig *models.CurrencyNotifConfig, symbol string,
 		return true
 	}
 
+	midLastBand := midInterval.Bands[len(midInterval.Bands)-1]
+	longLastBand := longInterval.Bands[len(longInterval.Bands)-1]
+	if currencyConfig.HoldPrice < lastBand.Candle.Close && changesInPercent > 3 {
+		if lastBand.Candle.Open > float32(lastBand.Upper) && lastBand.Candle.Close > float32(lastBand.Upper) {
+			if midLastBand.Candle.Open < float32(midLastBand.Upper) && midLastBand.Candle.Close > float32(midLastBand.Upper) {
+				if longLastBand.Candle.Open < float32(longLastBand.Upper) && longLastBand.Candle.Close > float32(longLastBand.Upper) {
+					reason = "open close above upper, mid cross upper, long cross upper"
+					return true
+				}
+			}
+		}
+	}
+
 	return false
 }
 

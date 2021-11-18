@@ -211,7 +211,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 
 		responseChan := make(chan crypto.CandleResponse)
 
-		limit := 100
+		limit := 80
 		condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 		currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 

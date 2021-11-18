@@ -116,6 +116,13 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
+	if countBelowSMA(result.Bands[len(result.Bands)-7:], true) == 7 {
+		if !isHasCrossLower(result.Bands[len(result.Bands)-7:]) {
+			ignoredReason = "last seven band below sma and not cross lower"
+			return true
+		}
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -282,6 +289,13 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	if isDoubleUp(result.Bands) {
 		ignoredReason = "has double up"
 		return true
+	}
+
+	if result.AllTrend.SecondTrendPercent < 7 && lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA) {
+		if CalculateTrendShort(result.Bands[len(result.Bands)-5:]) != models.TREND_UP && !isHasCrossLower(result.Bands[len(result.Bands)-3:]) {
+			ignoredReason = "significan down and below sma, last 5 not up trend, not cross lower"
+			return true
+		}
 	}
 
 	return false
@@ -536,6 +550,13 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
+	if result.AllTrend.SecondTrendPercent < 12 && countBelowSMA(result.Bands[len(result.Bands)-6:], true) == 6 {
+		if !isHasCrossLower(result.Bands[len(result.Bands)-3:]) && CalculateTrendShort(result.Bands[len(result.Bands)-6:]) != models.TREND_UP {
+			ignoredReason = "significan down, last 6 bellow sma but not cross lower"
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -596,8 +617,7 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 		return true
 	}
 
-	isHammer := IsHammer(result.Bands[len(midInterval.Bands)-3:]) || IsHammer(result.Bands[len(midInterval.Bands)-3:len(midInterval.Bands)-1])
-	if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP && (CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 || isHammer) && midLowestIndex != len(midInterval.Bands)-1 {
+	if CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-3:]) != models.TREND_UP && CountSquentialUpBand(midInterval.Bands[len(midInterval.Bands)-3:]) < 2 && midLowestIndex != len(midInterval.Bands)-1 {
 		ignoredReason = "last three band not up"
 		return true
 	}
@@ -710,6 +730,20 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 				ignoredReason = "mid down-down, long interval below sma not cross lower"
 				return true
 			}
+		}
+	}
+
+	if countBelowSMA(longInterval.Bands[len(longInterval.Bands)-5:], true) == 5 && CalculateTrendShort(longInterval.Bands[len(longInterval.Bands)-3:]) != models.TREND_UP {
+		if !isHasCrossLower(longInterval.Bands[len(longInterval.Bands)-4:]) {
+			ignoredReason = "long interval last five band bellow sma and not cross lower"
+			return true
+		}
+	}
+
+	if countDownBand(longInterval.Bands[len(longInterval.Bands)-5:]) == 4 && countCrossLower(longInterval.Bands[len(longInterval.Bands)-5:]) > 1 {
+		if !isHasHammer(longInterval.Bands[len(longInterval.Bands)-3:len(longInterval.Bands)-1]) && !isHasDoji(longInterval.Bands[len(longInterval.Bands)-3:len(longInterval.Bands)-1]) {
+			ignoredReason = "long intervallast 4 band down and cross lowe, no reversal pattern"
+			return true
 		}
 	}
 
@@ -1224,6 +1258,27 @@ func countDownBand(bands []models.Band) int {
 	}
 
 	return counter
+}
+
+func isHasHammer(bands []models.Band) bool {
+	for _, band := range bands {
+		if IsHammer([]models.Band{band}) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isHasDoji(bands []models.Band) bool {
+	for _, band := range bands {
+		isUp := band.Candle.Open < band.Candle.Close
+		if IsDoji(band, isUp) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func GetIgnoredReason() string {
