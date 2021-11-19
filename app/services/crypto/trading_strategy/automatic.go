@@ -28,9 +28,11 @@ type AutomaticTradingStrategy struct {
 func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	baseCheckingTime = currentTime
 
+	maxHold := crypto.GetMaxHold()
 	condition := map[string]interface{}{"is_on_hold": true}
 	holdCount = repositories.CountNotifConfig(&condition)
 
+	log.Println(fmt.Sprintf("execute automatic trading, with hold count: %d and maxHold %d", holdCount, maxHold))
 	if ats.isTimeToCheckAltCoinPrice(currentTime) || holdCount > 0 || currentTime.Minute()%2 == 1 {
 		ats.masterCoinChan <- true
 	}
@@ -39,7 +41,6 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 		ats.cryptoHoldCoinPriceChan <- true
 	}
 
-	maxHold := crypto.GetMaxHold()
 	if holdCount < maxHold {
 		if ats.isTimeToCheckAltCoinPrice(currentTime) {
 			ats.cryptoAltCoinPriceChan <- true
