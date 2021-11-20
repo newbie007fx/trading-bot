@@ -476,7 +476,8 @@ func previousBandUpThenDown(result models.BandResult, changeInPercent float32, h
 
 func shortTrendOnPreviousBandNotUpAndDown25PercentFromHight(result models.BandResult, changeInPercent float32, holdPrice float32) bool {
 	shortTrendPreviousBand := CalculateTrendShort(result.Bands[len(result.Bands)-6 : len(result.Bands)-1])
-	if shortTrendPreviousBand != models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP {
+	secondLastBand := result.Bands[len(result.Bands)-2]
+	if (shortTrendPreviousBand != models.TREND_UP || secondLastBand.Candle.Close < secondLastBand.Candle.Open) && result.AllTrend.ShortTrend == models.TREND_UP {
 		return down25PercentFromHight(result, changeInPercent, holdPrice, 7) && changeInPercent >= 3
 	}
 
@@ -487,7 +488,7 @@ func down25PercentFromHight(result models.BandResult, changeInPercent float32, h
 	heightPrice := result.Bands[len(result.Bands)-1].Candle.Hight
 	percentFromHeight := (heightPrice - holdPrice) / holdPrice * 100
 	if percentFromHeight < float32(maxFromHight) {
-		return changeInPercent/percentFromHeight*100 < 78
+		return changeInPercent/percentFromHeight*100 < 82
 	}
 
 	return false

@@ -137,11 +137,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if result.AllTrend.Trend == models.TREND_DOWN && shortInterval.AllTrend.Trend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
-		ignoredReason = "first trend down and second not up"
-		return true
-	}
-
 	lastThreeExceptLastBand := result.Bands[len(result.Bands)-4 : len(result.Bands)-1]
 	shortUp := CalculateTrendShort(result.Bands[len(result.Bands)-5:]) == models.TREND_UP || (CalculateTrendShort(result.Bands[len(result.Bands)-4:]) == models.TREND_UP && (isHasCrossSMA(lastThreeExceptLastBand) || isHasCrossLower(lastThreeExceptLastBand)))
 	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_SIDEWAY && !shortUp {
@@ -151,11 +146,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 
 	if result.AllTrend.FirstTrend == models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP {
 		ignoredReason = "first trend up and second down"
-		return true
-	}
-
-	if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 && !isReversal(result.Bands) && !reversalFromLower(*shortInterval) {
-		ignoredReason = "count up"
 		return true
 	}
 
@@ -307,6 +297,14 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
+	lastBand := result.Bands[len(result.Bands)-1]
+	if isInAboveUpperBandAndDownTrend(result) && lastBand.Candle.Hight > float32(lastBand.Upper) {
+		if lastBand.Candle.Hight-lastBand.Candle.Close > lastBand.Candle.Close-lastBand.Candle.Open {
+			ignoredReason = "isInAboveUpperBandAndDownTrend and down from upper"
+			return true
+		}
+	}
+
 	if !isHasCrossLower(result.Bands[len(result.Bands)/2:]) && !isReversal(shortInterval.Bands) {
 		if result.AllTrend.Trend == models.TREND_DOWN && shortInterval.AllTrend.Trend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) == models.TREND_DOWN {
 			ignoredReason = "first trend down and seconddown"
@@ -348,7 +346,6 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	lastBand := result.Bands[len(result.Bands)-1]
 	if isTrendUpLastThreeBandHasDoji(result) {
 		ignoredReason = "isTrendUpLastThreeBandHasDoji"
 		return true
@@ -557,6 +554,26 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if midInterval.Position == models.BELOW_SMA && result.Position == models.BELOW_SMA && result.AllTrend.SecondTrend == models.TREND_DOWN {
+		if countBelowSMA(midInterval.Bands, false) == len(midInterval.Bands) && countBelowSMA(result.Bands[len(result.Bands)-5:], false) > 2 {
+			if !isHasCrossLower(result.Bands[len(result.Bands)-3:]) {
+				ignoredReason = "mid interval all band below sma, long interval below sma but not cross lower"
+				return true
+			}
+		}
+	}
+
+	if shortInterval.Position == models.ABOVE_UPPER && shortInterval.AllTrend.Trend == models.TREND_UP {
+		if midInterval.AllTrend.SecondTrend == models.TREND_UP && !isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)/2:], false) {
+			midLastBand := midInterval.Bands[len(midInterval.Bands)-1]
+			midPercentUpper := (float32(midLastBand.Upper) - midLastBand.Candle.Close) / midLastBand.Candle.Close * 100
+			if midPercentUpper < 3 && result.AllTrend.SecondTrend == models.TREND_DOWN {
+				ignoredReason = "short interval trend up above upper, mid above sma not cross lower and margin < 3"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
@@ -743,6 +760,18 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 	if countDownBand(longInterval.Bands[len(longInterval.Bands)-5:]) == 4 && countCrossLower(longInterval.Bands[len(longInterval.Bands)-5:]) > 1 {
 		if !isHasHammer(longInterval.Bands[len(longInterval.Bands)-3:len(longInterval.Bands)-1]) && !isHasDoji(longInterval.Bands[len(longInterval.Bands)-3:len(longInterval.Bands)-1]) {
 			ignoredReason = "long intervallast 4 band down and cross lowe, no reversal pattern"
+			return true
+		}
+	}
+
+	if isContaineBearishEngulfing(longInterval) {
+		ignoredReason = "long interval isContaineBearishEngulfing"
+		return true
+	}
+
+	if lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close > float32(lastBand.SMA) {
+		if secondLastBand.Candle.Open > secondLastBand.Candle.Close {
+			ignoredReason = "short interval cross sma and previous band down"
 			return true
 		}
 	}
