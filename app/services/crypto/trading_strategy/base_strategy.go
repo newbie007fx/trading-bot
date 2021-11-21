@@ -136,11 +136,10 @@ func GetEndDate(baseTime time.Time) int64 {
 	unixTime := baseTime.Unix()
 
 	if baseTime.Minute()%15 == 0 {
-		unixTime = unixTime - int64(baseTime.Second())%60
-		unixTime = (unixTime * 1000) - 1
-	} else {
-		unixTime = unixTime * 1000
+		unixTime = unixTime - (int64(baseTime.Second()) % 60)
 	}
+
+	unixTime = (unixTime * 1000) - 1
 
 	return unixTime
 }

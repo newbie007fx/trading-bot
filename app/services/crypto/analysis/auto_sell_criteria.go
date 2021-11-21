@@ -104,6 +104,11 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 			return true
 		}
 
+		if firstCrossUpper(result, *resultMid, changesInPercent) {
+			reason = "first cross upper"
+			return true
+		}
+
 		if sellOnUp(result, currencyConfig, resultMid.AllTrend.Trend, isCandleComplete, masterCoin.AllTrend.Trend, masterCoinLongTrend) {
 			return true
 		}
@@ -497,4 +502,14 @@ func down25PercentFromHight(result models.BandResult, changeInPercent float32, h
 func checkIsCandleComplete(requestTime time.Time, intervalMinute int) bool {
 	minute := requestTime.Minute()
 	return minute%intervalMinute == 0
+}
+
+func firstCrossUpper(shortInterval, midInterval models.BandResult, changeInPercent float32) bool {
+	if shortInterval.Position == models.ABOVE_UPPER && midInterval.Position == models.ABOVE_UPPER {
+		if !isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-6:len(shortInterval.Bands)-1], true) || isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-6:len(midInterval.Bands)-1], true) {
+			return changeInPercent > 3 && changeInPercent < 3.5
+		}
+	}
+
+	return false
 }

@@ -31,7 +31,7 @@ func StartCryptoWorker() {
 			updateVolumeChan <- true
 		}
 
-		sleep := 60 - currentTime.Second()
+		sleep := 60 - time.Now().Second()
 		time.Sleep(time.Duration(sleep) * time.Second)
 	}
 }

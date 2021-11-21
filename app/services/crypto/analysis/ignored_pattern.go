@@ -288,13 +288,56 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	if previousBandDownAndLastBandHammerOrDoji(result.Bands) {
+		ignoredReason = "previous band down and last band hammer or doji"
+		return true
+	}
+
+	shortLastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
+	shortPercentFromUpper := (shortLastBand.Upper - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
+	if result.Position == models.ABOVE_UPPER && !isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-5:], true) {
+		if shortPercentFromUpper < 3 {
+			ignoredReason = "above upper and short interval 5 band not cross upper and margin below 3"
+			return true
+		}
+	}
+
+	secondLastBand := result.Bands[len(result.Bands)-2]
+	if result.AllTrend.SecondTrendPercent < 15 && (secondLastBand.Candle.Open < float32(secondLastBand.Lower) || secondLastBand.Candle.Close < float32(secondLastBand.Lower)) {
+		if CalculateTrendShortAvg(result.Bands[len(result.Bands)-3:]) != models.TREND_UP && lastBand.Candle.Low < float32(lastBand.Lower) {
+			ignoredReason = "significan down, last 3 avg not up trend"
+			return true
+		}
+	}
+
+	significanDown := result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.FirstTrendPercent < 10 && result.AllTrend.SecondTrend == models.TREND_DOWN
+	secondWaweBelowSMA := result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.FirstTrendPercent < 15 && countBelowSMA(result.Bands[len(result.Bands)/2:], false) >= len(result.Bands)/2
+	if significanDown || secondWaweBelowSMA {
+		if !isHasCrossSMA(result.Bands[len(result.Bands)-5:]) && !isHasCrossLower(result.Bands[len(result.Bands)-5:]) {
+			ignoredReason = "first wave significan down, second still donw, below sma, not cross sma or lower"
+			return true
+		}
+	}
+
+	percentFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
+	if shortLastBand.Candle.Hight > float32(shortLastBand.Upper) && result.Position == models.ABOVE_SMA {
+		if !isHasCrossUpper(result.Bands[len(result.Bands)-5:], true) && isHasCrossLower(result.Bands[len(result.Bands)-5:]) {
+			if percentFromUpper < 3 {
+				ignoredReason = "short interval cross upper, mid not cross upper but lower and margin below 3"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
 func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult, midInterval *models.BandResult, masterTrend, masterMidTrend int8) bool {
-	if isInAboveUpperBandAndDownTrend(result) && CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && !isLastBandOrPreviousBandCrossSMA(result.Bands) {
-		ignoredReason = "isInAboveUpperBandAndDownTrend"
-		return true
+	if isInAboveUpperBandAndDownTrend(result) && (CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 || isHasDoji(result.Bands[len(result.Bands)-5:])) {
+		if !isLastBandOrPreviousBandCrossSMA(result.Bands) {
+			ignoredReason = "isInAboveUpperBandAndDownTrend"
+			return true
+		}
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
@@ -574,6 +617,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if countDownBand(result.Bands[len(result.Bands)-6:len(result.Bands)-1]) == 5 && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) == models.TREND_DOWN {
+		ignoredReason = "squential down 5 band, and short trend not up"
+		return true
+	}
+
 	return false
 }
 
@@ -699,12 +747,9 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 		return true
 	}
 
-	midSecondLastBand := midInterval.Bands[len(result.Bands)-2]
-	if midSecondLastBand.Candle.Close < midSecondLastBand.Candle.Open {
-		if IsHammer([]models.Band{midLastBand}) || IsDoji(midLastBand, true) {
-			ignoredReason = "mid interval previous band down, and get hammer or doji"
-			return true
-		}
+	if previousBandDownAndLastBandHammerOrDoji(midInterval.Bands) {
+		ignoredReason = "mid interval previous band down and last band hammer or doji"
+		return true
 	}
 
 	if longInterval.AllTrend.FirstTrend == models.TREND_UP && longInterval.AllTrend.SecondTrend == models.TREND_DOWN && (longInterval.AllTrend.FirstTrendPercent < 10 || longInterval.AllTrend.SecondTrendPercent < 10) {
@@ -772,6 +817,39 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 	if lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close > float32(lastBand.SMA) {
 		if secondLastBand.Candle.Open > secondLastBand.Candle.Close {
 			ignoredReason = "short interval cross sma and previous band down"
+			return true
+		}
+	}
+
+	if longLastBand.Candle.Open < float32(longLastBand.Lower) && longLastBand.Candle.Close < float32(longLastBand.Lower) {
+		ignoredReason = "long interval open close below lower"
+		return true
+	}
+
+	return false
+}
+
+func sequentialDown(bands []models.Band) bool {
+	var previousAvg float32 = 0
+	for _, band := range bands {
+		if band.Candle.Close < band.Candle.Open {
+			avg := (band.Candle.Close + band.Candle.Open) / 2
+			if previousAvg > 0 && previousAvg < avg {
+				break
+			}
+			previousAvg = avg
+		} else {
+			break
+		}
+	}
+	return false
+}
+
+func previousBandDownAndLastBandHammerOrDoji(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+	secondLastBand := bands[len(bands)-2]
+	if secondLastBand.Candle.Close < secondLastBand.Candle.Open && isHasCrossLower(bands[len(bands)-2:]) {
+		if IsHammer([]models.Band{lastBand}) || IsDoji(lastBand, true) {
 			return true
 		}
 	}
@@ -973,7 +1051,8 @@ func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) boo
 
 func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
 	index := getHighestIndex(result.Bands)
-	if index == len(result.Bands)-1 {
+	lastBand := result.Bands[len(result.Bands)-1]
+	if index == len(result.Bands)-1 || lastBand.Candle.Close < float32(lastBand.SMA) {
 		return false
 	}
 
@@ -981,7 +1060,7 @@ func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
 		index = len(result.Bands) - 5
 	}
 	lastDataFromHight := result.Bands[index:]
-	if isHeighestOnHalfEndAndAboveUpper(result) && CalculateTrendShort(lastDataFromHight) != models.TREND_UP {
+	if ((result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_UP) || isHeighestOnHalfEndAndAboveUpper(result)) && CalculateTrendShort(lastDataFromHight) != models.TREND_UP {
 		return true
 	}
 

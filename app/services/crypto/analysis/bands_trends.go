@@ -201,6 +201,47 @@ func CalculateTrendShort(data []models.Band) int8 {
 	return getTrendShort(baseLinePoint, firstAvg, lastAvg)
 }
 
+func CalculateTrendShortAvg(data []models.Band) int8 {
+	if len(data) == 0 {
+		log.Println("invalid data when calculate trends")
+		return models.TREND_DOWN
+	}
+
+	highestIndex, lowestIndex := 0, 0
+	thirtyPercent := float64(len(data)) * float64(15) / float64(100)
+	limit := int(math.Floor(thirtyPercent))
+	if limit < 1 {
+		limit = 1
+	}
+
+	var totalFirstData float32 = 0
+	var totalLastData float32 = 0
+
+	for i, val := range data {
+		if (data[highestIndex].Candle.Close+data[highestIndex].Candle.Open)/2 < (val.Candle.Close+val.Candle.Open)/2 {
+			highestIndex = i
+		}
+
+		if (data[highestIndex].Candle.Close+data[highestIndex].Candle.Open)/2 > (val.Candle.Close+val.Candle.Open)/2 {
+			lowestIndex = i
+		}
+
+		if i < limit {
+			totalFirstData += (val.Candle.Close + val.Candle.Open) / 2
+		}
+
+		if i >= len(data)-limit {
+			totalLastData += (val.Candle.Close + val.Candle.Open) / 2
+		}
+	}
+
+	firstAvg := totalFirstData / float32(limit)
+	lastAvg := totalLastData / float32(limit)
+	baseLinePoint := data[lowestIndex].Candle.Close - (data[lowestIndex].Candle.Close / 100)
+
+	return getTrendShort(baseLinePoint, firstAvg, lastAvg)
+}
+
 func getTrendShort(baseLine, fistAvg, secondAvg float32) int8 {
 	firstPointValue := fistAvg - baseLine
 	lastPointValue := secondAvg - baseLine
