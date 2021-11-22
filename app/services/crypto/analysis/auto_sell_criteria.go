@@ -36,8 +36,9 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 			if result.CurrentPrice < currencyConfig.HoldPrice {
 				changesx := currencyConfig.HoldPrice - result.CurrentPrice
 				changesInPercentx := changesx / currencyConfig.HoldPrice * 100
+				marginFromLower := (lastBand.Candle.Close - float32(lastBand.Lower)) / float32(lastBand.Lower) * 100
 
-				skipped = changesInPercentx < 2.5 || crossLower
+				skipped = changesInPercentx < 2.5 || crossLower || (changesInPercentx < 3 && marginFromLower <= 0.6)
 			}
 
 			if !skipped {
