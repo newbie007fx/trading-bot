@@ -210,7 +210,8 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	if lastBand.Candle.Open >= float32(lastBand.Upper) && lastBand.Candle.Close > float32(lastBand.Upper) {
+	secondLastBand := result.Bands[len(result.Bands)-2]
+	if (lastBand.Candle.Open >= float32(lastBand.Upper) && lastBand.Candle.Close > float32(lastBand.Upper)) || (secondLastBand.Candle.Close >= float32(secondLastBand.Upper) && secondLastBand.Candle.Open >= float32(secondLastBand.Upper)) {
 		ignoredReason = fmt.Sprintf("open close above upper, %.4f, %.4f", lastBand.Candle.Open, lastBand.Upper)
 		return true
 	}
@@ -303,7 +304,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	secondLastBand := result.Bands[len(result.Bands)-2]
 	if result.AllTrend.SecondTrendPercent < 15 && (secondLastBand.Candle.Open < float32(secondLastBand.Lower) || secondLastBand.Candle.Close < float32(secondLastBand.Lower)) {
 		if CalculateTrendShortAvg(result.Bands[len(result.Bands)-3:]) != models.TREND_UP && lastBand.Candle.Low < float32(lastBand.Lower) {
 			ignoredReason = "significan down, last 3 avg not up trend"
@@ -648,6 +648,22 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		if isHasDoji(result.Bands[len(result.Bands)-3:]) || isHasHammer(result.Bands[len(result.Bands)-3:]) {
 			if isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-3:], true) && isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-3:]) {
 				ignoredReason = "trend down, below sma, doji or hammer pattern"
+				return true
+			}
+		}
+	}
+
+	if result.Position == models.ABOVE_SMA {
+		if isHasCrossUpper(result.Bands[:len(result.Bands)/2], true) {
+			if countCrossUpper(shortInterval.Bands) >= 9 && midInterval.Position == models.ABOVE_UPPER && midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.PriceChanges > 5 {
+				ignoredReason = "up down, mid and short above upper"
+				return true
+			}
+		}
+
+		if isHasCrossLower(result.Bands, false) && !isHasCrossUpper(result.Bands, true) && percentFromUpper < 3 {
+			if isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-3:], true) && isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-3:], true) {
+				ignoredReason = "below sma, margin from upper below 3"
 				return true
 			}
 		}
