@@ -23,7 +23,7 @@ func StartCryptoWorker() {
 	for {
 		currentTime := time.Now()
 		if !isMuted() {
-
+			log.Println("executing")
 			strategy.Execute(currentTime)
 		}
 
@@ -32,6 +32,7 @@ func StartCryptoWorker() {
 		}
 
 		sleep := 60 - time.Now().Second()
+		log.Println("sleep: ", sleep)
 		time.Sleep(time.Duration(sleep) * time.Second)
 	}
 }
