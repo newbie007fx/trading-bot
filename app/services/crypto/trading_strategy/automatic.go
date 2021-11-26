@@ -341,6 +341,7 @@ func sendHoldMsg(result *models.BandResult) string {
 }
 
 func checkMasterDown() bool {
+	log.Println("check master down")
 	if masterCoin.AllTrend.Trend == models.TREND_DOWN && masterCoinLongInterval.AllTrend.Trend == models.TREND_DOWN {
 		return true
 	}
