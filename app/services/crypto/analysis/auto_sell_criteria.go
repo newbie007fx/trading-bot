@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"time"
@@ -74,6 +75,11 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 	}
 
 	if currencyConfig.HoldPrice > result.CurrentPrice {
+		if skipSell(*resultMid) {
+			log.Println("skip sell gans")
+			return false
+		}
+
 		if sellOnDown(result, currencyConfig, lastBand) {
 			return true
 		}
@@ -287,6 +293,27 @@ func sellWhenDoubleUpTargetProfit(config models.CurrencyNotifConfig, result mode
 	}
 
 	return false
+}
+
+func skipSell(resultMid models.BandResult) bool {
+	lastBand := resultMid.Bands[len(resultMid.Bands)-1]
+	if resultMid.AllTrend.SecondTrend == models.TREND_UP && lastBand.Candle.Close > float32(lastBand.SMA) {
+		if countAboveSMA(resultMid.Bands[len(resultMid.Bands)/2:]) >= len(resultMid.Bands)/2 && countDownBand(resultMid.Bands[len(resultMid.Bands)-3:]) < 3 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func countAboveSMA(bands []models.Band) int {
+	var count int = 0
+	for _, band := range bands {
+		if band.Candle.Open > float32(band.SMA) && band.Candle.Close > float32(band.SMA) {
+			count++
+		}
+	}
+	return count
 }
 
 var highestIndex int = 0
