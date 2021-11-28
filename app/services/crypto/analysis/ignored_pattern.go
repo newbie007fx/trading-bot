@@ -133,6 +133,13 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		}
 	}
 
+	if result.Position == models.ABOVE_SMA && (result.AllTrend.FirstTrend == models.TREND_SIDEWAY || result.AllTrend.SecondTrend == models.TREND_SIDEWAY) {
+		if isHasCrossUpper(result.Bands[len(result.Bands)-15:], true) && isHasCrossSMA(result.Bands[len(result.Bands)-15:], false) && countBelowSMA(result.Bands[len(result.Bands)-15:], true) == 0 && percentFromUpper < 3 {
+			ignoredReason = "above sma and sideway"
+			return true
+		}
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -148,7 +155,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	}
 
 	lastThreeExceptLastBand := result.Bands[len(result.Bands)-4 : len(result.Bands)-1]
-	shortUp := CalculateTrendShort(result.Bands[len(result.Bands)-5:]) == models.TREND_UP || (CalculateTrendShort(result.Bands[len(result.Bands)-4:]) == models.TREND_UP && (isHasCrossSMA(lastThreeExceptLastBand) || isHasCrossLower(lastThreeExceptLastBand, false)))
+	shortUp := CalculateTrendShort(result.Bands[len(result.Bands)-5:]) == models.TREND_UP || (CalculateTrendShort(result.Bands[len(result.Bands)-4:]) == models.TREND_UP && (isHasCrossSMA(lastThreeExceptLastBand, true) || isHasCrossLower(lastThreeExceptLastBand, false)))
 	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_SIDEWAY && !shortUp {
 		ignoredReason = "first trend up and second sideway"
 		return true
@@ -323,7 +330,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	significanDown := result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.FirstTrendPercent < 10 && result.AllTrend.SecondTrend == models.TREND_DOWN
 	secondWaweBelowSMA := result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.FirstTrendPercent < 15 && countBelowSMA(result.Bands[len(result.Bands)/2:], false) >= len(result.Bands)/2
 	if significanDown || secondWaweBelowSMA {
-		if !isHasCrossSMA(result.Bands[len(result.Bands)-5:]) && !isHasCrossLower(result.Bands[len(result.Bands)-5:], false) {
+		if !isHasCrossSMA(result.Bands[len(result.Bands)-5:], true) && !isHasCrossLower(result.Bands[len(result.Bands)-5:], false) {
 			ignoredReason = "first wave significan down, second still donw, below sma, not cross sma or lower"
 			return true
 		}
@@ -457,7 +464,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				return true
 			}
 
-			if isHasCrossSMA(result.Bands[len(result.Bands)-1 : len(result.Bands)]) {
+			if isHasCrossSMA(result.Bands[len(result.Bands)-1:len(result.Bands)], true) {
 				ignoredReason = "all interval above upper and long interval cross sma"
 				return true
 			}
@@ -672,7 +679,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 	if result.AllTrend.Trend == models.TREND_DOWN && result.Position == models.BELOW_SMA {
 		if isHasDoji(result.Bands[len(result.Bands)-3:]) || isHasHammer(result.Bands[len(result.Bands)-3:]) {
-			if isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-3:], true) && isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-3:]) {
+			if isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-3:], true) && isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-3:], true) {
 				ignoredReason = "trend down, below sma, doji or hammer pattern"
 				return true
 			}
@@ -903,7 +910,7 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 
 	trendDetail := CalculateTrendsDetail(longInterval.Bands[len(longInterval.Bands)/2:])
 	if trendDetail.SecondTrendPercent < 5 && longInterval.Position == models.ABOVE_SMA {
-		if countDownBand(longInterval.Bands[len(longInterval.Bands)-5:]) > 2 && !isHasCrossSMA(longInterval.Bands[len(longInterval.Bands)-5:]) {
+		if countDownBand(longInterval.Bands[len(longInterval.Bands)-5:]) > 2 && !isHasCrossSMA(longInterval.Bands[len(longInterval.Bands)-5:], true) {
 			ignoredReason = "above sma and significan down"
 			return true
 		}
@@ -1055,10 +1062,16 @@ func isHasCrossUpper(bands []models.Band, withHead bool) bool {
 	return false
 }
 
-func isHasCrossSMA(bands []models.Band) bool {
+func isHasCrossSMA(bands []models.Band, bodyOnly bool) bool {
 	for _, band := range bands {
-		if band.Candle.Open < float32(band.SMA) && band.Candle.Close > float32(band.SMA) {
-			return true
+		if bodyOnly {
+			if band.Candle.Open < float32(band.SMA) && band.Candle.Close > float32(band.SMA) {
+				return true
+			}
+		} else {
+			if band.Candle.Low < float32(band.SMA) && band.Candle.Hight > float32(band.SMA) {
+				return true
+			}
 		}
 	}
 	return false
