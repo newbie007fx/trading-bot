@@ -111,6 +111,13 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 			return true
 		}
 
+		if resultMid.Position == models.ABOVE_UPPER && !isHasCrossUpper(result.Bands[:len(result.Bands)-1], false) {
+			if shortTrendOnPreviousBandNotUpAndDown25PercentFromHight(*resultMid, changesInPercent, currencyConfig.HoldPrice) {
+				reason = "mid interval short trend on previous band not up and last band down 25 percent from hight"
+				return true
+			}
+		}
+
 		if firstCrossUpper(result, *resultMid, changesInPercent) {
 			reason = "first cross upper"
 			return true
