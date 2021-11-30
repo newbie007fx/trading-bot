@@ -218,7 +218,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 
 		waitMasterCoinProcessed()
 		if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) && masterCoin.Direction == analysis.BAND_DOWN {
-			return
+			continue
 		}
 
 		for _, data := range *currency_configs {
