@@ -262,7 +262,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	highest := getHigestHightPrice(result.Bands)
+	highest := GetHigestHightPrice(result.Bands)
 	lowest := getLowestLowPrice(result.Bands)
 	difference := highest - lowest
 	percent := difference / lowest * 100
@@ -436,7 +436,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 
 		lenData := len(result.Bands)
-		hight := getHigestHightPrice(result.Bands[lenData-lenData/4:])
+		hight := GetHigestHightPrice(result.Bands[lenData-lenData/4:])
 		low := getLowestPrice(result.Bands[lenData-lenData/4:])
 		difference := hight - low
 		percent := float32(difference) / float32(low) * 100
@@ -758,6 +758,30 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			if shortLastBand.Candle.Open < float32(shortLastBand.Upper) && shortLastBand.Candle.Close > float32(shortLastBand.Upper) {
 				if midLastBand.Candle.Open < float32(midLastBand.Upper) && midLastBand.Candle.Close > float32(midLastBand.Upper) {
 					ignoredReason = "above sma and percent from upper below 3"
+					return true
+				}
+			}
+		}
+	}
+
+	if lastBand.Candle.Open < float32(lastBand.Upper) && lastBand.Candle.Hight > float32(lastBand.Upper) {
+		if !isHasCrossUpper(result.Bands[len(result.Bands)-6:len(result.Bands)-1], true) {
+			if midLastBand.Candle.Hight < float32(midLastBand.Upper) && countDownBand(midInterval.Bands[len(midInterval.Bands)-3:]) >= 1 && countCrossUpper(midInterval.Bands[len(midInterval.Bands)-3:]) >= 1 {
+				if shortLastBand.Candle.Close < float32(shortLastBand.Upper) && !isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-5:], false) {
+					downBand := countDownBand(shortInterval.Bands[len(shortInterval.Bands)/2:])
+					upBand := CountUpBand(shortInterval.Bands[len(shortInterval.Bands)/2:])
+					if isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)/2:], false) && downBand > upBand {
+						ignoredReason = "already cross upper and mid, short down from upper"
+						return true
+					}
+				}
+			}
+		}
+
+		if midLastBand.Candle.Hight > float32(midLastBand.Upper) && !isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-7:len(midInterval.Bands)-1], true) {
+			if shortLastBand.Candle.Hight > float32(shortLastBand.Upper) && shortInterval.AllTrend.FirstTrend == models.TREND_UP && shortInterval.AllTrend.SecondTrend == models.TREND_UP {
+				if getHighestIndex(shortInterval.Bands) == len(shortInterval.Bands)-1 && getHighestIndex(midInterval.Bands) == len(midInterval.Bands)-1 {
+					ignoredReason = "all band cross upper"
 					return true
 				}
 			}

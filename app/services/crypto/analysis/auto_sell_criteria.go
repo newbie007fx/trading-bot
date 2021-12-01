@@ -144,7 +144,7 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 	highest := getHigestPrice(result.Bands)
 	highestChangePercent := changes / (highest - currencyConfig.HoldPrice) * 100
 
-	highestHight := getHigestHightPrice(result.Bands)
+	highestHight := GetHigestHightPrice(result.Bands)
 	highestHightChangePercent := changes / (highestHight - currencyConfig.HoldPrice) * 100
 
 	lastFiveData := result.Bands[len(result.Bands)-5 : len(result.Bands)]
@@ -351,7 +351,7 @@ func getHigestPrice(bands []models.Band) float32 {
 	return highest
 }
 
-func getHigestHightPrice(bands []models.Band) float32 {
+func GetHigestHightPrice(bands []models.Band) float32 {
 	var highest float32 = 0
 	for _, band := range bands {
 		if highest < band.Candle.Hight {

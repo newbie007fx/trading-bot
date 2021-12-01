@@ -4,11 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto/analysis"
 	"time"
 )
+
+const time_type_15m int = 1
+const time_type_1h int = 2
+const time_type_4h int = 3
 
 func HoldCoin(currencyConfig models.CurrencyNotifConfig, candleData *models.CandleData) error {
 	if GetMode() != "manual" {
@@ -70,12 +75,13 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 
 	isTimeOnFifteenMinute := currentTime.Unix()%(15*60) == 0
 	if isTimeOnFifteenMinute {
-		result = CheckCoin(config, "15m", 0, timeInMili, nil)
+		result = CheckCoin(config, "15m", 0, timeInMili, 0, 0)
 		closeBand = result.Bands[len(result.Bands)-1]
 	} else {
-		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, nil)
+		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, 0, 0)
 		closeBand = oneMinuteResult.Bands[len(oneMinuteResult.Bands)-1]
-		result = CheckCoin(config, "15m", 0, timeInMili, &closeBand)
+		higest := getHighestHightPrice(currentTime, oneMinuteResult.Bands, time_type_15m)
+		result = CheckCoin(config, "15m", 0, timeInMili, closeBand.Candle.Open, higest)
 	}
 
 	if result == nil {
@@ -109,8 +115,6 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 
 func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 	timeInMili := datetime.Unix() * 1000
-	var closeBand models.Band
-	var closeBandMaster models.Band
 	var result *models.BandResult
 	var masterCoin *models.BandResult
 
@@ -118,22 +122,21 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 
 	isTimeOnFifteenMinute := datetime.Unix()%(15*60) == 0
 	if isTimeOnFifteenMinute {
-		result = CheckCoin(config, "15m", 0, timeInMili, nil)
-		closeBand = result.Bands[len(result.Bands)-1]
+		result = CheckCoin(config, "15m", 0, timeInMili, 0, 0)
 
-		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, nil)
-		closeBandMaster = masterCoin.Bands[len(masterCoin.Bands)-1]
+		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, 0, 0)
 	} else {
-		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, nil)
-		closeBand = oneMinuteResult.Bands[len(oneMinuteResult.Bands)-1]
-		result = CheckCoin(config, "15m", 0, timeInMili, &closeBand)
+		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, 0, 0)
+		higest := getHighestHightPrice(datetime, oneMinuteResult.Bands, time_type_15m)
+		result = CheckCoin(config, "15m", 0, timeInMili, oneMinuteResult.CurrentPrice, higest)
 
-		oneMinuteMaster := CheckCoin(*masterCoinConfig, "1m", 0, timeInMili, nil)
-		closeBandMaster = oneMinuteMaster.Bands[len(oneMinuteMaster.Bands)-1]
-		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, &closeBandMaster)
+		oneMinuteMaster := CheckCoin(*masterCoinConfig, "1m", 0, timeInMili, 0, 0)
+		higest = getHighestHightPrice(datetime, oneMinuteResult.Bands, time_type_15m)
+		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, oneMinuteMaster.CurrentPrice, higest)
 	}
 
-	masterCoinMid := CheckCoin(*masterCoinConfig, "1h", 0, timeInMili, &closeBandMaster)
+	higest := getHighestHightPrice(datetime, masterCoin.Bands, time_type_1h)
+	masterCoinMid := CheckCoin(*masterCoinConfig, "1h", 0, timeInMili, masterCoin.CurrentPrice, higest)
 
 	weight := analysis.CalculateWeight(result, *masterCoin)
 	msg := GenerateMsg(*result)
@@ -144,7 +147,8 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
 
-	resultMid := CheckCoin(config, "1h", 0, timeInMili, &closeBand)
+	higest = getHighestHightPrice(datetime, result.Bands, time_type_1h)
+	resultMid := CheckCoin(config, "1h", 0, timeInMili, result.CurrentPrice, higest)
 	weightMid := analysis.CalculateWeightLongInterval(resultMid, masterCoin.AllTrend.Trend)
 	msg += fmt.Sprintf("\nweight midInterval for coin %s: %.2f", config.Symbol, weightMid)
 	msg += "\n"
@@ -153,7 +157,8 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
 
-	resultLong := CheckCoin(config, "4h", 0, timeInMili, &closeBand)
+	higest = getHighestHightPrice(datetime, resultMid.Bands, time_type_4h)
+	resultLong := CheckCoin(config, "4h", 0, timeInMili, resultMid.CurrentPrice, higest)
 	weightLong := analysis.CalculateWeightLongInterval(resultLong, masterCoin.AllTrend.Trend)
 	msg += fmt.Sprintf("\nweight long Interval for coin %s: %.2f", config.Symbol, weightLong)
 	msg += "\n"
@@ -191,8 +196,6 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 
 func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 	timeInMili := datetime.Unix() * 1000
-	var closeBand models.Band
-	var closeBandMaster models.Band
 	var coin *models.BandResult
 	var masterCoin *models.BandResult
 
@@ -200,25 +203,26 @@ func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 
 	isTimeOnFifteenMinute := datetime.Unix()%(15*60) == 0
 	if isTimeOnFifteenMinute {
-		coin = CheckCoin(config, "15m", 0, timeInMili, nil)
-		closeBand = coin.Bands[len(coin.Bands)-1]
+		coin = CheckCoin(config, "15m", 0, timeInMili, 0, 0)
 
-		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, nil)
-		closeBandMaster = masterCoin.Bands[len(masterCoin.Bands)-1]
+		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, 0, 0)
 	} else {
-		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, nil)
-		closeBand = oneMinuteResult.Bands[len(oneMinuteResult.Bands)-1]
-		coin = CheckCoin(config, "15m", 0, timeInMili, &closeBand)
+		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, 0, 0)
+		higest := getHighestHightPrice(datetime, oneMinuteResult.Bands, time_type_15m)
+		coin = CheckCoin(config, "15m", 0, timeInMili, oneMinuteResult.CurrentPrice, higest)
 
-		oneMinuteMaster := CheckCoin(*masterCoinConfig, "1m", 0, timeInMili, nil)
-		closeBandMaster = oneMinuteMaster.Bands[len(oneMinuteMaster.Bands)-1]
-		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, &closeBandMaster)
+		oneMinuteMaster := CheckCoin(*masterCoinConfig, "1m", 0, timeInMili, 0, 0)
+		higest = getHighestHightPrice(datetime, oneMinuteMaster.Bands, time_type_15m)
+		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, oneMinuteMaster.CurrentPrice, higest)
 	}
 
-	masterCoinMid := CheckCoin(*masterCoinConfig, "1h", 0, timeInMili, &closeBandMaster)
+	higest := getHighestHightPrice(datetime, masterCoin.Bands, time_type_1h)
+	masterCoinMid := CheckCoin(*masterCoinConfig, "1h", 0, timeInMili, masterCoin.CurrentPrice, higest)
 
-	coinMid := CheckCoin(config, "1h", 0, timeInMili, &closeBand)
-	coinLong := CheckCoin(config, "4h", 0, timeInMili, &closeBand)
+	higest = getHighestHightPrice(datetime, coin.Bands, time_type_1h)
+	coinMid := CheckCoin(config, "1h", 0, timeInMili, coin.CurrentPrice, higest)
+	higest = getHighestHightPrice(datetime, coinMid.Bands, time_type_4h)
+	coinLong := CheckCoin(config, "4h", 0, timeInMili, coinMid.CurrentPrice, higest)
 	isNeedTosell := analysis.IsNeedToSell(&config, *coin, *masterCoin, datetime, coinMid, masterCoinMid.AllTrend.Trend)
 	if isNeedTosell || analysis.SpecialCondition(&config, coin.Symbol, *coin, *coinMid, *coinLong) {
 		msg := fmt.Sprintf("sell log on %s:\n", datetime.Format("January 2, 2006 15:04:05"))
@@ -248,4 +252,23 @@ func GetBalances() string {
 	msg += fmt.Sprintf("\n\nTotal Estimation Balance: <b>%f</b>", currentBalance+totalWalletBalance)
 
 	return msg
+}
+
+func getHighestHightPrice(currentTime time.Time, bands []models.Band, timeType int) float32 {
+	var numberBands int = 0
+	var utcZone, _ = time.LoadLocation("UTC")
+	currentTime = currentTime.In(utcZone)
+
+	if timeType == time_type_15m {
+		numberBands = (currentTime.Minute() + 1) % 15
+	} else if timeType == time_type_1h {
+		numberBands = int(math.Ceil(float64(currentTime.Minute()+1) / 15))
+	} else {
+		numberBands = (currentTime.Hour() + 1) % 4
+		if numberBands == 0 {
+			numberBands = 4
+		}
+	}
+
+	return analysis.GetHigestHightPrice(bands[len(bands)-numberBands:])
 }
