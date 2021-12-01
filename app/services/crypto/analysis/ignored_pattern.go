@@ -410,12 +410,14 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP {
-		ignoredReason = "first trend up and second not up"
-		return true
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP {
+		if CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP && getHighestIndex(result.Bands) > 5 {
+			ignoredReason = "first trend up and second not up"
+			return true
+		}
 	}
 
-	if isContaineBearishEngulfing(result) {
+	if isContaineBearishEngulfing(result) && lastBand.Candle.Close > float32(lastBand.SMA) {
 		ignoredReason = "isContaineBearishEngulfing"
 		return true
 	}
@@ -720,6 +722,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				return true
 			}
 		}
+
+		if lastBand.Candle.Low < float32(lastBand.SMA) && result.AllTrend.SecondTrend == models.TREND_DOWN && headMoreThan30PrecentToBody(lastBand) {
+			if midLastBand.Candle.Hight > float32(midLastBand.Upper) && headMoreThan30PrecentToBody(midLastBand) {
+				if shortInterval.Position == models.ABOVE_UPPER && getHighestIndex(shortInterval.Bands) == len(shortInterval.Bands)-1 && headMoreThanBody(shortLastBand) {
+					ignoredReason = "head more than 30 on long and mid, short interval head more than body"
+					return true
+				}
+			}
+		}
 	}
 
 	midPercentFromUpper := (midLastBand.Upper - float64(midLastBand.Candle.Close)) / float64(midLastBand.Candle.Close) * 100
@@ -963,6 +974,20 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 	}
 
 	return false
+}
+
+func headMoreThan30PrecentToBody(band models.Band) bool {
+	hightFromOpen := band.Candle.Hight - band.Candle.Open
+	hightHead := band.Candle.Hight - band.Candle.Close
+
+	return (hightHead/hightFromOpen)*100 > 30
+}
+
+func headMoreThanBody(band models.Band) bool {
+	hightBody := band.Candle.Close - band.Candle.Open
+	hightHead := band.Candle.Hight - band.Candle.Close
+
+	return hightHead > hightBody
 }
 
 func crossSMAAndPreviousBandNotHaveAboveSMA(bands []models.Band) bool {

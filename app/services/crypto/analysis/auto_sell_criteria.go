@@ -123,6 +123,11 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 			return true
 		}
 
+		if changesInPercent > 3 && changesInPercent < 3.5 && aboveUpperAndMidIntervalCrossSMA(result, *resultMid) {
+			reason = "above upper and mid interval cross sma"
+			return true
+		}
+
 		if sellOnUp(result, currencyConfig, resultMid.AllTrend.Trend, isCandleComplete, masterCoin.AllTrend.Trend, masterCoinLongTrend) {
 			return true
 		}
@@ -308,6 +313,15 @@ func skipSell(resultMid models.BandResult) bool {
 		if countAboveSMA(resultMid.Bands[len(resultMid.Bands)/2:]) >= len(resultMid.Bands)/2 && countDownBand(resultMid.Bands[len(resultMid.Bands)-3:]) < 3 {
 			return true
 		}
+	}
+
+	return false
+}
+
+func aboveUpperAndMidIntervalCrossSMA(resultShort, resultMid models.BandResult) bool {
+	midLastBand := resultMid.Bands[len(resultMid.Bands)-1]
+	if resultShort.Position == models.ABOVE_UPPER && resultMid.Position == models.ABOVE_SMA && midLastBand.Candle.Open < float32(midLastBand.SMA) {
+		return countBelowSMA(resultMid.Bands[len(resultMid.Bands)-6:len(resultMid.Bands)-1], false) == 5 && !isHasCrossLower(resultMid.Bands[len(resultMid.Bands)-6:len(resultMid.Bands)-1], false)
 	}
 
 	return false
