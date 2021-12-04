@@ -149,11 +149,6 @@ func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConf
 
 	lastFiveData := result.Bands[len(result.Bands)-5 : len(result.Bands)]
 
-	if checkOnTrendDown(result, coinLongTrend, masterCoinTrend, masterCoinLongTrend, changesInPercent, isCandleComplete) {
-		reason = "sell with criteria y1"
-		return true
-	}
-
 	lastBandPercentChangesDown := (lastBand.Candle.Open - lastBand.Candle.Close) / lastBand.Candle.Close * 100
 	lastBandPercentChanges := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
 	lastHightChangePercent := (lastBand.Candle.Close - lastBand.Candle.Open) / (lastBand.Candle.Hight - lastBand.Candle.Open) * 100
@@ -398,26 +393,6 @@ func GetSellReason() string {
 	return reason
 }
 
-func checkOnTrendDown(result models.BandResult, coinLongTrend, masterCoinTrend, masterCoinLongIntervalTrend int8, priceChange float32, isCandleComplete bool) bool {
-	if (masterCoinTrend != models.TREND_UP || coinLongTrend == models.TREND_DOWN) && masterCoinLongIntervalTrend == models.TREND_DOWN {
-		if result.Direction == BAND_DOWN && result.AllTrend.SecondTrend != models.TREND_UP && isCandleComplete {
-			lastBand := result.Bands[len(result.Bands)-1]
-			secondLastBand := result.Bands[len(result.Bands)-2]
-			if secondLastBand.Candle.Close > secondLastBand.Candle.Open {
-				return false
-			}
-
-			lastBandOnUpper := lastBand.Candle.Low <= float32(lastBand.Upper) && lastBand.Candle.Hight >= float32(lastBand.Upper)
-			secondLastBandOnUpper := secondLastBand.Candle.Low <= float32(secondLastBand.Upper) && secondLastBand.Candle.Hight >= float32(secondLastBand.Upper)
-			if lastBandOnUpper || secondLastBandOnUpper {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 func isTimeBelowTenMinute() bool {
 	currentTime := time.Now()
 
@@ -477,6 +452,15 @@ func SpecialCondition(currencyConfig *models.CurrencyNotifConfig, symbol string,
 					reason = "open close above upper, mid cross upper, long cross upper"
 					return true
 				}
+			}
+		}
+	}
+
+	if longInterval.AllTrend.FirstTrend == models.TREND_DOWN && longInterval.AllTrend.SecondTrend == models.TREND_DOWN && countBelowSMA(longInterval.Bands, true) > len(longInterval.Bands)/2 {
+		if midInterval.AllTrend.FirstTrend != models.TREND_UP && midInterval.AllTrend.SecondTrend == models.TREND_UP && isHasCrossLower(midInterval.Bands, false) {
+			if shortInterval.Position == models.ABOVE_UPPER && countCrossUpper(midInterval.Bands) == 1 && changesInPercent >= 2.5 && changesInPercent < 3 {
+				reason = "first up on trend down"
+				return true
 			}
 		}
 	}
@@ -554,7 +538,8 @@ func checkIsCandleComplete(requestTime time.Time, intervalMinute int) bool {
 }
 
 func firstCrossUpper(shortInterval, midInterval models.BandResult, changeInPercent float32) bool {
-	if shortInterval.Position == models.ABOVE_UPPER && midInterval.Position == models.ABOVE_UPPER {
+	midLastBand := midInterval.Bands[len(midInterval.Bands)-1]
+	if shortInterval.Position == models.ABOVE_UPPER && ((midLastBand.Candle.Open < float32(midLastBand.SMA) && midLastBand.Candle.Close > float32(midLastBand.SMA)) || (midLastBand.Candle.Open < float32(midLastBand.Upper) && midLastBand.Candle.Close > float32(midLastBand.Upper))) {
 		if !isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-6:len(shortInterval.Bands)-1], true) || isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-6:len(midInterval.Bands)-1], true) {
 			return changeInPercent > 3 && changeInPercent < 3.5
 		}
