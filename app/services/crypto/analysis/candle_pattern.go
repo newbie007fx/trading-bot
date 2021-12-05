@@ -77,21 +77,30 @@ func hammer(bands []models.Band) bool {
 	secondLastBand := bands[len(bands)-2]
 	if secondLastBand.Candle.Open > secondLastBand.Candle.Close {
 		if lastBand.Candle.Low <= float32(lastBand.Lower) || secondLastBand.Candle.Low <= float32(secondLastBand.Lower) {
-			return IsHammer(bands)
+			return IsHammer(lastBand)
 		}
 	}
 
 	return false
 }
 
-func IsHammer(bands []models.Band) bool {
-	lastBand := bands[len(bands)-1]
-	different := lastBand.Candle.Hight - lastBand.Candle.Close
-	candleBody := lastBand.Candle.Hight - lastBand.Candle.Low
+func IsHammer(band models.Band) bool {
+	threshold := 10
+	if band.Candle.Open > band.Candle.Close {
+		threshold = 25
+	}
+
+	different := band.Candle.Hight - band.Candle.Close
+	candleBody := band.Candle.Hight - band.Candle.Low
 	percent := different / candleBody * 100
-	if percent < 10 {
-		different = lastBand.Candle.Open - lastBand.Candle.Low
-		percent := different / candleBody * 100
+	if percent < float32(threshold) {
+		different = band.Candle.Open - band.Candle.Low
+		if candleBody > different {
+			percent = different / candleBody * 100
+		} else {
+			percent = candleBody / different * 100
+		}
+
 		return percent >= 65
 	}
 
@@ -170,6 +179,21 @@ func IsDoji(band models.Band, isUp bool) bool {
 	}
 
 	return false
+}
+
+func secondAlgDoji(band models.Band) bool {
+	head := band.Candle.Hight - band.Candle.Close
+	body := (band.Candle.Close - band.Candle.Open)
+	percent := body / band.Candle.Open * 100
+	tail := band.Candle.Open - band.Candle.Low
+	if band.Candle.Close < band.Candle.Open {
+		head = band.Candle.Hight - band.Candle.Open
+		body = (band.Candle.Open - band.Candle.Close)
+		percent = body / band.Candle.Close * 100
+		tail = band.Candle.Close - band.Candle.Low
+	}
+
+	return percent < 0.31 && body*2 < head && body*2 < tail
 }
 
 func turnPattern(bands []models.Band) bool {

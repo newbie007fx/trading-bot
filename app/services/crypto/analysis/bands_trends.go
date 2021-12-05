@@ -84,7 +84,7 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	trend.FirstTrendPercent = firstPercent
 	trend.SecondTrend = midleToLastTrend
 	trend.SecondTrendPercent = secondPercent
-	trend.ShortTrend = CalculateTrendShort(data[len(data)-4:])
+	trend.ShortTrend = conclusionShortTrend(CalculateTrendShort(data[len(data)-4:]), CalculateTrendShort(data[len(data)-3:]))
 
 	if trend.Trend == 0 {
 		trend.Trend = getConclusionTrend(firstToMidleTrend, midleToLastTrend, firstAvg, midleAvg, lastAvg, baseLinePoint)
@@ -262,4 +262,20 @@ func getTrendShort(baseLine, fistAvg, secondAvg float32) int8 {
 	}
 
 	return models.TREND_DOWN
+}
+
+func conclusionShortTrend(firstTrend, secondTrend int8) int8 {
+	if firstTrend == secondTrend {
+		return firstTrend
+	}
+
+	if (firstTrend == models.TREND_DOWN && secondTrend == models.TREND_UP) || (firstTrend == models.TREND_UP && secondTrend == models.TREND_DOWN) {
+		return models.TREND_SIDEWAY
+	}
+
+	if firstTrend == models.TREND_SIDEWAY {
+		return secondTrend
+	}
+
+	return firstTrend
 }
