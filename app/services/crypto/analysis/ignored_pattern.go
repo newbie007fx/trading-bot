@@ -145,6 +145,34 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
+	if result.Position == models.ABOVE_SMA {
+		if isHasCrossUpper(result.Bands[len(result.Bands)-5:], true) && result.AllTrend.ShortTrend != models.TREND_UP {
+			ignoredReason = "above sma and short trend not up"
+			return true
+		}
+
+		if !isHasCrossUpper(result.Bands[len(result.Bands)-5:], true) && isHasCrossUpper(result.Bands[len(result.Bands)/2:], true) {
+			if percentFromUpper < 3 {
+				ignoredReason = "above sma and percent below 3"
+				return true
+			}
+		}
+
+		if !isHasCrossUpper(result.Bands[len(result.Bands)/2:], true) && !isHasCrossSMA(result.Bands[len(result.Bands)/2:], false) {
+			if percentFromUpper < 3 && result.AllTrend.SecondTrend < 35 {
+				ignoredReason = "above sma and 10 band not cross upper or sma"
+				return true
+			}
+		}
+
+		if !isHasCrossUpper(result.Bands[len(result.Bands)-10:], true) && isHasCrossUpper(result.Bands[len(result.Bands)-15:], true) {
+			if percentFromUpper < 3 {
+				ignoredReason = "above sma and percent below 3 2nd logic"
+				return true
+			}
+		}
+	}
+
 	return ignored(result, masterCoin)
 }
 
@@ -404,6 +432,21 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		if shortInterval.PriceChanges > 3 && countCrossUpper(shortInterval.Bands) == 0 && IsHammer(secondLastBand) {
 			ignoredReason = "previous band down and hammer pattern"
 			return true
+		}
+	}
+
+	if result.AllTrend.ShortTrend != models.TREND_UP {
+		shortLastBandChanges := (shortLastBand.Candle.Close - shortLastBand.Candle.Open) / shortLastBand.Candle.Open * 100
+		if shortLastBandChanges > 3 {
+			if shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 {
+				ignoredReason = "mid short interval down. short below sma high changes, percen below threshold"
+				return true
+			}
+
+			if shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3 {
+				ignoredReason = "mid short interval down. short above sma high changes, percen below threshold"
+				return true
+			}
 		}
 	}
 

@@ -273,9 +273,13 @@ func conclusionShortTrend(firstTrend, secondTrend int8) int8 {
 		return models.TREND_SIDEWAY
 	}
 
-	if firstTrend == models.TREND_SIDEWAY {
+	if firstTrend == models.TREND_SIDEWAY && secondTrend != models.TREND_UP {
 		return secondTrend
 	}
 
-	return firstTrend
+	if secondTrend == models.TREND_SIDEWAY && firstTrend != models.TREND_UP {
+		return firstTrend
+	}
+
+	return models.TREND_SIDEWAY
 }
