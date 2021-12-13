@@ -3,11 +3,14 @@ package driver
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
+	"syscall"
 	"telebot-trading/app/models"
 	"telebot-trading/utils"
+	"time"
 
 	binance "github.com/adshao/go-binance/v2"
 )
@@ -30,14 +33,26 @@ func (client *BinanceClient) init() {
 func (client *BinanceClient) GetCandlesData(symbol string, limit int, startDate, endDate int64, resolution string) ([]models.CandleData, error) {
 	var candlesData []models.CandleData
 	conteks := context.Background()
-	service := client.klineService.Symbol(symbol).Limit(limit).Interval(resolution)
-	if startDate > 1 {
-		service = service.StartTime(startDate)
+	var cryptoCandles []*binance.Kline
+	var err error
+
+	count := 0
+	for {
+		count++
+		conteks = context.Background()
+		cryptoCandles, err = client.callGetCandleService(symbol, limit, startDate, endDate, resolution, conteks)
+		if (err != nil && errors.Is(err, syscall.ECONNRESET)) || (conteks.Err() != nil && errors.Is(conteks.Err(), syscall.ECONNRESET)) {
+			log.Print("This is connection reset by peer error")
+			if count <= 3 {
+				log.Println("sleep one second before retry")
+				time.Sleep(1 * time.Second)
+				continue
+			}
+		}
+
+		break
 	}
-	if endDate > 1 {
-		service = service.EndTime(endDate)
-	}
-	cryptoCandles, err := service.Do(conteks)
+
 	if err == nil {
 		candlesData = client.convertCandleDataMap(cryptoCandles)
 	}
@@ -53,6 +68,17 @@ func (client *BinanceClient) GetCandlesData(symbol string, limit int, startDate,
 	}
 
 	return candlesData, err
+}
+
+func (client *BinanceClient) callGetCandleService(symbol string, limit int, startDate, endDate int64, resolution string, conteks context.Context) (res []*binance.Kline, err error) {
+	service := client.klineService.Symbol(symbol).Limit(limit).Interval(resolution)
+	if startDate > 1 {
+		service = service.StartTime(startDate)
+	}
+	if endDate > 1 {
+		service = service.EndTime(endDate)
+	}
+	return service.Do(conteks)
 }
 
 func (client *BinanceClient) GetBlanceInfo() (*[]models.AssetBalance, error) {
