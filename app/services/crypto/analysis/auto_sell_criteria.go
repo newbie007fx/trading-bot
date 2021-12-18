@@ -527,7 +527,8 @@ func down25PercentFromHight(result models.BandResult, changeInPercent float32, h
 	heightPrice := result.Bands[len(result.Bands)-1].Candle.Hight
 	percentFromHeight := (heightPrice - holdPrice) / holdPrice * 100
 	if percentFromHeight < float32(maxFromHight) {
-		return changeInPercent/percentFromHeight*100 < 82
+		percent := changeInPercent / percentFromHeight * 100
+		return percent < 82
 	}
 
 	return false
@@ -543,6 +544,22 @@ func firstCrossUpper(shortInterval, midInterval models.BandResult, changeInPerce
 	if shortInterval.Position == models.ABOVE_UPPER && ((midLastBand.Candle.Open < float32(midLastBand.SMA) && midLastBand.Candle.Close > float32(midLastBand.SMA)) || (midLastBand.Candle.Open < float32(midLastBand.Upper) && midLastBand.Candle.Close > float32(midLastBand.Upper))) {
 		if !isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-6:len(shortInterval.Bands)-1], true) || isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-6:len(midInterval.Bands)-1], true) {
 			return changeInPercent > 3 && changeInPercent < 3.5
+		}
+	}
+
+	if shortInterval.Position == models.ABOVE_SMA && isHasCrossSMA(shortInterval.Bands[len(shortInterval.Bands)-2:], false) {
+		if isHasBelowLower(midInterval.Bands[len(midInterval.Bands)-3:]) {
+			return changeInPercent > 3 && changeInPercent < 3.5
+		}
+	}
+
+	return false
+}
+
+func isHasBelowLower(bands []models.Band) bool {
+	for _, band := range bands {
+		if band.Candle.Open < float32(band.Lower) && band.Candle.Close < float32(band.Lower) {
+			return true
 		}
 	}
 
