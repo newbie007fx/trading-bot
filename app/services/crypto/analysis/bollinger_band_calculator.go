@@ -3,6 +3,8 @@ package analysis
 import (
 	"log"
 	"math"
+	"strconv"
+	"strings"
 	"telebot-trading/app/models"
 )
 
@@ -67,10 +69,49 @@ func getBandData(historical []models.CandleData) (result models.Band) {
 
 	lower := sma - (STANDARD_DEVIATIONS * dev)
 
+	candle := &historical[size-1]
+
 	return models.Band{
-		Candle: &historical[size-1],
-		SMA:    sma,
-		Upper:  upper,
-		Lower:  lower,
+		Candle: candle,
+		SMA:    updatePrecision(candle, sma),
+		Upper:  updatePrecision(candle, upper),
+		Lower:  updatePrecision(candle, lower),
 	}
+}
+
+func updatePrecision(data *models.CandleData, value float64) float64 {
+	basePrecision := getMaxNumPrec(data)
+	multiplier := math.Pow(10, float64(basePrecision))
+
+	return math.Floor(value*multiplier) / multiplier
+}
+
+func getMaxNumPrec(data *models.CandleData) float64 {
+	base := numFloatPlaces(float64(data.Low))
+	tmpBase := numFloatPlaces(float64(data.Open))
+	if tmpBase > base {
+		base = tmpBase
+	}
+
+	tmpBase = numFloatPlaces(float64(data.Close))
+	if tmpBase > base {
+		base = tmpBase
+	}
+
+	tmpBase = numFloatPlaces(float64(data.Hight))
+	if tmpBase > base {
+		base = tmpBase
+	}
+
+	return float64(base)
+}
+
+func numFloatPlaces(v float64) int {
+	s := strconv.FormatFloat(v, 'f', -1, 32)
+	i := strings.IndexByte(s, '.')
+	if i > -1 {
+		return len(s) - i - 1
+	}
+
+	return 0
 }
