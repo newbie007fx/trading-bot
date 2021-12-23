@@ -1022,6 +1022,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.Position == models.ABOVE_SMA && countAboveSMA(result.Bands[len(result.Bands)-5:]) == 5 && !isHasCrossUpper(result.Bands[len(result.Bands)-5:], true) {
+		if midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 3 && percentFromUpper < 3 {
+			if shortInterval.Position == models.ABOVE_SMA && isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-5:], true) {
+				ignoredReason = "short, mid and long above sma but percent below 3"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
@@ -1276,6 +1285,13 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 				ignoredReason = "trend down down and percent from sma below 3"
 				return true
 			}
+		}
+	}
+
+	if result.Position == models.BELOW_SMA && !isHasCrossLower(result.Bands[len(result.Bands)-7:], false) {
+		if countDownBand(longInterval.Bands[len(longInterval.Bands)-4:]) >= 3 && percentFromSMA < 3 {
+			ignoredReason = "trend down down and percent from sma below 3 2nd"
+			return true
 		}
 	}
 
