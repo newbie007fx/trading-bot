@@ -541,6 +541,13 @@ func checkIsCandleComplete(requestTime time.Time, intervalMinute int) bool {
 
 func firstCrossUpper(shortInterval, midInterval models.BandResult, changeInPercent float32) bool {
 	midLastBand := midInterval.Bands[len(midInterval.Bands)-1]
+
+	if midInterval.Position == models.ABOVE_UPPER && shortInterval.Position == models.ABOVE_UPPER {
+		if !isHasCrossUpper(midInterval.Bands[:len(midInterval.Bands)-1], true) && isHasCrossLower(midInterval.Bands[:len(midInterval.Bands)-1], false) {
+			return changeInPercent > 3 && changeInPercent < 3.5
+		}
+	}
+
 	if shortInterval.Position == models.ABOVE_UPPER && ((midLastBand.Candle.Open < float32(midLastBand.SMA) && midLastBand.Candle.Close > float32(midLastBand.SMA)) || (midLastBand.Candle.Open < float32(midLastBand.Upper) && midLastBand.Candle.Close > float32(midLastBand.Upper))) {
 		if !isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-6:len(shortInterval.Bands)-1], true) || isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-6:len(midInterval.Bands)-1], true) {
 			return changeInPercent > 3 && changeInPercent < 3.5
