@@ -58,7 +58,7 @@ func MakeCryptoRequest(data models.CurrencyNotifConfig, request CandleRequest) *
 	return &result
 }
 
-func MakeCryptoRequestUpdateLasCandle(data models.CurrencyNotifConfig, request CandleRequest, close, hight float32) *models.BandResult {
+func MakeCryptoRequestUpdateLasCandle(data models.CurrencyNotifConfig, request CandleRequest, close, hight, low float32) *models.BandResult {
 	DispatchRequestJob(request)
 
 	response := <-request.ResponseChan
@@ -71,7 +71,7 @@ func MakeCryptoRequestUpdateLasCandle(data models.CurrencyNotifConfig, request C
 		log.Println("invalid candle data value")
 	}
 
-	bands := analysis.GetCurrentBollingerBands(updateLastCandle(response.CandleData, close, hight))
+	bands := analysis.GetCurrentBollingerBands(updateLastCandle(response.CandleData, close, hight, low))
 	if len(bands.Data) < 13 {
 		log.Println("invalid number of band, skipped")
 		return nil
@@ -107,13 +107,19 @@ func MakeCryptoRequestUpdateLasCandle(data models.CurrencyNotifConfig, request C
 	return &result
 }
 
-func updateLastCandle(candles []models.CandleData, close, hight float32) []models.CandleData {
+func updateLastCandle(candles []models.CandleData, close, hight, low float32) []models.CandleData {
 	lastCandle := candles[len(candles)-1]
 	lastCandle.Close = close
 	if hight > lastCandle.Open {
 		lastCandle.Hight = hight
 	} else {
 		lastCandle.Hight = lastCandle.Open
+	}
+
+	if low < lastCandle.Open {
+		lastCandle.Low = low
+	} else {
+		lastCandle.Low = lastCandle.Open
 	}
 	candles[len(candles)-1] = lastCandle
 

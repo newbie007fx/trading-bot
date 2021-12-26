@@ -108,8 +108,8 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					continue
 				}
 
-				holdCoinMid := crypto.CheckCoin(*currencyConfig, "1h", 0, GetEndDate(baseCheckingTime), 0, 0)
-				holdCoinLong := crypto.CheckCoin(*currencyConfig, "4h", 0, GetEndDate(baseCheckingTime), 0, 0)
+				holdCoinMid := crypto.CheckCoin(*currencyConfig, "1h", 0, GetEndDate(baseCheckingTime), 0, 0, 0)
+				holdCoinLong := crypto.CheckCoin(*currencyConfig, "4h", 0, GetEndDate(baseCheckingTime), 0, 0, 0)
 				if holdCoinMid == nil || holdCoinLong == nil {
 					log.Println("error hold coin nil. skip need to sell checking process")
 					continue
@@ -240,8 +240,8 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceCh
 				continue
 			}
 
-			midInterval := crypto.CheckCoin(data, "1h", 0, GetEndDate(downCheckingTime), 0, 0)
-			longInterval := crypto.CheckCoin(data, "4h", 0, GetEndDate(downCheckingTime), 0, 0)
+			midInterval := crypto.CheckCoin(data, "1h", 0, GetEndDate(downCheckingTime), 0, 0, 0)
+			longInterval := crypto.CheckCoin(data, "4h", 0, GetEndDate(downCheckingTime), 0, 0, 0)
 			if !analysis.IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin, downCheckingTime) {
 				altCoins = append(altCoins, *result)
 			}
@@ -288,14 +288,14 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 			continue
 		}
 
-		resultMid := crypto.CheckCoin(*currencyConfig, "1h", 0, timeInMilli, 0, 0)
+		resultMid := crypto.CheckCoin(*currencyConfig, "1h", 0, timeInMilli, 0, 0, 0)
 		midWeight := getWeightCustomInterval(*resultMid, altCoins[i], "1h", nil)
 		if midWeight == 0 {
 			continue
 		}
 		altCoins[i].Weight += midWeight
 		if altCoins[i].Weight > 1.7 {
-			resultLong := crypto.CheckCoin(*currencyConfig, "4h", 0, timeInMilli, 0, 0)
+			resultLong := crypto.CheckCoin(*currencyConfig, "4h", 0, timeInMilli, 0, 0, 0)
 			longWight := getWeightCustomInterval(*resultLong, altCoins[i], "4h", resultMid)
 			if longWight == 0 {
 				continue

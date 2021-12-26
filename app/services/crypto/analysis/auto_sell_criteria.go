@@ -368,7 +368,7 @@ func getLowestPrice(bands []models.Band) float32 {
 	return lowest
 }
 
-func getLowestLowPrice(bands []models.Band) float32 {
+func GetLowestLowPrice(bands []models.Band) float32 {
 	var lowest float32 = bands[0].Candle.Low
 	for _, band := range bands {
 		if lowest > band.Candle.Low {

@@ -314,7 +314,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	}
 
 	highest := GetHigestHightPrice(result.Bands)
-	lowest := getLowestLowPrice(result.Bands)
+	lowest := GetLowestLowPrice(result.Bands)
 	difference := highest - lowest
 	percent := difference / lowest * 100
 	if percent <= 2 {
@@ -1336,9 +1336,9 @@ func IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin *models.B
 	}
 
 	if longInterval.Position == models.BELOW_SMA && !isHasCrossLower(longInterval.Bands[len(longInterval.Bands)-3:], false) {
-		if midInterval.AllTrend.FirstTrend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend == models.TREND_DOWN {
-			if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN && result.Position < models.BELOW_SMA {
-				if countBelowSMA(result.Bands, false) == 0 && percentFromSMA < 3 {
+		if midInterval.AllTrend.FirstTrend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend != models.TREND_UP {
+			if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN && result.Position == models.BELOW_SMA {
+				if countAboveSMA(result.Bands) == 0 && percentFromSMA < 3 {
 					ignoredReason = "trend down down and position below sma and percent from sma below 3"
 					return true
 				}

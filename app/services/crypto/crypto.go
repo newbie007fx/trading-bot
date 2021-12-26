@@ -157,7 +157,7 @@ func GetMode() string {
 	return mode
 }
 
-func CheckCoin(data models.CurrencyNotifConfig, interval string, startDate, endDate int64, close, hight float32) *models.BandResult {
+func CheckCoin(data models.CurrencyNotifConfig, interval string, startDate, endDate int64, close, hight, low float32) *models.BandResult {
 	responseChan := make(chan CandleResponse)
 
 	request := CandleRequest{
@@ -173,5 +173,5 @@ func CheckCoin(data models.CurrencyNotifConfig, interval string, startDate, endD
 		return MakeCryptoRequest(data, request)
 	}
 
-	return MakeCryptoRequestUpdateLasCandle(data, request, close, hight)
+	return MakeCryptoRequestUpdateLasCandle(data, request, close, hight, low)
 }
