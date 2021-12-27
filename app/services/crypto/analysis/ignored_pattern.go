@@ -520,6 +520,15 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.SecondTrendPercent < 5 {
+		if secondLastBand.Candle.Open < float32(secondLastBand.Lower) || secondLastBand.Candle.Close < float32(secondLastBand.Lower) {
+			if shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 {
+				ignoredReason = "significan down. short percent from sma below 3"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
