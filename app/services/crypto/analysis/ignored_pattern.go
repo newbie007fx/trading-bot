@@ -1080,6 +1080,36 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_DOWN {
+		midlowestIndex := getLowestIndex(midInterval.Bands)
+		if isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-2:], true) && midlowestIndex > len(midInterval.Bands)/2 {
+			if isHasCrossUpper(shortInterval.Bands[len(result.Bands)-3:], true) {
+				ignoredReason = "trend down mid second wave hit lowest and then cross upper"
+				return true
+			}
+		}
+
+		midHigestIndex := getHighestIndex(midInterval.Bands)
+		if midInterval.Position == models.ABOVE_SMA && midlowestIndex > len(midInterval.Bands)/2 {
+			checking := false
+			if midHigestIndex == len(midInterval.Note)-1 {
+				if midPercentFromUpper < 3 {
+					checking = true
+				}
+			} else {
+				midPercentFromHigest := (midInterval.Bands[midHigestIndex].Candle.Close - midLastBand.Candle.Close) / midLastBand.Candle.Close * 100
+				if midPercentFromHigest < 3 && midPercentFromUpper < 3 {
+					checking = true
+				}
+			}
+
+			if checking && (isHasCrossUpper(shortInterval.Bands[len(result.Bands)-3:], true) || (getHighestIndex(shortInterval.Bands) == len(shortInterval.Bands)-1 && shortPercentFromUpper < 3)) {
+				ignoredReason = "trend down mid second wave hit lowest and then get higest"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
