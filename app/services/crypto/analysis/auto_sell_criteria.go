@@ -465,6 +465,18 @@ func SpecialCondition(currencyConfig *models.CurrencyNotifConfig, symbol string,
 		}
 	}
 
+	if longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+		hightIndex := getHighestIndex(midInterval.Bands[len(midInterval.Bands)/2:]) + len(midInterval.Bands)/2
+		if hightIndex >= len(midInterval.Bands)/2-3 && midInterval.Bands[hightIndex].Candle.Hight > float32(midInterval.Bands[hightIndex].Upper) {
+			if countBelowSMA(midInterval.Bands[hightIndex:], false) > 0 && midLastBand.Candle.Hight >= midInterval.Bands[hightIndex].Candle.Close {
+				if changesInPercent > 3 && changesInPercent < 3.5 {
+					reason = "long interval down, reversal from sma"
+					return true
+				}
+			}
+		}
+	}
+
 	return false
 }
 

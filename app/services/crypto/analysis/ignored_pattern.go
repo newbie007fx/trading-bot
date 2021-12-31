@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"fmt"
+	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -993,9 +994,9 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	if result.AllTrend.SecondTrend != models.TREND_UP {
 		if shortInterval.Position == models.BELOW_SMA && countBelowSMA(shortInterval.Bands[len(shortInterval.Bands)/2:], false) >= len(shortInterval.Bands)/2 {
 			shortPercentFromSMA := (shortLastBand.SMA - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
-			if !isHasCrossSMA(shortInterval.Bands[len(shortInterval.Bands)/2:], true) && shortPercentFromSMA < 3 {
+			if !isHasCrossSMA(shortInterval.Bands[len(shortInterval.Bands)/2:], true) && shortPercentFromSMA < 3 && midPercentFromUpper < 3 {
 				ignoredReason = "trend down from upper"
-				//return true
+				return true
 			}
 		}
 	}
@@ -1106,6 +1107,19 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			if checking && (isHasCrossUpper(shortInterval.Bands[len(result.Bands)-3:], true) || (getHighestIndex(shortInterval.Bands) == len(shortInterval.Bands)-1 && shortPercentFromUpper < 3)) {
 				ignoredReason = "trend down mid second wave hit lowest and then get higest"
 				return true
+			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_DOWN {
+		hightIndex := getHighestIndex(midInterval.Bands[len(midInterval.Bands)/2:]) + len(midInterval.Bands)/2
+		if hightIndex >= len(midInterval.Bands)/2-3 && midInterval.Bands[hightIndex].Candle.Hight > float32(midInterval.Bands[hightIndex].Upper) {
+			log.Println("coba")
+			if countBelowSMA(midInterval.Bands[hightIndex:], false) > 0 && countBelowSMA(midInterval.Bands[:len(midInterval.Bands)/2], false) > 0 {
+				if midPercentFromUpper < 3 {
+					ignoredReason = "long interval down, mid reversal from sma but margin from upper < 3"
+					return true
+				}
 			}
 		}
 	}
