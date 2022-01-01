@@ -272,6 +272,9 @@ func getHighestHightPrice(currentTime time.Time, bands []models.Band, timeType i
 
 	if timeType == time_type_15m {
 		numberBands = (currentTime.Minute() + 1) % 15
+		if numberBands == 0 {
+			numberBands = 15
+		}
 	} else if timeType == time_type_1h {
 		numberBands = int(math.Ceil(float64(currentTime.Minute()+1) / 15))
 	} else {
@@ -291,6 +294,9 @@ func getLowestLowPrice(currentTime time.Time, bands []models.Band, timeType int)
 
 	if timeType == time_type_15m {
 		numberBands = (currentTime.Minute() + 1) % 15
+		if numberBands == 0 {
+			numberBands = 15
+		}
 	} else if timeType == time_type_1h {
 		numberBands = int(math.Ceil(float64(currentTime.Minute()+1) / 15))
 	} else {

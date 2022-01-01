@@ -3,7 +3,6 @@ package analysis
 import (
 	"log"
 	"telebot-trading/app/models"
-	"telebot-trading/app/repositories"
 	"time"
 )
 
@@ -15,10 +14,6 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 	changes := result.CurrentPrice - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
 	isCandleComplete := checkIsCandleComplete(requestTime, 15)
-
-	if changesInPercent >= 3 && currencyConfig.ReachTargetProfitAt == 0 {
-		repositories.UpdateCurrencyNotifConfig(currencyConfig.ID, map[string]interface{}{"reach_target_profit_at": time.Now().Unix()})
-	}
 
 	if isCandleComplete && masterCoin.Direction == BAND_DOWN {
 		var masterDown, resultDown, safe = false, false, false
@@ -49,11 +44,9 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 		}
 	}
 
-	if currencyConfig.ReachTargetProfitAt > 0 {
-		if sellWhenDoubleUpTargetProfit(*currencyConfig, result, changesInPercent, requestTime) {
-			reason = "sell with double up target profit"
-			return true
-		}
+	if sellWhenDoubleUpTargetProfit(*currencyConfig, result, *resultMid, changesInPercent) {
+		reason = "sell with double up target profit"
+		return true
 	}
 
 	whenDown := result.AllTrend.Trend == models.TREND_DOWN || (lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA))
@@ -125,6 +118,12 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 
 		if changesInPercent > 3 && changesInPercent < 3.5 && aboveUpperAndMidIntervalCrossSMA(result, *resultMid) {
 			reason = "above upper and mid interval cross sma"
+			return true
+		}
+
+		midLastBand := resultMid.Bands[len(resultMid.Bands)-1]
+		if changesInPercent > 3 && changesInPercent < 3.5 && midLastBand.Candle.Low > float32(midLastBand.Upper) {
+			reason = "mid lastband low above upper"
 			return true
 		}
 
@@ -291,15 +290,39 @@ func sellOnDown(result models.BandResult, currencyConfig *models.CurrencyNotifCo
 	return false
 }
 
-func sellWhenDoubleUpTargetProfit(config models.CurrencyNotifConfig, result models.BandResult, changeInPercent float32, requestTime time.Time) bool {
+func sellWhenDoubleUpTargetProfit(config models.CurrencyNotifConfig, result models.BandResult, midResult models.BandResult, changeInPercent float32) bool {
+	lastBand := result.Bands[len(result.Bands)-1]
 	if changeInPercent >= 3 && changeInPercent < 3.847 && result.Direction == BAND_DOWN {
-		sixHourInSecond := 60 * 60 * 5
-		diff := requestTime.Unix() - config.ReachTargetProfitAt
-
-		return diff/int64(sixHourInSecond) >= 1
+		timeFirstAboveMargin := getTimeFirstAboveMargin(config.HoldPrice, midResult.Bands, config.HoldedAt)
+		if lastBand.Candle.CloseTime > timeFirstAboveMargin {
+			fourHourInSecond := 60 * 60 * 4
+			diff := lastBand.Candle.CloseTime - timeFirstAboveMargin
+			return diff/int64(fourHourInSecond) >= 1
+		}
 	}
 
 	return false
+}
+
+func getTimeFirstAboveMargin(holdPrice float32, bands []models.Band, openTime int64) int64 {
+	index := getIndexMoreThanLimitOpenTime(bands, openTime)
+	for _, band := range bands[index:] {
+		percent := (band.Candle.Hight - holdPrice) / holdPrice * 100
+		if percent > 3 {
+			return band.Candle.CloseTime
+		}
+	}
+
+	return 0
+}
+
+func getIndexMoreThanLimitOpenTime(bands []models.Band, openTime int64) int {
+	for i, band := range bands {
+		if band.Candle.CloseTime > openTime {
+			return i
+		}
+	}
+	return 0
 }
 
 func skipSell(resultMid models.BandResult) bool {

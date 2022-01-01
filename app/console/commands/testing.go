@@ -64,8 +64,6 @@ func TestingSellCommand() *cobra.Command {
 
 	cmd.Flags().StringP("hold_at", "x", "", "Set the hold epoch time")
 
-	cmd.Flags().StringP("reach_target_at", "r", "", "Set reach target epoch time")
-
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		go crypto.RequestCandleService()
 		go crypto.StartSyncBalanceService()
@@ -74,7 +72,6 @@ func TestingSellCommand() *cobra.Command {
 		date, _ := cmd.Flags().GetString("time")
 		holdPrice, _ := cmd.Flags().GetString("price")
 		holdAt, _ := cmd.Flags().GetString("hold_at")
-		reachTargetProfitAt, _ := cmd.Flags().GetString("reach_target_at")
 
 		currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
 		if err != nil {
@@ -100,15 +97,8 @@ func TestingSellCommand() *cobra.Command {
 			return
 		}
 
-		reachTargetTime, err := strconv.ParseInt(reachTargetProfitAt, 10, 64)
-		if err != nil {
-			log.Println("invalid reach target profit at value")
-			return
-		}
-
 		currencyConfig.HoldPrice = float32(price)
 		currencyConfig.HoldedAt = holdTime
-		currencyConfig.ReachTargetProfitAt = reachTargetTime
 
 		tm := time.Unix(i, 0)
 		msg := crypto.GetSellLog(*currencyConfig, tm)
