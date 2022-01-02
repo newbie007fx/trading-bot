@@ -529,6 +529,13 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	if lastBand.Candle.Close < float32(lastBand.Upper) && percentFromUpper < 3 {
+		if shortInterval.Position == models.ABOVE_UPPER && upperSmaMarginBelow3(*result) {
+			ignoredReason = "short cross upper, mid after cross upper hit sma but percent below 3"
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -1132,6 +1139,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if lastBand.Candle.Close < float32(lastBand.SMA) && result.AllTrend.SecondTrend == models.TREND_SIDEWAY && result.AllTrend.ShortTrend == models.TREND_DOWN {
+		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && countBelowLower(midInterval.Bands[len(midInterval.Bands)-5:], false) > 0 {
+			if (shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3) || shortInterval.Position == models.ABOVE_UPPER {
+				ignoredReason = "on trend down short margin from upper below 3"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
@@ -1442,6 +1458,19 @@ func upperLowerMarginBelow3(result models.BandResult) bool {
 	return false
 }
 
+func upperSmaMarginBelow3(result models.BandResult) bool {
+	hightIndex := getHighestIndex(result.Bands)
+	if hightIndex >= len(result.Bands)/2-3 && result.Bands[hightIndex].Candle.Hight > float32(result.Bands[hightIndex].Upper) {
+		if isHasCrossSMA(result.Bands[hightIndex:], false) {
+			higestPrice := result.Bands[hightIndex].Candle.Hight
+			percent := (higestPrice - result.CurrentPrice) / result.CurrentPrice * 100
+			return percent < 3
+		}
+	}
+
+	return false
+}
+
 func percentFromHigest(bands []models.Band) float32 {
 	higestIndex := getHighestHightIndex(bands)
 	lastBand := bands[len(bands)-1]
@@ -1717,6 +1746,23 @@ func countBelowSMA(bands []models.Band, strict bool) int {
 			}
 		} else {
 			if data.Candle.Close < float32(data.SMA) {
+				count++
+			}
+		}
+	}
+
+	return count
+}
+
+func countBelowLower(bands []models.Band, strict bool) int {
+	count := 0
+	for _, data := range bands {
+		if strict {
+			if data.Candle.Hight < float32(data.Lower) && data.Candle.Low < float32(data.Lower) {
+				count++
+			}
+		} else {
+			if data.Candle.Close < float32(data.Lower) && data.Candle.Open < float32(data.Lower) {
 				count++
 			}
 		}
