@@ -13,7 +13,6 @@ import (
 
 var baseCheckingTime time.Time
 var altCheckingTime time.Time
-var downCheckingTime time.Time
 var holdCount int64 = 0
 var masterTmp models.BandResult
 var masterMidTmp models.BandResult
@@ -21,7 +20,6 @@ var masterMidTmp models.BandResult
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
 	cryptoAltCoinPriceChan  chan bool
-	cryptoAltCoinDownChan   chan bool
 	masterCoinChan          chan bool
 }
 
@@ -41,18 +39,8 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 		ats.cryptoHoldCoinPriceChan <- true
 	}
 
-	if holdCount < maxHold {
-		if ats.isTimeToCheckAltCoinPrice(currentTime) {
-			ats.cryptoAltCoinPriceChan <- true
-		} else {
-			minuteLeft := currentTime.Minute() % 15
-			if (minuteLeft > 5 && minuteLeft <= 14) && currentTime.Minute()%2 == 1 {
-				waitMasterCoinProcessed()
-				if checkMasterDown() && masterCoin.Direction == analysis.BAND_UP {
-					ats.cryptoAltCoinDownChan <- true
-				}
-			}
-		}
+	if holdCount < maxHold && ats.isTimeToCheckAltCoinPrice(currentTime) {
+		ats.cryptoAltCoinPriceChan <- true
 	}
 
 }
@@ -60,19 +48,16 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 func (ats *AutomaticTradingStrategy) InitService() {
 	ats.cryptoHoldCoinPriceChan = make(chan bool)
 	ats.cryptoAltCoinPriceChan = make(chan bool)
-	ats.cryptoAltCoinDownChan = make(chan bool)
 	ats.masterCoinChan = make(chan bool)
 
 	go ats.startCheckHoldCoinPriceService(ats.cryptoHoldCoinPriceChan)
 	go ats.startCheckAltCoinPriceService(ats.cryptoAltCoinPriceChan)
-	go ats.startCheckAltCoinOnDownService(ats.cryptoAltCoinDownChan)
 	go StartCheckMasterCoinPriceService(ats.masterCoinChan)
 }
 
 func (ats *AutomaticTradingStrategy) Shutdown() {
 	close(ats.cryptoHoldCoinPriceChan)
 	close(ats.cryptoAltCoinPriceChan)
-	close(ats.cryptoAltCoinDownChan)
 	close(ats.masterCoinChan)
 }
 
@@ -201,83 +186,6 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 	}
 }
 
-func (ats *AutomaticTradingStrategy) startCheckAltCoinOnDownService(checkPriceChan chan bool) {
-	for <-checkPriceChan {
-		downCheckingTime = baseCheckingTime
-		log.Println("executing alt check on master down")
-
-		altCoins := []models.BandResult{}
-
-		endDate := GetEndDate(downCheckingTime)
-
-		responseChan := make(chan crypto.CandleResponse)
-
-		limit := 80
-		condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
-		currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
-
-		waitMasterCoinProcessed()
-		if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-4:]) && masterCoin.Direction == analysis.BAND_DOWN {
-			continue
-		}
-
-		for _, data := range *currency_configs {
-			request := crypto.CandleRequest{
-				Symbol:       data.Symbol,
-				EndDate:      endDate,
-				Limit:        40,
-				Resolution:   "15m",
-				ResponseChan: responseChan,
-			}
-
-			result := crypto.MakeCryptoRequest(data, request)
-			if result == nil || result.Direction == analysis.BAND_DOWN {
-				continue
-			}
-
-			result.Weight = analysis.CalculateWeightOnDown(result)
-			if result.Weight == 0 || (result.AllTrend.FirstTrend != models.TREND_DOWN && result.AllTrend.SecondTrend != models.TREND_DOWN) {
-				continue
-			}
-
-			midInterval := crypto.CheckCoin(data, "1h", 0, GetEndDate(downCheckingTime), 0, 0, 0)
-			longInterval := crypto.CheckCoin(data, "4h", 0, GetEndDate(downCheckingTime), 0, 0, 0)
-			if !analysis.IsIgnoredMasterDown(result, midInterval, longInterval, masterCoin, downCheckingTime) {
-				altCoins = append(altCoins, *result)
-			}
-		}
-
-		msg := ""
-		if len(altCoins) > 0 {
-			sort.Slice(altCoins, func(i, j int) bool { return altCoins[i].Weight > altCoins[j].Weight })
-			coin := altCoins[0]
-			currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
-			if err == nil {
-				bands := coin.Bands
-				lastBand := bands[len(bands)-1]
-				err = crypto.HoldCoin(*currencyConfig, lastBand.Candle)
-				if err != nil {
-					msg = err.Error()
-				} else {
-					msg = fmt.Sprintf("coin berikut telah dihold on %d:\n", downCheckingTime.Unix())
-					msg += crypto.GenerateMsg(coin)
-					msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
-					msg += "\n"
-					msg += sendHoldMsg(&coin)
-					msg += "\n"
-
-					if masterCoin != nil {
-						msg += "untuk master coin:\n"
-						msg += crypto.GenerateMsg(*masterCoin)
-					}
-				}
-			}
-		}
-
-		crypto.SendNotif(msg)
-	}
-}
-
 func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *[]models.BandResult {
 	results := []models.BandResult{}
 	timeInMilli := GetEndDate(altCheckingTime)
@@ -340,20 +248,7 @@ func sendHoldMsg(result *models.BandResult) string {
 	return crypto.HoldCoinMessage(*currencyConfig, result)
 }
 
-func checkMasterDown() bool {
-	log.Println("check master down")
-	if masterCoin.AllTrend.Trend == models.TREND_DOWN && masterCoinLongInterval.AllTrend.Trend == models.TREND_DOWN {
-		return true
-	}
-
-	return false
-}
-
 func skippedProcess() bool {
-	if masterCoin.AllTrend.Trend == models.TREND_DOWN && masterCoinLongInterval.AllTrend.Trend != models.TREND_DOWN {
-		return true
-	}
-
 	if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-3:]) && masterCoin.Direction == analysis.BAND_DOWN {
 		return true
 	}
