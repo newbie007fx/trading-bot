@@ -1,7 +1,6 @@
 package analysis
 
 import (
-	"log"
 	"telebot-trading/app/models"
 )
 
@@ -586,7 +585,6 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	if result.AllTrend.SecondTrend == models.TREND_DOWN {
 		hightIndex := getHighestIndex(midInterval.Bands[len(midInterval.Bands)/2:]) + len(midInterval.Bands)/2
 		if hightIndex >= len(midInterval.Bands)/2-3 && midInterval.Bands[hightIndex].Candle.Hight > float32(midInterval.Bands[hightIndex].Upper) {
-			log.Println("coba")
 			if countBelowSMA(midInterval.Bands[hightIndex:], false) > 0 && countBelowSMA(midInterval.Bands[:len(midInterval.Bands)/2], false) > 0 {
 				if midPercentFromUpper < 3 {
 					ignoredReason = "long interval down, mid reversal from sma but margin from upper < 3"
@@ -649,6 +647,30 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			lastCrossLower = getLastIndexCrossLower(shortInterval.Bands)
 			if isHasCrossUpper(shortInterval.Bands, true) && shortInterval.Position == models.BELOW_SMA && isHasCrossSMA(shortInterval.Bands[lastCrossLower:], false) {
 				ignoredReason = "below sma, down from sma"
+				return true
+			}
+		}
+	}
+
+	if result.Position == models.ABOVE_UPPER && midInterval.Position == models.ABOVE_UPPER && shortInterval.Position == models.ABOVE_UPPER {
+		ignoredReason = "all interval above upper"
+		return true
+	}
+
+	if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_UP && getHighestIndex(result.Bands[len(result.Bands)-7:]) != len(result.Bands[len(result.Bands)-7:])-1 {
+		if midInterval.AllTrend.FirstTrend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend == models.TREND_UP {
+			if midLastBand.Candle.Open < float32(midLastBand.SMA) && midLastBand.Candle.Close > float32(midLastBand.SMA) && isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-5:], true) {
+				ignoredReason = "donw up, short has cross upperr"
+				return true
+			}
+		}
+	}
+
+	shortPercentFromSMA := (shortLastBand.SMA - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
+	if isHasCrossUpper(result.Bands[len(result.Bands)/2:], true) && result.AllTrend.ShortTrend == models.TREND_DOWN {
+		if countBelowSMA(midInterval.Bands, true) > 13 && !isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-13:], true) {
+			if (shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3) || (shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3) {
+				ignoredReason = "short trend down, mid have many below sma"
 				return true
 			}
 		}
