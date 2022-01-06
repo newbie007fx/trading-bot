@@ -676,5 +676,48 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if lastBand.Candle.Hight < float32(lastBand.SMA) && CountUpBand(result.Bands[len(result.Bands)-5:]) <= 1 {
+		if midInterval.AllTrend.FirstTrend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+			if shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3 {
+				ignoredReason = "trend down, short above sma but percent bellow 3"
+				return true
+			}
+		}
+	}
+
+	if afterUpThenDown(result.Bands) {
+		if isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-3:], true) && isHasCrossUpper(shortInterval.Bands[len(midInterval.Bands)-3:], true) {
+			ignoredReason = "up down percent below 3 and mid, short cross upper"
+			return true
+		}
+	}
+
+	midHigest := getHighestIndex(midInterval.Bands)
+	midPercentFromHigest := (midInterval.Bands[midHigest].Candle.Close - midLastBand.Candle.Close) / midLastBand.Candle.Close * 100
+	if lastBand.Candle.Close > float32(lastBand.Upper) || percentFromUpper < 3 {
+		if midInterval.AllTrend.FirstTrend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend != models.TREND_DOWN {
+			if midPercentFromHigest < 3 && isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-3:], true) {
+				ignoredReason = "long and short cross upper and mid percent below 3"
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func afterUpThenDown(bands []models.Band) bool {
+	higest := getHighestIndex(bands)
+	lowest := getLowestIndex(bands)
+	lastBand := bands[len(bands)-1]
+
+	percentFromMidUpper := (float32(((lastBand.Upper-lastBand.SMA)/2)+lastBand.SMA) - lastBand.Candle.Close) / lastBand.Candle.Close * 100
+	if higest < len(bands)/2 && lowest < higest {
+		trend := CalculateTrendsDetail(bands[higest:])
+		if bands[higest].Candle.Hight > float32(bands[higest].Upper) && trend.FirstTrend == models.TREND_DOWN && trend.SecondTrend != models.TREND_DOWN {
+			return percentFromMidUpper < 3
+		}
+	}
+
 	return false
 }
