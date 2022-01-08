@@ -723,6 +723,46 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.Position == models.ABOVE_SMA && secondLastBand.Candle.Open > float32(secondLastBand.Upper) && secondLastBand.Candle.Close < float32(secondLastBand.Upper) {
+		if countAboveUpper(midInterval.Bands[len(midInterval.Bands)-5:]) > 0 && CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-5:]) != models.TREND_UP {
+			if shortInterval.AllTrend.ShortTrend != models.TREND_UP || shortPercentFromUpper < 3 {
+				ignoredReason = "down from upper"
+				return true
+			}
+		}
+	}
+
+	if result.Position == models.ABOVE_SMA && result.AllTrend.ShortTrend != models.TREND_UP && getHighestIndex(result.Bands) > len(result.Bands)-7 {
+		if isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-5:], false) && midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 3 {
+			if shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3 {
+				ignoredReason = "short trend down, mid and short percent from upper below 3"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_UP && result.Position == models.ABOVE_SMA {
+		if result.AllTrend.ShortTrend != models.TREND_UP || CalculateTrendShort(result.Bands[len(result.Bands)-5:len(result.Bands)-1]) != models.TREND_UP {
+			if midInterval.Position == models.ABOVE_SMA || (midInterval.Position == models.BELOW_SMA && midInterval.AllTrend.SecondTrend == models.TREND_DOWN) {
+				if shortInterval.Position == models.ABOVE_UPPER || (shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3) {
+					ignoredReason = "on upper, mid and short percent below 3 3nd"
+					return true
+				}
+			}
+		}
+	}
+
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.FirstTrendPercent < 10 && result.AllTrend.SecondTrend != models.TREND_UP {
+		if !isHasCrossUpper(result.Bands[len(result.Bands)-7:], true) && !isHasCrossSMA(result.Bands[len(result.Bands)-7:], false) {
+			if midInterval.Position == models.ABOVE_UPPER && countBelowSMA(midInterval.Bands[len(midInterval.Bands)-7:], false) == 0 {
+				if shortInterval.Position == models.ABOVE_UPPER {
+					ignoredReason = "mid and short above upper"
+					return true
+				}
+			}
+		}
+	}
+
 	return false
 }
 
