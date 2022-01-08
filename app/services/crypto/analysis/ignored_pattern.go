@@ -365,19 +365,6 @@ func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
 	return isLastBandCrossSMA || isSecondLastBandCrossSMA
 }
 
-// func isUpThreeOnMidIntervalChange(result *models.BandResult, requestTime time.Time) bool {
-// 	lastBand := result.Bands[len(result.Bands)-1]
-// 	isCrossSMA := lastBand.Candle.Low < float32(lastBand.SMA) && lastBand.Candle.Hight > float32(lastBand.SMA)
-// 	isCrossUpper := lastBand.Candle.Low < float32(lastBand.Upper) && lastBand.Candle.Hight > float32(lastBand.Upper)
-// 	if isCrossSMA || isCrossUpper {
-// 		if CountSquentialUpBand(result.Bands[len(result.Bands)-4:]) >= 3 && requestTime.Minute() < 17 {
-// 			return true
-// 		}
-// 	}
-
-// 	return false
-// }
-
 func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 	if lastBand.Candle.Close < float32(lastBand.SMA) && result.AllTrend.SecondTrend != models.TREND_UP {
@@ -505,27 +492,6 @@ func getLowestLowIndex(bands []models.Band) int {
 	}
 
 	return lowIndex
-}
-
-func getLowestIndexSecond(bands []models.Band) int {
-	firstLow := getLowestIndex(bands)
-
-	secondLow := -1
-	for i, band := range bands {
-		if i != firstLow && lowestFromBand(bands[firstLow]) != lowestFromBand(band) {
-			if secondLow < 0 {
-				secondLow = i
-			} else if lowestFromBand(bands[secondLow]) >= lowestFromBand(band) {
-				secondLow = i
-			}
-		}
-	}
-
-	if firstLow > secondLow {
-		return firstLow
-	}
-
-	return secondLow
 }
 
 func getHigestIndexSecond(bands []models.Band) int {

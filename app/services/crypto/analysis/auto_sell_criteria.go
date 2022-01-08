@@ -355,6 +355,16 @@ func countAboveSMA(bands []models.Band) int {
 	return count
 }
 
+func countAboveUpper(bands []models.Band) int {
+	var count int = 0
+	for _, band := range bands {
+		if band.Candle.Open > float32(band.Upper) {
+			count++
+		}
+	}
+	return count
+}
+
 var highestIndex int = 0
 
 func getHigestPrice(bands []models.Band) float32 {

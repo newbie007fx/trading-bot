@@ -703,6 +703,26 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if lastBand.Candle.Hight < float32(lastBand.Upper) && countAboveUpper(result.Bands[len(result.Bands)-5:]) > 0 && result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.SecondTrendPercent < 15 {
+		if !isHasCrossUpper(midInterval.Bands, false) && countBelowSMA(midInterval.Bands, false) == 0 && midPercentFromUpper < 3 {
+			if shortInterval.Position == models.ABOVE_UPPER || (shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3) {
+				if countBelowSMA(shortInterval.Bands[len(shortInterval.Bands)/2:], false) > 0 {
+					ignoredReason = "on upper, mid and short percent below 3"
+					return true
+				}
+			}
+		}
+	}
+
+	if isHasCrossUpper(result.Bands[len(result.Bands)-5:], true) && result.AllTrend.ShortTrend != models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_UP {
+		if midInterval.Position == models.ABOVE_UPPER || (midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 3) {
+			if shortInterval.Position == models.ABOVE_UPPER || (shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3) {
+				ignoredReason = "on upper, mid and short percent below 3 2nd"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
