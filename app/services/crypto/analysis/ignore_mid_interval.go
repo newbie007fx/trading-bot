@@ -364,5 +364,10 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_SIDEWAY && percentFromUpper < 3 && result.AllTrend.ShortTrend == models.TREND_DOWN {
+		ignoredReason = "trend sideway, but percent from upper below 3"
+		return true
+	}
+
 	return false
 }
