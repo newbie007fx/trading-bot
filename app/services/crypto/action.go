@@ -218,6 +218,8 @@ func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, oneMinuteMaster.CurrentPrice, higest, lowest)
 	}
 
+	log.Println("higest price", coin.Bands[len(coin.Bands)-1].Candle.Hight)
+
 	higest := getHighestHightPrice(datetime, masterCoin.Bands, time_type_1h)
 	lowest := getLowestLowPrice(datetime, masterCoin.Bands, time_type_1h)
 	masterCoinMid := CheckCoin(*masterCoinConfig, "1h", 0, timeInMili, masterCoin.CurrentPrice, higest, lowest)

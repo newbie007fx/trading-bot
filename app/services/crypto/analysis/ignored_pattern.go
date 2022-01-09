@@ -185,15 +185,6 @@ func isLowerDifferentValid(bands []models.Band) bool {
 	return percent > 98.898
 }
 
-// func isCrossLowerWhenSignificanDown(result *models.BandResult) bool {
-// 	lastBand := result.Bands[len(result.Bands)-1]
-// 	if lastBand.Candle.Open < float32(lastBand.Lower) && lastBand.Candle.Close > float32(lastBand.Lower) {
-// 		return result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.SecondTrendPercent < 50
-// 	}
-
-// 	return false
-// }
-
 func isLastBandCrossUpperAndPreviousBandNot(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	if lastBand.Candle.Open < lastBand.Candle.Close {
@@ -250,18 +241,6 @@ func isHasOpenCloseAboveUpper(bands []models.Band) bool {
 			return true
 		}
 	}
-	return false
-}
-
-func isNotInLower(bands []models.Band, skipped bool) bool {
-	lowestIndex := getLowestIndex(bands)
-	if !isHasCrossLower(bands[len(bands)-10:], false) {
-		if isHasCrossLower(bands[len(bands)-20:], false) || skipped {
-			return lowestIndex < len(bands)-10
-		}
-		return true
-	}
-
 	return false
 }
 

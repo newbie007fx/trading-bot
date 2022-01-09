@@ -11,7 +11,7 @@ func GetCurrentBollingerBands(candlesData []models.CandleData) (bands models.Ban
 		direction = BAND_UP
 	}
 
-	bands.PriceChanges = CalculateBandPriceChangesPercent(bands.Data, direction)
+	bands.PriceChanges = CalculateBandPriceChangesPercent(bands, direction)
 	bands.VolumeAverageChanges = CalculateVolumeAverage(bands.Data)
 
 	return

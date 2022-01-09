@@ -796,6 +796,24 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.ShortTrend != models.TREND_UP && result.PriceChanges > 5 && lastBand.Candle.Close < float32(lastBand.SMA) {
+		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+			if shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3 {
+				ignoredReason = "just significan down, short above sma but percent below 3 "
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.SecondTrendPercent < 15 {
+		if midInterval.AllTrend.FirstTrend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.Position == models.BELOW_SMA {
+			if shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3 && midPercentFromSMA < 3 {
+				ignoredReason = "trend down, mid below sma but percent below 3 "
+				return true
+			}
+		}
+	}
+
 	return false
 }
 

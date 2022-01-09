@@ -5,12 +5,14 @@ import "telebot-trading/app/models"
 const BAND_UP int8 = 1
 const BAND_DOWN int8 = 2
 
-func CalculateBandPriceChangesPercent(data []models.Band, direction int8) float32 {
+func CalculateBandPriceChangesPercent(bands models.Bands, direction int8) float32 {
+	data := bands.Data
+
 	dataLength := len(data)
 	lastCandle := data[dataLength-1]
 	threeCandleBeforeLast := data[dataLength-4 : dataLength-1]
 
-	if direction == BAND_DOWN {
+	if CalculateTrendShort(data[len(data)-4:]) == models.TREND_DOWN {
 		return percentDownCandle(threeCandleBeforeLast, lastCandle)
 	}
 
@@ -35,10 +37,10 @@ func percentUpCandle(threeCandleBeforeLast []models.Band, lastCandle models.Band
 }
 
 func percentDownCandle(threeCandleBeforeLast []models.Band, lastCandle models.Band) float32 {
-	higest := threeCandleBeforeLast[0].Candle.Close
+	higest := higestFromBand(threeCandleBeforeLast[0])
 	for _, val := range threeCandleBeforeLast {
-		if higest < val.Candle.Close {
-			higest = val.Candle.Close
+		if higest < higestFromBand(val) {
+			higest = higestFromBand(val)
 		}
 	}
 
