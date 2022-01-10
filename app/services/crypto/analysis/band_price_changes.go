@@ -12,7 +12,7 @@ func CalculateBandPriceChangesPercent(bands models.Bands, direction int8) float3
 	lastCandle := data[dataLength-1]
 	threeCandleBeforeLast := data[dataLength-4 : dataLength-1]
 
-	if CalculateTrendShort(data[len(data)-4:]) == models.TREND_DOWN {
+	if bands.AllTrend.ShortTrend != models.TREND_UP {
 		return percentDownCandle(threeCandleBeforeLast, lastCandle)
 	}
 

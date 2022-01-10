@@ -211,15 +211,6 @@ func isHasCrossUpper(bands []models.Band, withHead bool) bool {
 	return false
 }
 
-func hasCrossUpper(bands []models.Band) bool {
-	for _, band := range bands {
-		if band.Candle.Open < float32(band.Upper) && band.Candle.Hight > float32(band.Upper) {
-			return true
-		}
-	}
-	return false
-}
-
 func isHasCrossSMA(bands []models.Band, bodyOnly bool) bool {
 	for _, band := range bands {
 		if bodyOnly {
