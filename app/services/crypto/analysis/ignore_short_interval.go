@@ -85,12 +85,6 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
-	isUp := result.AllTrend.Trend == models.TREND_UP && !isHaveCountDown
-	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrendPercent > 70 && !isReversal(result.Bands) && !isUp {
-		ignoredReason = "above sma and just minor up"
-		return true
-	}
-
 	if isLastBandChangeMoreThan5AndHeadMoreThan3(lastBand) {
 		ignoredReason = "last band change more than 5 and head more than 3"
 		return true
@@ -125,13 +119,6 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		}
 	}
 
-	if result.Position == models.ABOVE_SMA && (result.AllTrend.FirstTrend == models.TREND_SIDEWAY || result.AllTrend.SecondTrend == models.TREND_SIDEWAY) {
-		if isHasCrossUpper(result.Bands[len(result.Bands)-15:], true) && isHasCrossSMA(result.Bands[len(result.Bands)-15:], false) && countBelowSMA(result.Bands[len(result.Bands)-15:], true) == 0 && percentFromUpper < 3 {
-			ignoredReason = "above sma and sideway"
-			return true
-		}
-	}
-
 	if isGetBearishEngulfingAfterLowest(result.Bands) && !isHasCrossUpper(result.Bands[len(result.Bands)/2:], true) && !isHasCrossLower(result.Bands[len(result.Bands)/2:], false) {
 		ignoredReason = "contain bearish engulfing"
 		return true
@@ -141,13 +128,6 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		if isHasCrossUpper(result.Bands[len(result.Bands)-5:], true) && result.AllTrend.ShortTrend != models.TREND_UP {
 			ignoredReason = "above sma and short trend not up"
 			return true
-		}
-
-		if !isHasCrossUpper(result.Bands[len(result.Bands)-5:], true) && isHasCrossUpper(result.Bands[len(result.Bands)/2:], true) {
-			if percentFromUpper < 3 {
-				ignoredReason = "above sma and percent below 3"
-				return true
-			}
 		}
 
 		if !isHasCrossUpper(result.Bands[len(result.Bands)/2:], true) && !isHasCrossSMA(result.Bands[len(result.Bands)/2:], false) {
