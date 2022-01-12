@@ -369,5 +369,10 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
+	if countBelowLower(result.Bands[len(result.Bands)-3:], false) > 0 && shortPercentFromSMA < 3 {
+		ignoredReason = "contain open close below lower"
+		return true
+	}
+
 	return false
 }

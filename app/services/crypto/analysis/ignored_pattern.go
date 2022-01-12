@@ -149,14 +149,6 @@ func previousBandDownAndLastBandHammerOrDoji(bands []models.Band) bool {
 	return false
 }
 
-func isGetBearishEngulfingAfterLowest(bands []models.Band) bool {
-	lowestIndex := getLowestLowIndex(bands)
-	if lowestIndex < len(bands)-7 {
-		lowestIndex = len(bands) - 7
-	}
-	return BearishEngulfing(bands[lowestIndex:])
-}
-
 func isReversal(bands []models.Band) bool {
 	lowestIndex := getLowestIndex(bands[len(bands)-4:])
 	trend := CalculateTrendsDetail(bands[:len(bands)-4+lowestIndex])
@@ -451,17 +443,6 @@ func lowestFromBand(band models.Band) float32 {
 	}
 
 	return band.Candle.Open
-}
-
-func getLowestLowIndex(bands []models.Band) int {
-	lowIndex := 0
-	for i, band := range bands {
-		if bands[lowIndex].Candle.Low > band.Candle.Low {
-			lowIndex = i
-		}
-	}
-
-	return lowIndex
 }
 
 func getHigestIndexSecond(bands []models.Band) int {

@@ -270,15 +270,17 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	if result.AllTrend.SecondTrendPercent < 12 && countBelowSMA(result.Bands[len(result.Bands)-6:], true) == 6 {
 		if !isHasCrossLower(result.Bands[len(result.Bands)-3:], false) && CalculateTrendShort(result.Bands[len(result.Bands)-6:]) != models.TREND_UP {
 			if result.AllTrend.FirstTrend != models.TREND_DOWN || result.AllTrend.SecondTrend != models.TREND_DOWN {
-				ignoredReason = "significan down, last 6 below sma but not cross lower"
-				return true
+				if !reversal2nd(*midInterval) {
+					ignoredReason = "significan down, last 6 below sma but not cross lower"
+					return true
+				}
 			}
 		}
 	}
 
 	if midInterval.Position == models.BELOW_SMA && result.Position == models.BELOW_SMA && result.AllTrend.SecondTrend == models.TREND_DOWN {
 		if countBelowSMA(midInterval.Bands, false) == len(midInterval.Bands) && countBelowSMA(result.Bands[len(result.Bands)-5:], false) > 2 {
-			if !isHasCrossLower(result.Bands[len(result.Bands)-3:], false) && (midInterval.AllTrend.ShortTrend != models.TREND_UP || !isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-3:], false)) {
+			if !isHasCrossLower(result.Bands[len(result.Bands)-3:], false) && !reversal2nd((*midInterval)) {
 				ignoredReason = "mid interval all band below sma, long interval below sma but not cross lower"
 				return true
 			}
@@ -829,7 +831,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.SecondTrendPercent < 15 {
 		if midInterval.AllTrend.FirstTrend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.Position == models.BELOW_SMA {
-			if shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3 && midPercentFromSMA < 3 {
+			if shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3 && midPercentFromUpper < 3 && !reversal2nd(*midInterval) {
 				ignoredReason = "trend down, mid below sma but percent below 3 "
 				return true
 			}
@@ -876,6 +878,19 @@ func afterUpThenDown(bands []models.Band) bool {
 		trend := CalculateTrendsDetail(bands[higest:])
 		if bands[higest].Candle.Hight > float32(bands[higest].Upper) && trend.FirstTrend == models.TREND_DOWN && trend.SecondTrend != models.TREND_DOWN {
 			return percentFromMidUpper < 3
+		}
+	}
+
+	return false
+}
+
+func reversal2nd(bands models.BandResult) bool {
+	midLowest := getLowestIndex(bands.Bands)
+	if midLowest >= len(bands.Bands)-6 && midLowest < len(bands.Bands)-2 && CalculateTrendShort(bands.Bands[midLowest:]) == models.TREND_UP {
+		if bands.Bands[midLowest].Candle.Close < float32(bands.Bands[midLowest].Lower) || bands.Bands[midLowest].Candle.Open > float32(bands.Bands[midLowest].Lower) {
+			if !(bands.Bands[midLowest].Candle.Close < float32(bands.Bands[midLowest].Lower) && bands.Bands[midLowest].Candle.Open > float32(bands.Bands[midLowest].Lower)) {
+				return true
+			}
 		}
 	}
 

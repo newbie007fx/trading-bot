@@ -119,11 +119,6 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		}
 	}
 
-	if isGetBearishEngulfingAfterLowest(result.Bands) && !isHasCrossUpper(result.Bands[len(result.Bands)/2:], true) && !isHasCrossLower(result.Bands[len(result.Bands)/2:], false) {
-		ignoredReason = "contain bearish engulfing"
-		return true
-	}
-
 	if result.Position == models.ABOVE_SMA {
 		if isHasCrossUpper(result.Bands[len(result.Bands)-5:], true) && result.AllTrend.ShortTrend != models.TREND_UP {
 			ignoredReason = "above sma and short trend not up"
