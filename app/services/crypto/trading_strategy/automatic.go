@@ -135,16 +135,12 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 	for <-checkPriceChan {
 		altCheckingTime = baseCheckingTime
 		waitMasterCoinProcessed()
-		if skippedProcess() {
-			log.Println("checking alt coin skipped")
-			continue
-		}
+
 		masterTmp = *masterCoin
 		masterMidTmp = *masterCoinLongInterval
 		altCoins := checkCryptoAltCoinPrice(altCheckingTime)
 		msg := ""
 		if len(altCoins) > 0 {
-
 			coins := ats.sortAndGetHigest(altCoins)
 			if coins == nil {
 				continue
@@ -202,14 +198,14 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 			continue
 		}
 		altCoins[i].Weight += midWeight
-		if altCoins[i].Weight > 1.7 {
+		if altCoins[i].Weight > 1 {
 			resultLong := crypto.CheckCoin(*currencyConfig, "4h", 0, timeInMilli, 0, 0, 0)
 			longWight := getWeightCustomInterval(*resultLong, altCoins[i], "4h", resultMid)
 			if longWight == 0 {
 				continue
 			}
 			altCoins[i].Weight += longWight
-			if altCoins[i].Weight > 2.5 {
+			if altCoins[i].Weight > 1.5 {
 				results = append(results, altCoins[i])
 			}
 		}
@@ -246,12 +242,4 @@ func sendHoldMsg(result *models.BandResult) string {
 		return ""
 	}
 	return crypto.HoldCoinMessage(*currencyConfig, result)
-}
-
-func skippedProcess() bool {
-	if analysis.BearishEngulfing(masterCoin.Bands[len(masterCoin.Bands)-3:]) && masterCoin.Direction == analysis.BAND_DOWN {
-		return true
-	}
-
-	return masterCoin.Direction == analysis.BAND_DOWN
 }

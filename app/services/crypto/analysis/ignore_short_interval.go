@@ -52,17 +52,6 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		}
 	}
 
-	// if isUpThreeOnMidIntervalChange(result, requestTime) {
-	// 	ignoredReason = "isUpThreeOnMidIntervalChange"
-	// 	return true
-	// }
-
-	// secondLastBand := result.Bands[len(result.Bands)-2]
-	// if secondLastBand.Candle.Open > secondLastBand.Candle.Close && secondLastBand.Candle.Open > float32(secondLastBand.Upper) {
-	// 	ignoredReason = "previous band down from upper"
-	// 	return true
-	// }
-
 	lastBand := result.Bands[len(result.Bands)-1]
 	secondLastBand := result.Bands[len(result.Bands)-2]
 	if IsHammer(lastBand) && result.AllTrend.SecondTrend == models.TREND_UP && lastBand.Candle.Close > float32(lastBand.SMA) {
