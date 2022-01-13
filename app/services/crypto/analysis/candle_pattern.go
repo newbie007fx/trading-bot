@@ -1,7 +1,6 @@
 package analysis
 
 import (
-	"fmt"
 	"telebot-trading/app/models"
 )
 
@@ -40,10 +39,6 @@ func GetCandlePattern(bandResult *models.BandResult) []int8 {
 
 	if bandResult.AllTrend.SecondTrend == models.TREND_UP && turnPattern(bands) {
 		result = append(result, PATTERN_TURN)
-	}
-
-	if len(result) > 0 {
-		fmt.Println(result)
 	}
 
 	return result
