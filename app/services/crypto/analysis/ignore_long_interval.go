@@ -834,6 +834,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				return true
 			}
 		}
+
+		if midInterval.Position == models.BELOW_SMA && midPercentFromSMA < 3 {
+			ignoredReason = "just significan down, mid below sma and percent below 3"
+			return true
+		}
 	}
 
 	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.SecondTrendPercent < 15 {
@@ -893,6 +898,31 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 					ignoredReason = "significan up after down"
 					return true
 				}
+			}
+		}
+	}
+
+	if result.AllTrend.Trend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend != models.TREND_UP {
+		if shortInterval.AllTrend.ShortTrend == models.TREND_UP && shortInterval.PriceChanges > 3.5 {
+			if isHasCrossSMA(shortInterval.Bands[len(shortInterval.Bands)-2:], false) || isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-2:], true) {
+				ignoredReason = "significan up on trend down"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.Trend == models.TREND_DOWN && (secondLastBand.Candle.Open < float32(secondLastBand.Lower) || secondLastBand.Candle.Close < float32(secondLastBand.Lower)) && midInterval.Position == models.BELOW_SMA {
+		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && countAboveSMA(midInterval.Bands) == 0 && midPercentFromSMA < 3.5 {
+			ignoredReason = "trend down. short below sma and percent below 3"
+			return true
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_DOWN {
+		if midInterval.Position == models.ABOVE_UPPER || (midInterval.Position == models.BELOW_SMA && midPercentFromSMA < 3) || (midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 3) {
+			if shortPercentFromUpper < 3 {
+				ignoredReason = "trend down. short sma percent below 3"
+				return true
 			}
 		}
 	}

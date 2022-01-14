@@ -374,5 +374,14 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
+	if shortInterval.Position == models.ABOVE_UPPER || isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-3:], false) {
+		if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.FirstTrendPercent < 10 && result.AllTrend.SecondTrend != models.TREND_DOWN {
+			if countCrossUpper(result.Bands[len(result.Bands)/2:]) == 1 || countCrossSMA(result.Bands[len(result.Bands)/2:]) == 1 {
+				ignoredReason = "after down tren up cross sma"
+				return true
+			}
+		}
+	}
+
 	return false
 }

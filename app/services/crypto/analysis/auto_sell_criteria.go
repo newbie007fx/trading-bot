@@ -111,7 +111,7 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 			}
 		}
 
-		if firstCrossUpper(result, *resultMid, changesInPercent) {
+		if firstCrossUpper(result, *resultMid, changesInPercent, currencyConfig) {
 			reason = "first cross upper"
 			return true
 		}
@@ -584,8 +584,9 @@ func checkIsCandleComplete(requestTime time.Time, intervalMinute int) bool {
 	return minute%intervalMinute == 0
 }
 
-func firstCrossUpper(shortInterval, midInterval models.BandResult, changeInPercent float32) bool {
+func firstCrossUpper(shortInterval, midInterval models.BandResult, changeInPercent float32, currencyNotifConfig *models.CurrencyNotifConfig) bool {
 	midLastBand := midInterval.Bands[len(midInterval.Bands)-1]
+	shortLastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
 
 	if midInterval.Position == models.ABOVE_UPPER && shortInterval.Position == models.ABOVE_UPPER {
 		if !isHasCrossUpper(midInterval.Bands[:len(midInterval.Bands)-1], true) && isHasCrossLower(midInterval.Bands[:len(midInterval.Bands)-1], false) {
@@ -602,6 +603,13 @@ func firstCrossUpper(shortInterval, midInterval models.BandResult, changeInPerce
 	if shortInterval.Position == models.ABOVE_SMA && isHasCrossSMA(shortInterval.Bands[len(shortInterval.Bands)-2:], false) {
 		if isHasBelowLower(midInterval.Bands[len(midInterval.Bands)-3:]) {
 			return changeInPercent > 3 && changeInPercent < 3.5
+		}
+	}
+
+	percentFromHigest := (shortLastBand.Candle.Hight - currencyNotifConfig.HoldPrice) / currencyNotifConfig.HoldPrice * 100
+	if shortLastBand.Candle.Open > float32(shortLastBand.Upper) && shortLastBand.Candle.Close > float32(shortLastBand.Upper) {
+		if isHasCrossSMA([]models.Band{midLastBand}, false) || isHasCrossUpper([]models.Band{midLastBand}, true) {
+			return percentFromHigest > 3 && changeInPercent > 2.5
 		}
 	}
 
