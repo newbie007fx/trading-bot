@@ -1,17 +1,11 @@
 package analysis
 
 import (
-	"fmt"
 	"telebot-trading/app/models"
 	"time"
 )
 
 func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) bool {
-	if isInAboveUpperBandAndDownTrend(result) {
-		ignoredReason = "isInAboveUpperBandAndDownTrend"
-		return true
-	}
-
 	if lastBandHeadDoubleBody(result) {
 		ignoredReason = "lastBandHeadDoubleBody"
 		return true
@@ -30,26 +24,6 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 	if whenHeightTripleAverage(result) {
 		ignoredReason = "whenHeightTripleAverage"
 		return true
-	}
-
-	if lastFourCandleNotUpTrend(result.Bands) && !reversalFromLower(*result) {
-		ignoredReason = "lastFourCandleNotUpTrend"
-		return true
-	}
-
-	isHaveCountDown := countDownBand(result.Bands[len(result.Bands)-5:]) > 0
-	if result.AllTrend.Trend == models.TREND_UP {
-		secondDown := result.Bands[len(result.Bands)-2].Candle.Close < result.Bands[len(result.Bands)-2].Candle.Open
-		thirdDown := result.Bands[len(result.Bands)-3].Candle.Close < result.Bands[len(result.Bands)-3].Candle.Open
-		if CountUpBand(result.Bands[len(result.Bands)-5:]) < 3 || (secondDown && thirdDown) {
-			ignoredReason = fmt.Sprintf("count up when trend up: %d", CountUpBand(result.Bands[len(result.Bands)-5:]))
-			return true
-		}
-	} else {
-		if CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && CountUpBand(result.Bands[len(result.Bands)-4:]) < 3 && isHaveCountDown && result.AllTrend.ShortTrend != models.TREND_UP {
-			ignoredReason = "count up when trend not up"
-			return true
-		}
 	}
 
 	lastBand := result.Bands[len(result.Bands)-1]
@@ -84,11 +58,6 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 			ignoredReason = "below sma and previous band down from upper"
 			return true
 		}
-	}
-
-	if lastBand.Candle.Hight > float32(lastBand.Upper) && !isHasCrossUpper(result.Bands[len(result.Bands)-6:len(result.Bands)-1], false) {
-		ignoredReason = "above upper and just one"
-		return true
 	}
 
 	if countBelowSMA(result.Bands[len(result.Bands)-7:], true) == 7 {

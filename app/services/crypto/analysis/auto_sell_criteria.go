@@ -510,7 +510,28 @@ func SpecialCondition(currencyConfig *models.CurrencyNotifConfig, symbol string,
 		}
 	}
 
+	if longInterval.AllTrend.SecondTrend != models.TREND_UP && longInterval.AllTrend.ShortTrend != models.TREND_UP {
+		midHigestBand := getHighestIndex(midInterval.Bands)
+		midSecondHight := getHigestIndexSecond(midInterval.Bands)
+		if midSecondHight == len(midInterval.Bands)-1 && midSecondHight-midHigestBand > 5 && !diffInThresholdFromHigest(midInterval.Bands[midHigestBand], midInterval.Bands[midSecondHight]) {
+			shortHigestBand := getHighestIndex(shortInterval.Bands)
+			if shortHigestBand == len(shortInterval.Bands)-1 && changesInPercent > 2.9 && changesInPercent < 3.2 {
+				reason = "long interval down, got new hight"
+				return true
+			}
+		}
+	}
+
 	return false
+}
+
+func diffInThresholdFromHigest(higest, close models.Band) bool {
+	if higest.Candle.Close < close.Candle.Hight {
+		return false
+	}
+
+	percent := (higest.Candle.Close - close.Candle.Hight) / close.Candle.Hight * 100
+	return percent > 0.5
 }
 
 func aboveUpperAndOtherIntervalAboveSMA(shortInterval, midInterval, longInterval models.BandResult, changeInpercent, holdPrice float32) bool {

@@ -87,13 +87,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	if isLastBandOrPreviousBandCrossSMA(shortInterval.Bands) && !isReversal(shortInterval.Bands) {
-		if shortInterval.AllTrend.Trend == models.TREND_DOWN || result.AllTrend.Trend == models.TREND_DOWN {
-			ignoredReason = "short interval cross  sma and mid interval or short interval trend down"
-			return true
-		}
-	}
-
 	secondLastBand := result.Bands[len(result.Bands)-2]
 	if (lastBand.Candle.Open >= float32(lastBand.Upper) && lastBand.Candle.Close > float32(lastBand.Upper)) || (secondLastBand.Candle.Close >= float32(secondLastBand.Upper) && secondLastBand.Candle.Open >= float32(secondLastBand.Upper)) {
 		ignoredReason = fmt.Sprintf("open close above upper, %.4f, %.4f", lastBand.Candle.Open, lastBand.Upper)
@@ -191,7 +184,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	significanDown := result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.FirstTrendPercent < 10 && result.AllTrend.SecondTrend == models.TREND_DOWN
 	secondWaweBelowSMA := result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.FirstTrendPercent < 15 && countBelowSMA(result.Bands[len(result.Bands)/2:], false) >= len(result.Bands)/2
 	if significanDown || secondWaweBelowSMA {
-		if !isHasCrossSMA(result.Bands[len(result.Bands)-5:], true) && !isHasCrossLower(result.Bands[len(result.Bands)-5:], false) {
+		if !isHasCrossSMA(result.Bands[len(result.Bands)-5:], true) && !isHasCrossLower(result.Bands[len(result.Bands)-5:], false) && result.AllTrend.ShortTrend != models.TREND_UP {
 			ignoredReason = "first wave significan down, second still donw, below sma, not cross sma or lower"
 			return true
 		}
@@ -238,20 +231,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	margin := lastBand.Candle.Close - lastBand.Candle.Open
 	if lastBand.Candle.Open+margin < float32(lastBand.Lower) {
 		ignoredReason = "open close below avg lower"
-		return true
-	}
-
-	if result.Position == models.BELOW_SMA && result.AllTrend.Trend == models.TREND_DOWN && countBelowSMA(result.Bands[len(result.Bands)-7:], false) == 7 {
-		if shortLastBand.Candle.Close > float32(shortLastBand.SMA) && isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-7:], true) {
-			if !isHasCrossLower(result.Bands[len(result.Bands)-3:], false) && percentFromSMA < 3 {
-				ignoredReason = "down trend last 7 band below SMA and percent from sma < 3"
-				return true
-			}
-		}
-	}
-
-	if !upFromLower(result.Bands) && lastBand.Candle.Low > float32(lastBand.Lower) && !upperLowerReversal(*shortInterval) {
-		ignoredReason = "not up from lower"
 		return true
 	}
 

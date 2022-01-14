@@ -500,10 +500,6 @@ func ignored(result, masterCoin *models.BandResult) bool {
 	return false
 }
 
-func lastFourCandleNotUpTrend(bands []models.Band) bool {
-	return CalculateTrendShort(bands[len(bands)-4:]) != models.TREND_UP
-}
-
 func isTrendUpLastThreeBandHasDoji(result *models.BandResult) bool {
 	if result.AllTrend.SecondTrend != models.TREND_UP {
 		return false

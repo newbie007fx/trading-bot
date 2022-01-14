@@ -229,7 +229,7 @@ func getWeightCustomInterval(result, coin models.BandResult, interval string, pr
 		ignored = analysis.IsIgnoredLongInterval(&result, &coin, previous, masterTmp.AllTrend.Trend, masterMidTmp.AllTrend.Trend)
 	}
 
-	if ignored || result.Direction == analysis.BAND_DOWN {
+	if ignored {
 		return 0
 	}
 
