@@ -924,10 +924,31 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	if (result.Position == models.BELOW_SMA && percentFromSMA < 3) || (result.Position == models.ABOVE_SMA && percentFromUpper < 3) {
-		if (midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 3) || midLastBand.Candle.Low > float32(midLastBand.Lower) || midPercentFromUpper < 3 {
+	if (result.Position == models.BELOW_SMA && percentFromSMA < 3) || (result.Position == models.ABOVE_SMA && percentFromUpper < 3) || (result.AllTrend.ShortTrend != models.TREND_UP && !isHasCrossLower(result.Bands[len(result.Bands)-4:], false)) {
+		if (midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 3) || (isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-2:], false) && midLastBand.Candle.Close < float32(midLastBand.SMA) && midPercentFromSMA < 3) || midPercentFromUpper < 3 {
 			if shortPercentFromUpper < 3 {
 				ignoredReason = " percent below 3"
+				return true
+			}
+		}
+
+		if midInterval.AllTrend.ShortTrend != models.TREND_UP && midInterval.PriceChanges > 3 {
+			if midLastBand.Candle.Open < float32(midLastBand.Lower) || midLastBand.Candle.Close < float32(midLastBand.Lower) {
+				ignoredReason = "mid open or close below lower"
+				return true
+			}
+
+			if midLastBand.Candle.Low > float32(midLastBand.Lower) {
+				ignoredReason = "significan down and not cross lower"
+				return true
+			}
+		}
+	}
+
+	if shortInterval.AllTrend.Trend != models.TREND_UP && shortLastBand.Candle.Close < float32(shortLastBand.SMA) {
+		if midInterval.AllTrend.SecondTrend != models.TREND_UP && (!isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-4:], false) || midInterval.AllTrend.ShortTrend != models.TREND_UP) && !isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-4:], false) {
+			if result.AllTrend.ShortTrend != models.TREND_UP && isHasCrossUpper(result.Bands[len(result.Bands)-4:], true) && shortPercentFromSMA < 3 {
+				ignoredReason = "starting down, short below sma, percent below 3"
 				return true
 			}
 		}
