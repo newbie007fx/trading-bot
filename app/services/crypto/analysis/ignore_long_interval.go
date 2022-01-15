@@ -956,6 +956,35 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrend == models.TREND_DOWN {
+		if result.AllTrend.ShortTrend != models.TREND_DOWN && result.PriceChanges > 4 {
+			if midPercentFromUpper < 3 && (shortInterval.Position == models.ABOVE_UPPER || shortPercentFromUpper < 3) {
+				ignoredReason = "already up above 4% and mid percent from upper below 3"
+				return true
+			}
+		}
+	}
+
+	if result.Position == models.ABOVE_SMA && result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_UP {
+		if midInterval.Position == models.ABOVE_UPPER || midPercentFromUpper < 3 {
+			if shortInterval.Position == models.ABOVE_UPPER || shortPercentFromUpper < 3 {
+				ignoredReason = "up trend, above sma and mid and short percent below 3"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.Trend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN && result.Position == models.BELOW_SMA {
+		if midInterval.AllTrend.Trend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend == models.TREND_UP {
+			if (midInterval.Position == models.BELOW_SMA && midPercentFromSMA < 3) || (midInterval.Position == models.ABOVE_UPPER && midPercentFromUpper < 3) {
+				if shortInterval.Position == models.ABOVE_UPPER || shortPercentFromUpper < 3 {
+					ignoredReason = "down trend, short and mid percent below 3"
+					return true
+				}
+			}
+		}
+	}
+
 	return false
 }
 
