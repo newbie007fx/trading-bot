@@ -27,13 +27,6 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend != models.TREND_UP {
-		if CalculateTrendShort(result.Bands[len(result.Bands)-3:]) != models.TREND_UP && getHighestIndex(result.Bands) > 5 {
-			ignoredReason = "first trend up and second not up"
-			return true
-		}
-	}
-
 	if isContaineBearishEngulfing(result) && lastBand.Candle.Close > float32(lastBand.SMA) {
 		ignoredReason = "isContaineBearishEngulfing"
 		return true
@@ -940,6 +933,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 			if midLastBand.Candle.Low > float32(midLastBand.Lower) {
 				ignoredReason = "significan down and not cross lower"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.Trend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && result.Position == models.ABOVE_SMA {
+		if midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend != models.TREND_UP && isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-4:], true) && midInterval.Position == models.ABOVE_SMA {
+			if shortInterval.AllTrend.SecondTrend == models.TREND_DOWN && shortInterval.AllTrend.ShortTrend == models.TREND_UP && isHasCrossSMA(shortInterval.Bands[len(shortInterval.Bands)-2:], false) {
+				ignoredReason = "trend up but band start to down"
 				return true
 			}
 		}

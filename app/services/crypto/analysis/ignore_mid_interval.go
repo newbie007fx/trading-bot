@@ -174,13 +174,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	if result.AllTrend.SecondTrendPercent < 15 && (secondLastBand.Candle.Open < float32(secondLastBand.Lower) || secondLastBand.Candle.Close < float32(secondLastBand.Lower)) {
-		if CalculateTrendShortAvg(result.Bands[len(result.Bands)-3:]) != models.TREND_UP && lastBand.Candle.Low < float32(lastBand.Lower) {
-			ignoredReason = "significan down, last 3 avg not up trend"
-			return true
-		}
-	}
-
 	significanDown := result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.FirstTrendPercent < 10 && result.AllTrend.SecondTrend == models.TREND_DOWN
 	secondWaweBelowSMA := result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.FirstTrendPercent < 15 && countBelowSMA(result.Bands[len(result.Bands)/2:], false) >= len(result.Bands)/2
 	if significanDown || secondWaweBelowSMA {
@@ -312,7 +305,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 
 	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.SecondTrendPercent < 5 {
 		if secondLastBand.Candle.Open < float32(secondLastBand.Lower) || secondLastBand.Candle.Close < float32(secondLastBand.Lower) {
-			if shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 {
+			if shortPercentFromUpper < 3 {
 				ignoredReason = "significan down. short percent from sma below 3"
 				return true
 			}
@@ -348,7 +341,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if countBelowLower(result.Bands[len(result.Bands)-3:], false) > 0 && shortPercentFromSMA < 3 {
+	if countBelowLower(result.Bands[len(result.Bands)-3:], false) > 0 && percentFromSMA < 3 {
 		ignoredReason = "contain open close below lower"
 		return true
 	}
