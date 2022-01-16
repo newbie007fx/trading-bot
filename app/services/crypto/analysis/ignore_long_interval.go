@@ -20,13 +20,6 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	if !isHasCrossLower(result.Bands[len(result.Bands)/2:], false) && !isReversal(shortInterval.Bands) {
-		if result.AllTrend.Trend == models.TREND_DOWN && shortInterval.AllTrend.Trend == models.TREND_DOWN && CalculateTrendShort(result.Bands[len(result.Bands)-3:]) == models.TREND_DOWN {
-			ignoredReason = "first trend down and seconddown"
-			return true
-		}
-	}
-
 	if isContaineBearishEngulfing(result) && lastBand.Candle.Close > float32(lastBand.SMA) {
 		ignoredReason = "isContaineBearishEngulfing"
 		return true
@@ -1010,6 +1003,19 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			if shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 {
 				ignoredReason = "up trend, start down, short below sma percent below 3"
 				return true
+			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend != models.TREND_UP {
+		if secondLastBand.Candle.Open > secondLastBand.Candle.Close && isHasCrossSMA(result.Bands[len(result.Bands)-4:], false) {
+			if midInterval.AllTrend.ShortTrend == models.TREND_DOWN && midInterval.Position == models.ABOVE_SMA {
+				if isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)/2:], true) && countBelowSMA(midInterval.Bands[len(midInterval.Bands)/2:], false) == 0 {
+					if isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-2:], false) && shortInterval.AllTrend.Trend == models.TREND_DOWN && shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 {
+						ignoredReason = "pokok e trend down"
+						return true
+					}
+				}
 			}
 		}
 	}

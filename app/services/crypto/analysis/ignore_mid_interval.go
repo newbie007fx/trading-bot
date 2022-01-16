@@ -7,6 +7,8 @@ import (
 
 func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
+	shortLastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
+	shortPercentFromUpper := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * 100
 
 	if isInAboveUpperBandAndDownTrend(result) && !isLastBandOrPreviousBandCrossSMA(result.Bands) && !reversalFromLower(*shortInterval) {
 		ignoredReason = "isInAboveUpperBandAndDownTrend"
@@ -26,15 +28,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	}
 
 	percentFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	if result.AllTrend.FirstTrend == models.TREND_UP && CalculateTrendShort(result.Bands[len(result.Bands)-4:]) != models.TREND_UP && !isHasCrossLower(result.Bands[len(result.Bands)-3:], false) {
-		if !isReversal(result.Bands) || percentFromUpper < 3 {
-			if !isReversal(shortInterval.Bands) || !isHasCrossLower(shortInterval.Bands[len(shortInterval.Bands)-4:], false) {
-				ignoredReason = "first trend up and second down"
-				return true
-			}
-		}
-	}
-
 	if result.Position == models.ABOVE_UPPER && shortInterval.AllTrend.Trend != models.TREND_UP {
 		if result.AllTrend.SecondTrend != models.TREND_UP {
 			ignoredReason = "position above upper trend not up"
@@ -66,7 +59,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if isContaineBearishEngulfing(result) && !isLastBandOrPreviousBandCrossSMA(result.Bands) {
+	if isContaineBearishEngulfing(result) && !isLastBandOrPreviousBandCrossSMA(result.Bands) && shortPercentFromUpper < 3 {
 		ignoredReason = "isContaineBearishEngulfing"
 		return true
 	}
@@ -100,8 +93,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	shortLastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
-	shortPercentFromUpper := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * 100
 	if shortInterval.AllTrend.FirstTrend != models.TREND_UP && shortInterval.AllTrend.SecondTrend == models.TREND_UP && (result.AllTrend.Trend != models.TREND_UP && result.AllTrend.ShortTrend != models.TREND_UP) {
 		shortIntervalHalfBands := shortInterval.Bands[:len(shortInterval.Bands)/2]
 		if (shortInterval.AllTrend.FirstTrendPercent <= 50 || isHasCrossLower(shortIntervalHalfBands, false)) && shortInterval.AllTrend.SecondTrendPercent <= 50 {
