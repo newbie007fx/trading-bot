@@ -515,7 +515,7 @@ func SpecialCondition(currencyConfig *models.CurrencyNotifConfig, symbol string,
 		midSecondHight := getHigestIndexSecond(midInterval.Bands)
 		if midSecondHight == len(midInterval.Bands)-1 && midSecondHight-midHigestBand > 5 && !diffInThresholdFromHigest(midInterval.Bands[midHigestBand], midInterval.Bands[midSecondHight]) {
 			shortHigestBand := getHighestIndex(shortInterval.Bands)
-			if shortHigestBand == len(shortInterval.Bands)-1 && changesInPercent > 2.9 && changesInPercent < 3.2 {
+			if shortHigestBand == len(shortInterval.Bands)-1 && changesInPercent > 3 && changesInPercent < 3.2 {
 				reason = "long interval down, got new hight"
 				return true
 			}

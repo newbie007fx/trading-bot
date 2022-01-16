@@ -60,13 +60,6 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		}
 	}
 
-	if countBelowSMA(result.Bands[len(result.Bands)-7:], true) == 7 {
-		if !isHasCrossLower(result.Bands[len(result.Bands)-7:], false) {
-			ignoredReason = "last seven band below sma and not cross lower"
-			return true
-		}
-	}
-
 	percentFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 	if isHasCrossUpper(result.Bands[:len(result.Bands)/2], true) && result.AllTrend.Trend == models.TREND_UP && result.Position == models.ABOVE_SMA {
 		if !isHasCrossUpper(result.Bands[len(result.Bands)-5:], true) && countBelowSMA(result.Bands[len(result.Bands)-5:], true) >= 1 {

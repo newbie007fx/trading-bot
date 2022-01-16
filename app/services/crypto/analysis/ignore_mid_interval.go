@@ -229,7 +229,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 
 	shortPercentFromSMA := (shortLastBand.SMA - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
 	if countAboveSMA(result.Bands) == 0 && result.AllTrend.ShortTrend != models.TREND_UP {
-		if countAboveSMA(shortInterval.Bands) == 0 && shortPercentFromSMA < 3 {
+		if countAboveSMA(shortInterval.Bands) == 0 && shortPercentFromSMA < 3 && !isHasCrossLower(result.Bands[len(result.Bands)-3:], false) {
 			ignoredReason = "trend down, short margin from sma < 3"
 			return true
 		}
