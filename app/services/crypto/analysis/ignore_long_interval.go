@@ -1029,7 +1029,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	if result.AllTrend.ShortTrend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend == models.TREND_DOWN && shortInterval.AllTrend.ShortTrend == models.TREND_DOWN {
+	if result.AllTrend.ShortTrend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend == models.TREND_DOWN && shortInterval.AllTrend.ShortTrend != models.TREND_UP {
 		ignoredReason = "all interval short trend down"
 		return true
 	}
