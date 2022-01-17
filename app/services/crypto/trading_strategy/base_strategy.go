@@ -15,53 +15,6 @@ type TradingStrategy interface {
 	Shutdown()
 }
 
-var masterCoin *models.BandResult
-var masterCoinLongInterval *models.BandResult
-var waitMasterCoin bool = true
-
-func StartCheckMasterCoinPriceService(checkPriceChan chan bool) {
-	for <-checkPriceChan {
-		checkCryptoMasterCoinPrice(baseCheckingTime)
-	}
-}
-
-func checkCryptoMasterCoinPrice(requestTime time.Time) {
-	waitMasterCoin = true
-
-	log.Println("starting crypto check price master coin worker")
-
-	responseChan := make(chan crypto.CandleResponse)
-
-	masterCoinConfig, err := repositories.GetMasterCoinConfig()
-	if err != nil {
-		log.Println("error: ", err.Error())
-		waitMasterCoin = false
-		return
-	}
-
-	request := crypto.CandleRequest{
-		Symbol:       masterCoinConfig.Symbol,
-		EndDate:      GetEndDate(requestTime),
-		Limit:        40,
-		Resolution:   "15m",
-		ResponseChan: responseChan,
-	}
-
-	requestLong := crypto.CandleRequest{
-		Symbol:       masterCoinConfig.Symbol,
-		EndDate:      GetEndDate(requestTime),
-		Limit:        40,
-		Resolution:   "1h",
-		ResponseChan: responseChan,
-	}
-
-	masterCoinLongInterval = crypto.MakeCryptoRequest(*masterCoinConfig, requestLong)
-
-	masterCoin = crypto.MakeCryptoRequest(*masterCoinConfig, request)
-
-	waitMasterCoin = false
-}
-
 func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 	log.Println("starting crypto check price hold coin worker")
 
@@ -107,7 +60,6 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
-	waitMasterCoinProcessed()
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
@@ -122,8 +74,8 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 			continue
 		}
 
-		result.Weight = analysis.CalculateWeight(result, *masterCoin)
-		if !analysis.IsIgnored(result, masterCoin, baseTime) && result.Weight >= 0.5 {
+		result.Weight = analysis.CalculateWeight(result)
+		if !analysis.IsIgnored(result, baseTime) && result.Weight >= 0.5 {
 			altCoin = append(altCoin, *result)
 		}
 
@@ -142,15 +94,4 @@ func GetEndDate(baseTime time.Time) int64 {
 	unixTime = (unixTime * 1000) - 1
 
 	return unixTime
-}
-
-func waitMasterCoinProcessed() {
-	maxCount := 3
-	for waitMasterCoin {
-		time.Sleep(1 * time.Second)
-		maxCount--
-		if maxCount <= 0 {
-			waitMasterCoin = false
-		}
-	}
 }

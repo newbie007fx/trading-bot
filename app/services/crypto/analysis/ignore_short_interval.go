@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) bool {
+func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 	if lastBandHeadDoubleBody(result) {
 		ignoredReason = "lastBandHeadDoubleBody"
 		return true
@@ -111,5 +111,5 @@ func IsIgnored(result, masterCoin *models.BandResult, requestTime time.Time) boo
 		return true
 	}
 
-	return ignored(result, masterCoin)
+	return ignored(result)
 }

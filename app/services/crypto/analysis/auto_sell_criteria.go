@@ -8,41 +8,12 @@ import (
 
 var reason string = ""
 
-func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.BandResult, masterCoin models.BandResult, requestTime time.Time, resultMid *models.BandResult, masterCoinLongTrend int8) bool {
+func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.BandResult, requestTime time.Time, resultMid *models.BandResult) bool {
 	reason = ""
 	lastBand := result.Bands[len(result.Bands)-1]
 	changes := result.CurrentPrice - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
 	isCandleComplete := checkIsCandleComplete(requestTime, 15)
-
-	if isCandleComplete && masterCoin.Direction == BAND_DOWN {
-		var masterDown, resultDown, safe = false, false, false
-		for i := len(result.Bands) - 1; i >= len(result.Bands)-2; i-- {
-			masterDown = masterCoin.Bands[i].Candle.Open > masterCoin.Bands[i].Candle.Close
-			resultDown = result.Bands[i].Candle.Open > result.Bands[i].Candle.Close
-			if !(masterDown && resultDown) {
-				safe = true
-				break
-			}
-		}
-
-		crossLower := lastBand.Candle.Low <= float32(lastBand.Lower) && lastBand.Candle.Hight >= float32(lastBand.Lower)
-		if !safe && result.AllTrend.SecondTrend == models.TREND_DOWN && isCandleComplete {
-			var skipped bool = true
-			if result.CurrentPrice < currencyConfig.HoldPrice {
-				changesx := currencyConfig.HoldPrice - result.CurrentPrice
-				changesInPercentx := changesx / currencyConfig.HoldPrice * 100
-				marginFromLower := (lastBand.Candle.Close - float32(lastBand.Lower)) / float32(lastBand.Lower) * 100
-
-				skipped = changesInPercentx < 2.5 || crossLower || (changesInPercentx < 3 && marginFromLower <= 0.6)
-			}
-
-			if !skipped {
-				reason = "sell with criteria 0"
-				return true
-			}
-		}
-	}
 
 	if sellWhenDoubleUpTargetProfit(*currencyConfig, result, *resultMid, changesInPercent) {
 		reason = "sell with double up target profit"
@@ -59,7 +30,7 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 			previousMidBandValid = midLastBand.Candle.Close > halfMidSecondLastBand
 		}
 		lastbandCrossLower := lastBand.Candle.Low < float32(lastBand.Lower) && lastBand.Candle.Close > float32(lastBand.Lower)
-		if changesInPercent < 3 && (resultMid.Direction != BAND_DOWN || previousMidBandValid || lastbandCrossLower || masterCoin.Direction == BAND_UP) {
+		if changesInPercent < 3 && (resultMid.Direction != BAND_DOWN || previousMidBandValid || lastbandCrossLower) {
 
 		} else {
 			reason = "sell with criteria bearish engulfing"
@@ -127,7 +98,12 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 			return true
 		}
 
-		if sellOnUp(result, currencyConfig, resultMid.AllTrend.Trend, isCandleComplete, masterCoin.AllTrend.Trend, masterCoinLongTrend) {
+		if isHasOpenCloseAboveUpper(result.Bands[len(result.Bands)-3:]) && changesInPercent > 2.6 && changesInPercent < 3 {
+			reason = "has Open close above upper"
+			return true
+		}
+
+		if sellOnUp(result, currencyConfig, resultMid.AllTrend.Trend, isCandleComplete) {
 			return true
 		}
 	}
@@ -135,7 +111,7 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 	return isHoldedMoreThanDurationThreshold(currencyConfig, result, isCandleComplete)
 }
 
-func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConfig, coinLongTrend int8, isCandleComplete bool, masterCoinTrend, masterCoinLongTrend int8) bool {
+func sellOnUp(result models.BandResult, currencyConfig *models.CurrencyNotifConfig, coinLongTrend int8, isCandleComplete bool) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 	changes := result.CurrentPrice - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100

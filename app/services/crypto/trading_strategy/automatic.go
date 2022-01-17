@@ -14,13 +14,10 @@ import (
 var baseCheckingTime time.Time
 var altCheckingTime time.Time
 var holdCount int64 = 0
-var masterTmp models.BandResult
-var masterMidTmp models.BandResult
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
 	cryptoAltCoinPriceChan  chan bool
-	masterCoinChan          chan bool
 }
 
 func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
@@ -31,10 +28,6 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	holdCount = repositories.CountNotifConfig(&condition)
 
 	log.Println(fmt.Sprintf("execute automatic trading, with hold count: %d and maxHold %d", holdCount, maxHold))
-	if ats.isTimeToCheckAltCoinPrice(currentTime) || holdCount > 0 || currentTime.Minute()%2 == 1 {
-		ats.masterCoinChan <- true
-	}
-
 	if holdCount > 0 {
 		ats.cryptoHoldCoinPriceChan <- true
 	}
@@ -48,17 +41,14 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 func (ats *AutomaticTradingStrategy) InitService() {
 	ats.cryptoHoldCoinPriceChan = make(chan bool)
 	ats.cryptoAltCoinPriceChan = make(chan bool)
-	ats.masterCoinChan = make(chan bool)
 
 	go ats.startCheckHoldCoinPriceService(ats.cryptoHoldCoinPriceChan)
 	go ats.startCheckAltCoinPriceService(ats.cryptoAltCoinPriceChan)
-	go StartCheckMasterCoinPriceService(ats.masterCoinChan)
 }
 
 func (ats *AutomaticTradingStrategy) Shutdown() {
 	close(ats.cryptoHoldCoinPriceChan)
 	close(ats.cryptoAltCoinPriceChan)
-	close(ats.masterCoinChan)
 }
 
 func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time) bool {
@@ -87,19 +77,13 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					continue
 				}
 
-				waitMasterCoinProcessed()
-				if masterCoin == nil || masterCoinLongInterval == nil {
-					log.Println("error master coin nil")
-					continue
-				}
-
 				holdCoinMid := crypto.CheckCoin(*currencyConfig, "1h", 0, GetEndDate(baseCheckingTime), 0, 0, 0)
 				holdCoinLong := crypto.CheckCoin(*currencyConfig, "4h", 0, GetEndDate(baseCheckingTime), 0, 0, 0)
 				if holdCoinMid == nil || holdCoinLong == nil {
 					log.Println("error hold coin nil. skip need to sell checking process")
 					continue
 				}
-				isNeedTosell := analysis.IsNeedToSell(currencyConfig, coin, *masterCoin, baseCheckingTime, holdCoinMid, masterCoinLongInterval.AllTrend.Trend)
+				isNeedTosell := analysis.IsNeedToSell(currencyConfig, coin, baseCheckingTime, holdCoinMid)
 				if isNeedTosell || analysis.SpecialCondition(currencyConfig, coin.Symbol, coin, *holdCoinMid, *holdCoinLong) {
 					bands := coin.Bands
 					lastBand := bands[len(bands)-1]
@@ -120,11 +104,6 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					msg += tmpMsg
 				}
 			}
-
-			if masterCoin != nil && msg != "" {
-				msg += "untuk master coin:\n"
-				msg += crypto.GenerateMsg(*masterCoin)
-			}
 		}
 
 		crypto.SendNotif(msg)
@@ -134,10 +113,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
 		altCheckingTime = baseCheckingTime
-		waitMasterCoinProcessed()
 
-		masterTmp = *masterCoin
-		masterMidTmp = *masterCoinLongInterval
 		altCoins := checkCryptoAltCoinPrice(altCheckingTime)
 		msg := ""
 		if len(altCoins) > 0 {
@@ -170,11 +146,6 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 						holdCount++
 					}
 				}
-			}
-
-			if masterCoin != nil && msg != "" {
-				msg += "untuk master coin:\n"
-				msg += crypto.GenerateMsg(*masterCoin)
 			}
 		}
 
@@ -220,13 +191,13 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 }
 
 func getWeightCustomInterval(result, coin models.BandResult, interval string, previous *models.BandResult) float32 {
-	weight := analysis.CalculateWeightLongInterval(&result, masterTmp.AllTrend.Trend)
+	weight := analysis.CalculateWeightLongInterval(&result)
 	ignored := false
 
 	if interval == "1h" {
 		ignored = analysis.IsIgnoredMidInterval(&result, &coin)
 	} else {
-		ignored = analysis.IsIgnoredLongInterval(&result, &coin, previous, masterTmp.AllTrend.Trend, masterMidTmp.AllTrend.Trend)
+		ignored = analysis.IsIgnoredLongInterval(&result, &coin, previous)
 	}
 
 	if ignored {

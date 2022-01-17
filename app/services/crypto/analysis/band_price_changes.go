@@ -22,8 +22,8 @@ func CalculateBandPriceChangesPercent(bands models.Bands, direction int8) float3
 func percentUpCandle(threeCandleBeforeLast []models.Band, lastCandle models.Band) float32 {
 	lowest := threeCandleBeforeLast[0].Candle.Close
 	for _, val := range threeCandleBeforeLast {
-		if lowest > val.Candle.Close {
-			lowest = val.Candle.Close
+		if lowest > lowestFromBand(val) {
+			lowest = lowestFromBand(val)
 		}
 	}
 

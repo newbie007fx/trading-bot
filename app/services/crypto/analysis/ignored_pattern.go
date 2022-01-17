@@ -64,16 +64,6 @@ func percentFromHigest(bands []models.Band) float32 {
 	return 0
 }
 
-func upFromLower(bands []models.Band) bool {
-	lastFourBand := bands[len(bands)-4:]
-	lastThreeBand := bands[len(bands)-3:]
-	if isHasCrossLower(lastFourBand, false) {
-		return CalculateTrendShort(lastFourBand) == models.TREND_UP && CalculateTrendShort(lastThreeBand) == models.TREND_UP
-	}
-
-	return true
-}
-
 func downFromUpper(result models.BandResult) bool {
 	hightIndex := getHighestIndex(result.Bands[len(result.Bands)/2:])
 	index := hightIndex + len(result.Bands)/2
@@ -490,7 +480,7 @@ func lastBandHeadDoubleBody(result *models.BandResult) bool {
 	return false
 }
 
-func ignored(result, masterCoin *models.BandResult) bool {
+func ignored(result *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 	if lastBand.Candle.Open <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.Upper) {
 		ignoredReason = "up from bellow sma to upper"

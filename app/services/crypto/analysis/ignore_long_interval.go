@@ -4,7 +4,7 @@ import (
 	"telebot-trading/app/models"
 )
 
-func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult, midInterval *models.BandResult, masterTrend, masterMidTrend int8) bool {
+func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.BandResult, midInterval *models.BandResult) bool {
 	if isInAboveUpperBandAndDownTrend(result) && (CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 || isHasDoji(result.Bands[len(result.Bands)-5:])) {
 		if !isLastBandOrPreviousBandCrossSMA(result.Bands) {
 			ignoredReason = "isInAboveUpperBandAndDownTrend"
@@ -1018,6 +1018,20 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				}
 			}
 		}
+	}
+
+	if result.AllTrend.ShortTrend == models.TREND_DOWN && result.PriceChanges > 3 {
+		if midInterval.Position == models.BELOW_SMA && isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-2:], false) {
+			if midPercentFromSMA < 3 && shortPercentFromSMA < 3 {
+				ignoredReason = "short trend down. and percent below 3"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.ShortTrend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend == models.TREND_DOWN && shortInterval.AllTrend.ShortTrend == models.TREND_DOWN {
+		ignoredReason = "all interval short trend down"
+		return true
 	}
 
 	return false

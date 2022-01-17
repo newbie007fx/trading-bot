@@ -117,32 +117,18 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 	timeInMili := datetime.Unix() * 1000
 	var result *models.BandResult
-	var masterCoin *models.BandResult
-
-	masterCoinConfig, _ := repositories.GetMasterCoinConfig()
 
 	isTimeOnFifteenMinute := datetime.Unix()%(15*60) == 0
 	if isTimeOnFifteenMinute {
 		result = CheckCoin(config, "15m", 0, timeInMili, 0, 0, 0)
-
-		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, 0, 0, 0)
 	} else {
 		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, 0, 0, 0)
 		higest := getHighestHightPrice(datetime, oneMinuteResult.Bands, time_type_15m)
 		lowest := getLowestLowPrice(datetime, oneMinuteResult.Bands, time_type_15m)
 		result = CheckCoin(config, "15m", 0, timeInMili, oneMinuteResult.CurrentPrice, higest, lowest)
-
-		oneMinuteMaster := CheckCoin(*masterCoinConfig, "1m", 0, timeInMili, 0, 0, 0)
-		higest = getHighestHightPrice(datetime, oneMinuteResult.Bands, time_type_15m)
-		lowest = getLowestLowPrice(datetime, oneMinuteResult.Bands, time_type_15m)
-		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, oneMinuteMaster.CurrentPrice, higest, lowest)
 	}
 
-	higest := getHighestHightPrice(datetime, masterCoin.Bands, time_type_1h)
-	lowest := getLowestLowPrice(datetime, masterCoin.Bands, time_type_1h)
-	masterCoinMid := CheckCoin(*masterCoinConfig, "1h", 0, timeInMili, masterCoin.CurrentPrice, higest, lowest)
-
-	weight := analysis.CalculateWeight(result, *masterCoin)
+	weight := analysis.CalculateWeight(result)
 	msg := GenerateMsg(*result)
 	msg += fmt.Sprintf("\nweight log %s for coin %s: %.2f", datetime.Format("January 2, 2006 15:04:05"), config.Symbol, weight)
 	msg += "\n"
@@ -151,10 +137,10 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
 
-	higest = getHighestHightPrice(datetime, result.Bands, time_type_1h)
-	lowest = getLowestLowPrice(datetime, result.Bands, time_type_1h)
+	higest := getHighestHightPrice(datetime, result.Bands, time_type_1h)
+	lowest := getLowestLowPrice(datetime, result.Bands, time_type_1h)
 	resultMid := CheckCoin(config, "1h", 0, timeInMili, result.CurrentPrice, higest, lowest)
-	weightMid := analysis.CalculateWeightLongInterval(resultMid, masterCoin.AllTrend.Trend)
+	weightMid := analysis.CalculateWeightLongInterval(resultMid)
 	msg += fmt.Sprintf("\nweight midInterval for coin %s: %.2f", config.Symbol, weightMid)
 	msg += "\n"
 	msg += "detail weight: \n"
@@ -165,7 +151,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	higest = getHighestHightPrice(datetime, resultMid.Bands, time_type_4h)
 	lowest = getLowestLowPrice(datetime, resultMid.Bands, time_type_4h)
 	resultLong := CheckCoin(config, "4h", 0, timeInMili, resultMid.CurrentPrice, higest, lowest)
-	weightLong := analysis.CalculateWeightLongInterval(resultLong, masterCoin.AllTrend.Trend)
+	weightLong := analysis.CalculateWeightLongInterval(resultLong)
 	msg += fmt.Sprintf("\nweight long Interval for coin %s: %.2f", config.Symbol, weightLong)
 	msg += "\n"
 	msg += "detail weight: \n"
@@ -173,7 +159,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
 
-	shortIgnored := analysis.IsIgnored(result, masterCoin, datetime)
+	shortIgnored := analysis.IsIgnored(result, datetime)
 	msg += fmt.Sprintf("\nignord short interval: %t\n", shortIgnored)
 	if shortIgnored {
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
@@ -185,7 +171,7 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
 	}
 
-	longIgnored := analysis.IsIgnoredLongInterval(resultLong, result, resultMid, masterCoin.AllTrend.Trend, masterCoinMid.AllTrend.Trend)
+	longIgnored := analysis.IsIgnoredLongInterval(resultLong, result, resultMid)
 	msg += fmt.Sprintf("ignord long interval: %t\n", longIgnored)
 	if longIgnored {
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
@@ -197,41 +183,27 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 	timeInMili := datetime.Unix() * 1000
 	var coin *models.BandResult
-	var masterCoin *models.BandResult
-
-	masterCoinConfig, _ := repositories.GetMasterCoinConfig()
 
 	isTimeOnFifteenMinute := datetime.Unix()%(15*60) == 0
 	if isTimeOnFifteenMinute {
 		coin = CheckCoin(config, "15m", 0, timeInMili, 0, 0, 0)
-
-		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, 0, 0, 0)
 	} else {
 		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, 0, 0, 0)
 		higest := getHighestHightPrice(datetime, oneMinuteResult.Bands, time_type_15m)
 		lowest := getLowestLowPrice(datetime, oneMinuteResult.Bands, time_type_15m)
 		coin = CheckCoin(config, "15m", 0, timeInMili, oneMinuteResult.CurrentPrice, higest, lowest)
-
-		oneMinuteMaster := CheckCoin(*masterCoinConfig, "1m", 0, timeInMili, 0, 0, 0)
-		higest = getHighestHightPrice(datetime, oneMinuteMaster.Bands, time_type_15m)
-		lowest = getLowestLowPrice(datetime, oneMinuteMaster.Bands, time_type_15m)
-		masterCoin = CheckCoin(*masterCoinConfig, "15m", 0, timeInMili, oneMinuteMaster.CurrentPrice, higest, lowest)
 	}
 
 	log.Println("close price", coin.Bands[len(coin.Bands)-1].Candle.Close)
 	log.Println("higest price", coin.Bands[len(coin.Bands)-1].Candle.Hight)
 
-	higest := getHighestHightPrice(datetime, masterCoin.Bands, time_type_1h)
-	lowest := getLowestLowPrice(datetime, masterCoin.Bands, time_type_1h)
-	masterCoinMid := CheckCoin(*masterCoinConfig, "1h", 0, timeInMili, masterCoin.CurrentPrice, higest, lowest)
-
-	higest = getHighestHightPrice(datetime, coin.Bands, time_type_1h)
-	lowest = getLowestLowPrice(datetime, coin.Bands, time_type_1h)
+	higest := getHighestHightPrice(datetime, coin.Bands, time_type_1h)
+	lowest := getLowestLowPrice(datetime, coin.Bands, time_type_1h)
 	coinMid := CheckCoin(config, "1h", 0, timeInMili, coin.CurrentPrice, higest, lowest)
 	higest = getHighestHightPrice(datetime, coinMid.Bands, time_type_4h)
 	lowest = getLowestLowPrice(datetime, coinMid.Bands, time_type_4h)
 	coinLong := CheckCoin(config, "4h", 0, timeInMili, coinMid.CurrentPrice, higest, lowest)
-	isNeedTosell := analysis.IsNeedToSell(&config, *coin, *masterCoin, datetime, coinMid, masterCoinMid.AllTrend.Trend)
+	isNeedTosell := analysis.IsNeedToSell(&config, *coin, datetime, coinMid)
 	if isNeedTosell || analysis.SpecialCondition(&config, coin.Symbol, *coin, *coinMid, *coinLong) {
 		msg := fmt.Sprintf("sell log on %s:\n", datetime.Format("January 2, 2006 15:04:05"))
 		msg += GenerateMsg(*coin)
