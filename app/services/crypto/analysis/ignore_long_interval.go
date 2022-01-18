@@ -1041,6 +1041,13 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			ignoredReason = "mid contain open close below lower"
 			return true
 		}
+
+		if isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-2:], true) || midInterval.AllTrend.ShortTrend == models.TREND_DOWN {
+			if isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-2:], true) || shortPercentFromUpper < 3 {
+				ignoredReason = "mid and short cross lower"
+				return true
+			}
+		}
 	}
 
 	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.Position == models.BELOW_SMA && isHasCrossLower(result.Bands[len(result.Bands)-2:], false) {
