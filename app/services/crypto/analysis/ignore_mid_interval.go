@@ -148,8 +148,10 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 
 	if result.AllTrend.SecondTrendPercent < 7 && lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA) {
 		if CalculateTrendShort(result.Bands[len(result.Bands)-5:]) != models.TREND_UP && !isHasCrossLower(result.Bands[len(result.Bands)-3:], false) {
-			ignoredReason = "significan down and below sma, last 5 not up trend, not cross lower"
-			return true
+			if !isHasCrossLower(shortInterval.Bands[len(shortInterval.Bands)-4:], false) {
+				ignoredReason = "significan down and below sma, last 5 not up trend, not cross lower"
+				return true
+			}
 		}
 	}
 

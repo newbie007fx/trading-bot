@@ -6,18 +6,15 @@ import (
 )
 
 func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
+	lastBand := result.Bands[len(result.Bands)-1]
+
 	if lastBandHeadDoubleBody(result) {
 		ignoredReason = "lastBandHeadDoubleBody"
 		return true
 	}
 
-	if isContaineBearishEngulfing(result) {
+	if isContaineBearishEngulfing(result) && lastBand.Candle.Close > float32(lastBand.SMA) {
 		ignoredReason = "isContaineBearishEngulfing"
-		return true
-	}
-
-	if isPosititionBellowUpperMarginBellowThreshold(result) {
-		ignoredReason = "isPosititionBellowUpperMarginBellowThreshold"
 		return true
 	}
 
@@ -26,7 +23,6 @@ func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 		return true
 	}
 
-	lastBand := result.Bands[len(result.Bands)-1]
 	secondLastBand := result.Bands[len(result.Bands)-2]
 	if IsHammer(lastBand) && result.AllTrend.SecondTrend == models.TREND_UP && lastBand.Candle.Close > float32(lastBand.SMA) {
 		ignoredReason = "hammer pattern"
