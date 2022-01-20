@@ -47,6 +47,8 @@ type BandResult struct {
 	Note          string
 	Position      int8
 	Bands         []Band
+	Mid           *BandResult
+	Long          *BandResult
 }
 
 type AssetBalance struct {

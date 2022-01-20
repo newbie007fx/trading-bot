@@ -142,6 +142,11 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 						msg += "\n"
 						msg += sendHoldMsg(&coin)
 						msg += "\n"
+						msg += "coin mid interval:\n"
+						msg += crypto.GenerateMsg(*coin.Mid)
+						msg += "\n"
+						msg += "coin long interval:\n"
+						msg += crypto.GenerateMsg(*coin.Long)
 
 						holdCount++
 					}
@@ -168,6 +173,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 		if midWeight == 0 {
 			continue
 		}
+		altCoins[i].Mid = resultMid
 		altCoins[i].Weight += midWeight
 		if altCoins[i].Weight > 1 {
 			resultLong := crypto.CheckCoin(*currencyConfig, "4h", 0, timeInMilli-1, 0, 0, 0)
@@ -175,6 +181,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 			if longWight == 0 {
 				continue
 			}
+			altCoins[i].Long = resultLong
 			altCoins[i].Weight += longWight
 			if altCoins[i].Weight > 1.5 {
 				results = append(results, altCoins[i])
