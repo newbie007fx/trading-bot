@@ -8,7 +8,7 @@ import (
 func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 
-	if lastBandHeadDoubleBody(result) {
+	if lastBandHeadDoubleBody(result) && lastBand.Candle.Close > float32(lastBand.SMA) {
 		ignoredReason = "lastBandHeadDoubleBody"
 		return true
 	}

@@ -971,7 +971,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend != models.TREND_UP {
 		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend == models.TREND_UP {
-			if isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-1:], false) || (midInterval.Position == models.BELOW_SMA && midPercentFromSMA < 3) {
+			if isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-2:], false) || (midInterval.Position == models.BELOW_SMA && midPercentFromSMA < 3) {
 				if isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-2:], true) {
 					ignoredReason = "down trend, mid cross sma, short cross upper"
 					return true
@@ -1052,7 +1052,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.Position == models.BELOW_SMA && (isHasCrossLower(result.Bands[len(result.Bands)-2:], false) || CalculateTrendShort(result.Bands[len(result.Bands)-5:len(result.Bands)-1]) == models.TREND_DOWN) {
 		if isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-2:], false) || isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-2:], true) {
-			if countAboveUpper(shortInterval.Bands[len(shortInterval.Bands)-4:]) > 0 || isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-4:], false) {
+			if countAboveUpper(shortInterval.Bands[len(shortInterval.Bands)-4:]) > 0 || isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-4:], true) {
 				ignoredReason = "down, still cross upper and short cross upper"
 				return true
 			}
@@ -1063,6 +1063,24 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		if countAboveSMA(result.Bands[5:]) == 0 && isHasCrossSMA(result.Bands[len(result.Bands)-3:], false) {
 			if midInterval.AllTrend.ShortTrend == models.TREND_DOWN && shortInterval.AllTrend.ShortTrend == models.TREND_DOWN {
 				ignoredReason = "trend down, resisten after cross sma"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend != models.TREND_UP && result.Position == models.ABOVE_SMA {
+		if isHasCrossSMA(result.Bands[len(result.Bands)-2:], false) && isHasCrossUpper(result.Bands[len(result.Bands)-4:], true) {
+			if (midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 3) || midPercentFromSMA < 3 || shortPercentFromUpper < 3 {
+				ignoredReason = "up trend but start to down"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend != models.TREND_DOWN {
+		if midInterval.AllTrend.ShortTrend == models.TREND_DOWN && isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)/2:], true) {
+			if isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-3:], false) && shortPercentFromUpper < 3 {
+				ignoredReason = "trend down from upper "
 				return true
 			}
 		}

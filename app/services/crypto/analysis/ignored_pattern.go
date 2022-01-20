@@ -178,15 +178,18 @@ func isLastBandCrossUpperAndPreviousBandNot(bands []models.Band) bool {
 
 func isHasCrossUpper(bands []models.Band, withHead bool) bool {
 	for _, band := range bands {
-		if band.Candle.Open < band.Candle.Close {
-			if withHead {
-				if band.Candle.Open < float32(band.Upper) && band.Candle.Hight >= float32(band.Upper) {
+		if withHead {
+			if band.Candle.Open < float32(band.Upper) && band.Candle.Hight >= float32(band.Upper) {
+				return true
+			}
+			if band.Candle.Open > band.Candle.Close {
+				if band.Candle.Close < float32(band.Upper) && band.Candle.Hight >= float32(band.Upper) {
 					return true
 				}
-			} else {
-				if band.Candle.Open < float32(band.Upper) && band.Candle.Close > float32(band.Upper) {
-					return true
-				}
+			}
+		} else {
+			if band.Candle.Open < float32(band.Upper) && band.Candle.Close > float32(band.Upper) {
+				return true
 			}
 		}
 	}
@@ -315,17 +318,6 @@ func isLastBandOrPreviousBandCrossSMA(bands []models.Band) bool {
 	isLastBandCrossSMA := lastBand.Candle.Low <= float32(lastBand.SMA) && lastBand.Candle.Hight >= float32(lastBand.SMA)
 
 	return isLastBandCrossSMA || isSecondLastBandCrossSMA
-}
-
-func isPosititionBellowUpperMarginBellowThreshold(result *models.BandResult) bool {
-	lastBand := result.Bands[len(result.Bands)-1]
-	if lastBand.Candle.Close < float32(lastBand.SMA) && result.AllTrend.SecondTrend != models.TREND_UP {
-		margin := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-
-		return margin < 2.1
-	}
-
-	return false
 }
 
 func isInAboveUpperBandAndDownTrend(result *models.BandResult) bool {
