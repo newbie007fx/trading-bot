@@ -762,7 +762,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	previousBandPercentChanges := (secondLastBand.Candle.Open - secondLastBand.Candle.Close) / secondLastBand.Candle.Close * 100
 	if result.AllTrend.ShortTrend != models.TREND_UP && (result.PriceChanges > 4 || previousBandPercentChanges > 4) {
 		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN {
-			if shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3 {
+			if shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3.3 {
 				ignoredReason = "just significan down, short above sma but percent below 3 "
 				return true
 			}
@@ -942,7 +942,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 	if result.Position == models.ABOVE_SMA && result.AllTrend.SecondTrend == models.TREND_DOWN {
 		if result.AllTrend.ShortTrend != models.TREND_DOWN && result.PriceChanges > 4 {
-			if midPercentFromUpper < 3 && (shortInterval.Position == models.ABOVE_UPPER || shortPercentFromUpper < 3) {
+			if midPercentFromUpper < 3 && (shortInterval.Position == models.ABOVE_UPPER || shortPercentFromUpper < 3.3) {
 				ignoredReason = "already up above 4% and mid percent from upper below 3"
 				return true
 			}
@@ -1081,6 +1081,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		if midInterval.AllTrend.ShortTrend == models.TREND_DOWN && isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)/2:], true) {
 			if isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-3:], false) && shortPercentFromUpper < 3 {
 				ignoredReason = "trend down from upper "
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN {
+		if result.AllTrend.ShortTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend == models.TREND_UP && shortInterval.AllTrend.ShortTrend == models.TREND_UP {
+			if result.PriceChanges > 3 && isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-2:], false) && isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-2:], false) {
+				ignoredReason = "down trend but short and mid cross upper "
 				return true
 			}
 		}

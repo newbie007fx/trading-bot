@@ -498,6 +498,15 @@ func SpecialCondition(currencyConfig *models.CurrencyNotifConfig, symbol string,
 		}
 	}
 
+	if longInterval.AllTrend.FirstTrend == models.TREND_DOWN && longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+		if isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-1:], false) || isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-1:], true) {
+			if lastBand.Candle.Close > float32(lastBand.Upper) && changesInPercent > 2.5 && changesInPercent < 3 {
+				reason = "long interval down, mid cross sma and short cross upper"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 

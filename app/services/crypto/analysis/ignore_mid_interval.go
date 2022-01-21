@@ -15,7 +15,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if lastBandHeadDoubleBody(result) {
+	if lastBandHeadDoubleBody(result) && lastBand.Candle.Close > float32(lastBand.SMA) {
 		ignoredReason = "lastBandHeadDoubleBody"
 		return true
 	}
