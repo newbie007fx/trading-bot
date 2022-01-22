@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"log"
 	"telebot-trading/app/models"
 )
 
@@ -1090,6 +1091,32 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		if result.AllTrend.ShortTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend == models.TREND_UP && shortInterval.AllTrend.ShortTrend == models.TREND_UP {
 			if result.PriceChanges > 3 && isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-2:], false) && isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-2:], false) {
 				ignoredReason = "down trend but short and mid cross upper "
+				return true
+			}
+		}
+	}
+
+	if lastBand.Candle.Open > lastBand.Candle.Close || secondLastBand.Candle.Open > secondLastBand.Candle.Close {
+		if midInterval.AllTrend.ShortTrend == models.TREND_DOWN && shortInterval.AllTrend.ShortTrend == models.TREND_DOWN {
+			ignoredReason = "mid and short, short trend down "
+			return true
+		}
+	}
+
+	if result.AllTrend.ShortTrend == models.TREND_DOWN && result.PriceChanges > 4 {
+		if midInterval.AllTrend.ShortTrend == models.TREND_DOWN && midInterval.PriceChanges > 4 {
+			if shortInterval.AllTrend.ShortTrend == models.TREND_UP && shortInterval.Position == models.BELOW_SMA && shortInterval.PriceChanges > 1.4 {
+				ignoredReason = "short tren down, mid short trend down. price change more than 1.4"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.ShortTrend == models.TREND_DOWN && result.PriceChanges > 4 {
+		log.Println("masok")
+		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY {
+			if shortInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY {
+				ignoredReason = "short tren down, mid short, short trend down"
 				return true
 			}
 		}

@@ -147,6 +147,8 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 						msg += "\n"
 						msg += "coin long interval:\n"
 						msg += crypto.GenerateMsg(*coin.Long)
+						msg += "\n"
+						msg += "\n"
 
 						holdCount++
 					}
