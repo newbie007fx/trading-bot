@@ -6,6 +6,9 @@ import (
 	"telebot-trading/app/models"
 )
 
+const POSSIBLY_UP = 1
+const POSSIBLY_DOWN = 2
+
 func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	if len(data) < 4 {
 		log.Println("invalid data when calculate trends")
@@ -175,18 +178,19 @@ func CalculateTrendShort(data []models.Band) int8 {
 
 	var totalFirstData float32 = 0
 	var totalLastData float32 = 0
+	possibly := checkPossibly(data[0], data[len(data)-1])
 
 	for i, val := range data {
-		if data[highestIndex].Candle.Close < val.Candle.Close {
+		if higestFromBand(data[highestIndex]) < higestFromBand(val) {
 			highestIndex = i
 		}
 
-		if data[lowestIndex].Candle.Close > val.Candle.Close {
+		if lowestFromBand(data[lowestIndex]) > lowestFromBand(val) {
 			lowestIndex = i
 		}
 
 		if i < limit {
-			totalFirstData += val.Candle.Close
+			totalFirstData += getBandValue(possibly, val)
 		}
 
 		if i >= len(data)-limit {
@@ -199,6 +203,46 @@ func CalculateTrendShort(data []models.Band) int8 {
 	baseLinePoint := data[lowestIndex].Candle.Close - (data[lowestIndex].Candle.Close / 100)
 
 	return getTrendShort(baseLinePoint, firstAvg, lastAvg)
+}
+
+func checkPossibly(firstBand models.Band, lastBand models.Band) int {
+	if firstBand.Candle.Open > lastBand.Candle.Close && firstBand.Candle.Close > lastBand.Candle.Close {
+		return POSSIBLY_DOWN
+	} else if firstBand.Candle.Open < lastBand.Candle.Close && firstBand.Candle.Close < lastBand.Candle.Close {
+		return POSSIBLY_UP
+	}
+
+	var hight, low float32 = 0, 0
+
+	if firstBand.Candle.Open < firstBand.Candle.Close {
+		hight = firstBand.Candle.Close - lastBand.Candle.Close
+		low = lastBand.Candle.Close - firstBand.Candle.Open
+	} else {
+		low = lastBand.Candle.Close - firstBand.Candle.Close
+		hight = firstBand.Candle.Open - lastBand.Candle.Close
+	}
+
+	if hight > low {
+		return POSSIBLY_DOWN
+	}
+
+	return POSSIBLY_UP
+}
+
+func getBandValue(possibly int, band models.Band) float32 {
+	if possibly == POSSIBLY_DOWN {
+		if band.Candle.Close > band.Candle.Open {
+			return band.Candle.Close
+		}
+
+		return band.Candle.Open
+	}
+
+	if band.Candle.Close < band.Candle.Open {
+		return band.Candle.Close
+	}
+
+	return band.Candle.Open
 }
 
 func CalculateTrendShortAvg(data []models.Band) int8 {

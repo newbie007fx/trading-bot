@@ -1,7 +1,6 @@
 package analysis
 
 import (
-	"log"
 	"telebot-trading/app/models"
 )
 
@@ -1113,11 +1112,28 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	}
 
 	if result.AllTrend.ShortTrend == models.TREND_DOWN && result.PriceChanges > 4 {
-		log.Println("masok")
 		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY {
 			if shortInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY {
 				ignoredReason = "short tren down, mid short, short trend down"
 				return true
+			}
+		}
+	}
+
+	if result.AllTrend.ShortTrend == models.TREND_DOWN {
+		if midInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY {
+			if shortInterval.AllTrend.ShortTrend == models.TREND_DOWN {
+				if isHasCrossSMA(shortInterval.Bands[len(shortInterval.Bands)-5:], false) {
+					if shortPercentFromUpper < 3 {
+						ignoredReason = "mid side way but short percent from upper below 3"
+						return true
+					}
+				} else {
+					if shortPercentFromSMA < 3 {
+						ignoredReason = "mid side way but short percent from sma below 3"
+						return true
+					}
+				}
 			}
 		}
 	}
