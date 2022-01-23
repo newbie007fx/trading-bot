@@ -1102,19 +1102,24 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	if result.AllTrend.ShortTrend == models.TREND_DOWN && result.PriceChanges > 4 {
+	if result.AllTrend.ShortTrend != models.TREND_UP && result.PriceChanges > 4 {
 		if midInterval.AllTrend.ShortTrend == models.TREND_DOWN && midInterval.PriceChanges > 4 {
 			if shortInterval.AllTrend.ShortTrend == models.TREND_UP && shortInterval.Position == models.BELOW_SMA && shortInterval.PriceChanges > 1.4 {
 				ignoredReason = "short tren down, mid short trend down. price change more than 1.4"
 				return true
 			}
 		}
-	}
 
-	if result.AllTrend.ShortTrend == models.TREND_DOWN && result.PriceChanges > 4 {
 		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY {
 			if shortInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY {
 				ignoredReason = "short tren down, mid short, short trend down"
+				return true
+			}
+		}
+
+		if midInterval.Position == models.BELOW_SMA && midInterval.AllTrend.SecondTrend != models.TREND_UP {
+			if shortInterval.Position == models.ABOVE_SMA && shortPercentFromUpper < 3 {
+				ignoredReason = "short tren down, below sma not up and short above sma percent below 3"
 				return true
 			}
 		}

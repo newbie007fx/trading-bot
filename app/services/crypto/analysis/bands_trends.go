@@ -169,7 +169,7 @@ func CalculateTrendShort(data []models.Band) int8 {
 		return models.TREND_DOWN
 	}
 
-	highestIndex, lowestIndex := 0, 0
+	lowestIndex := 0
 	thirtyPercent := float64(len(data)) * float64(15) / float64(100)
 	limit := int(math.Floor(thirtyPercent))
 	if limit < 1 {
@@ -181,10 +181,6 @@ func CalculateTrendShort(data []models.Band) int8 {
 	possibly := checkPossibly(data[0], data[len(data)-1])
 
 	for i, val := range data {
-		if higestFromBand(data[highestIndex]) < higestFromBand(val) {
-			highestIndex = i
-		}
-
 		if lowestFromBand(data[lowestIndex]) > lowestFromBand(val) {
 			lowestIndex = i
 		}
@@ -200,7 +196,7 @@ func CalculateTrendShort(data []models.Band) int8 {
 
 	firstAvg := totalFirstData / float32(limit)
 	lastAvg := totalLastData / float32(limit)
-	baseLinePoint := data[lowestIndex].Candle.Close - (data[lowestIndex].Candle.Close / 100)
+	baseLinePoint := lowestFromBand(data[lowestIndex]) - (lowestFromBand(data[lowestIndex]) / 100)
 
 	return getTrendShort(baseLinePoint, firstAvg, lastAvg)
 }
@@ -338,7 +334,7 @@ func getTrendShort(baseLine, fistAvg, secondAvg float32) int8 {
 		percent = (firstPointValue / lastPointValue) * 100
 	}
 
-	if percent >= 80 {
+	if percent >= 85 {
 		return models.TREND_SIDEWAY
 	}
 
