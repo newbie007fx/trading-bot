@@ -1141,6 +1141,59 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				}
 			}
 		}
+
+		if result.AllTrend.Trend == models.TREND_DOWN && lastBand.Candle.Close < float32(lastBand.SMA) {
+			if midInterval.Position == models.BELOW_SMA && countAboveSMA(midInterval.Bands[len(midInterval.Bands)/2:]) == 0 && midPercentFromSMA < 3 {
+				if shortInterval.AllTrend.Trend == models.TREND_DOWN && shortPercentFromSMA < 3 {
+					ignoredReason = "trend down, short percent from sma below 3"
+					return true
+				}
+			}
+
+			if countDownBand(midInterval.Bands[len(midInterval.Bands)-4:len(midInterval.Bands)-1]) == 3 {
+				if midInterval.Direction == BAND_DOWN {
+					ignoredReason = "trend down, mid interval band down"
+					return true
+				}
+
+				if shortPercentFromSMA < 3 {
+					ignoredReason = "trend down, short percent from sma below 3"
+					return true
+				}
+			}
+
+			if midInterval.AllTrend.Trend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend != models.TREND_UP {
+				if midInterval.PriceChanges > 4 && (shortPercentFromSMA < 3 || !isHasCrossLower(shortInterval.Bands[len(shortInterval.Bands)-3:], false)) {
+					ignoredReason = "trend down, bouncing minor up"
+					return true
+				}
+			}
+
+			if lastBand.Candle.Open < float32(lastBand.Lower) || lastBand.Candle.Close < float32(lastBand.Lower) || secondLastBand.Candle.Open < float32(secondLastBand.Lower) || secondLastBand.Candle.Close < float32(secondLastBand.Lower) {
+				if shortPercentFromSMA < 3 || !isHasCrossLower(shortInterval.Bands[len(shortInterval.Bands)-3:], false) {
+					ignoredReason = "trend down, below lower"
+					return true
+				}
+			}
+		}
+	}
+
+	if result.AllTrend.Trend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && isHasCrossUpper(result.Bands[len(result.Bands)-2:], true) {
+		if midInterval.AllTrend.ShortTrend != models.TREND_UP && countDownBand(midInterval.Bands[len(midInterval.Bands)-2:]) > 0 && isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-3:], true) {
+			if shortInterval.AllTrend.ShortTrend != models.TREND_UP && !isHasCrossLower(shortInterval.Bands[len(shortInterval.Bands)-3:], false) {
+				ignoredReason = "cross upper and starting to down"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.Trend == models.TREND_DOWN && lastBand.Candle.Close < float32(lastBand.SMA) {
+		if midInterval.AllTrend.ShortTrend != models.TREND_UP && countDownBand(midInterval.Bands[len(midInterval.Bands)-2:]) > 0 && (isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-3:], true) || isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-3:], false)) {
+			if shortInterval.AllTrend.ShortTrend != models.TREND_UP && !isHasCrossLower(shortInterval.Bands[len(shortInterval.Bands)-3:], false) {
+				ignoredReason = "down, minor up  then starting to down"
+				return true
+			}
+		}
 	}
 
 	return false
