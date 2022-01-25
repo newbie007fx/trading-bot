@@ -211,8 +211,7 @@ func checkPossibly(firstBand models.Band, lastBand models.Band) int {
 	var hight, low float32 = 0, 0
 
 	if firstBand.Candle.Open < firstBand.Candle.Close {
-		hight = firstBand.Candle.Close - lastBand.Candle.Close
-		low = lastBand.Candle.Close - firstBand.Candle.Open
+		return POSSIBLY_DOWN
 	} else {
 		low = lastBand.Candle.Close - firstBand.Candle.Close
 		hight = firstBand.Candle.Open - lastBand.Candle.Close

@@ -1266,6 +1266,40 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend != models.TREND_UP && countDownBand(result.Bands[len(result.Bands)-2:]) > 0 {
+		if midInterval.AllTrend.ShortTrend == models.TREND_DOWN && isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-4:], true) {
+			if shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 {
+				ignoredReason = "starting down"
+				return true
+			}
+		}
+
+		if midInterval.Position == models.BELOW_SMA && midPercentFromSMA < 3 && !isHasCrossLower(midInterval.Bands[len(midInterval.Bands)-3:], false) {
+			if shortInterval.AllTrend.SecondTrend != models.TREND_UP && shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 {
+				ignoredReason = "starting down, mid below sma up percent below 3"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.ShortTrend == models.TREND_UP && result.PriceChanges > 10 {
+		if midInterval.AllTrend.ShortTrend == models.TREND_UP && midInterval.PriceChanges > 4 {
+			if shortInterval.AllTrend.ShortTrend == models.TREND_UP && shortInterval.PriceChanges > 3 && isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-3:], true) {
+				ignoredReason = "all trend up, and short cross upper"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend != models.TREND_DOWN && result.Position == models.BELOW_SMA {
+		if midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend == models.TREND_DOWN && midInterval.Position == models.ABOVE_SMA {
+			if shortInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+				ignoredReason = "short trend up, and start down"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
