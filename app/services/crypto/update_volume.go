@@ -4,6 +4,7 @@ import (
 	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
+	"time"
 )
 
 func StartUpdateVolumeService(updateVolumeChan chan bool) {
@@ -19,6 +20,8 @@ func updateVolume() {
 
 	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil)
 	for _, data := range *currency_configs {
+		time.Sleep(1 * time.Second)
+
 		request := CandleRequest{
 			Symbol:       data.Symbol,
 			Limit:        12,
