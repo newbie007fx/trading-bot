@@ -1434,6 +1434,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP {
+		if midInterval.AllTrend.FirstTrend == models.TREND_UP && midInterval.AllTrend.SecondTrend == models.TREND_UP && midPercentFromUpper < 3 {
+			if isHasCrossUpper(shortInterval.Bands[bandLen-2:], true) {
+				ignoredReason = "trend up, mid percent from upper below 3, and short cross upper"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
