@@ -44,7 +44,6 @@ type BandResult struct {
 	PriceChanges  float32
 	VolumeChanges float32
 	Weight        float32
-	Note          string
 	Position      int8
 	Bands         []Band
 	Mid           *BandResult

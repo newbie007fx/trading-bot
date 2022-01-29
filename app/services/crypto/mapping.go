@@ -7,8 +7,8 @@ import (
 )
 
 func GenerateMsg(coinResult models.BandResult) string {
-	format := "Coin name: <b>%s</b> \nDirection: <b>%s</b> \nPrice: <b>%f</b> \nVolume: <b>%f</b> \nTrend: <b>%s (%s(%.2f)+%s(%.2f))</b> \nShort Trend: <b>%s</b> \nPrice Changes: <b>%.2f%%</b> \nVolume Average Changes: <b>%.2f%%</b> \nNotes: <b>%s</b> \nPosition: <b>%s</b> \n"
-	msg := fmt.Sprintf(format, coinResult.Symbol, DirectionString(coinResult.Direction), coinResult.CurrentPrice, coinResult.CurrentVolume, TrendString(coinResult.AllTrend.Trend), TrendString(coinResult.AllTrend.FirstTrend), coinResult.AllTrend.FirstTrendPercent, TrendString(coinResult.AllTrend.SecondTrend), coinResult.AllTrend.SecondTrendPercent, TrendString(coinResult.AllTrend.ShortTrend), coinResult.PriceChanges, coinResult.VolumeChanges, coinResult.Note, PositionString(coinResult.Position))
+	format := "Coin name: <b>%s</b> \nDirection: <b>%s</b> \nPrice: <b>%f</b> \nVolume: <b>%f</b> \nTrend: <b>%s (%s(%.2f)+%s(%.2f))</b> \nShort Trend: <b>%s</b> \nPrice Changes: <b>%.2f%%</b> \nVolume Average Changes: <b>%.2f%%</b> \nPosition: <b>%s</b> \n"
+	msg := fmt.Sprintf(format, coinResult.Symbol, DirectionString(coinResult.Direction), coinResult.CurrentPrice, coinResult.CurrentVolume, TrendString(coinResult.AllTrend.Trend), TrendString(coinResult.AllTrend.FirstTrend), coinResult.AllTrend.FirstTrendPercent, TrendString(coinResult.AllTrend.SecondTrend), coinResult.AllTrend.SecondTrendPercent, TrendString(coinResult.AllTrend.ShortTrend), coinResult.PriceChanges, coinResult.VolumeChanges, PositionString(coinResult.Position))
 	return msg
 }
 

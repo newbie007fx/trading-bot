@@ -553,7 +553,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		midHigestIndex := getHighestIndex(midInterval.Bands)
 		if midInterval.Position == models.ABOVE_SMA && midlowestIndex > len(midInterval.Bands)/2 {
 			checking := false
-			if midHigestIndex == len(midInterval.Note)-1 {
+			if midHigestIndex == len(midInterval.Bands)-1 {
 				if midPercentFromUpper < 3 {
 					checking = true
 				}
