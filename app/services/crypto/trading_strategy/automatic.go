@@ -170,7 +170,9 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 			continue
 		}
 
-		resultMid := crypto.CheckCoin(*currencyConfig, "1h", 0, timeInMilli-1, 0, 0, 0)
+		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, altCoins[i].Bands, analysis.Time_type_1h)
+		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, altCoins[i].Bands, analysis.Time_type_1h)
+		resultMid := crypto.CheckCoin(*currencyConfig, "1h", 0, timeInMilli, altCoins[i].CurrentPrice, higest, lowest)
 		midWeight := getWeightCustomInterval(*resultMid, altCoins[i], "1h", nil)
 		if midWeight == 0 {
 			continue
@@ -178,7 +180,9 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 		altCoins[i].Mid = resultMid
 		altCoins[i].Weight += midWeight
 		if altCoins[i].Weight > 1 {
-			resultLong := crypto.CheckCoin(*currencyConfig, "4h", 0, timeInMilli-1, 0, 0, 0)
+			higest = analysis.GetHighestHightPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h)
+			lowest = analysis.GetLowestLowPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h)
+			resultLong := crypto.CheckCoin(*currencyConfig, "4h", 0, timeInMilli, resultMid.CurrentPrice, higest, lowest)
 			longWight := getWeightCustomInterval(*resultLong, altCoins[i], "4h", resultMid)
 			if longWight == 0 {
 				continue

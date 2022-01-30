@@ -81,7 +81,7 @@ func priceChangeWeight(priceChange float32) float32 {
 }
 
 func reversalWeight(result *models.BandResult) float32 {
-	var weight float32 = 0
+	var weight float32 = 0.001
 	trend := CalculateTrendsDetail(result.Bands[:len(result.Bands)-1])
 
 	lastSixData := result.Bands[len(result.Bands)-6:]
@@ -129,7 +129,7 @@ func reversalWeight(result *models.BandResult) float32 {
 func getPatternWeight(result *models.BandResult) float32 {
 	listMatchPattern := GetCandlePattern(result)
 
-	var weight float32 = 0
+	var weight float32 = 0.001
 	if len(listMatchPattern) > 0 {
 		weight = 0.2
 	}
