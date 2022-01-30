@@ -1443,6 +1443,33 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_SIDEWAY {
+		if (midInterval.Position == models.BELOW_SMA && midPercentFromSMA < 3) || (midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 3) {
+			if shortPercentFromUpper < 3 {
+				ignoredReason = "short trend side way and percent from upper below 3"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend != models.TREND_UP && result.AllTrend.ShortTrend != models.TREND_UP && result.Position == models.BELOW_SMA {
+		if (midInterval.Position == models.BELOW_SMA && midPercentFromSMA < 3) || (midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 3) {
+			if shortPercentFromUpper < 3 {
+				ignoredReason = "short trend side way and percent from upper below 3 2nd"
+				return true
+			}
+		}
+	}
+
+	if lastBand.Candle.Open > lastBand.Candle.Close && lastBand.Candle.Hight > float32(lastBand.Upper) {
+		if midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend != models.TREND_UP && midInterval.Position == models.ABOVE_SMA {
+			if shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 {
+				ignoredReason = "starting down gan."
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
