@@ -1408,6 +1408,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				return true
 			}
 		}
+
+		if result.AllTrend.SecondTrend == models.TREND_UP {
+			if midInterval.Position == models.BELOW_SMA && midPercentFromSMA < 3 {
+				if shortPercentFromUpper < 3 {
+					ignoredReason = "just minor up still trend down 2nd"
+					return true
+				}
+			}
+		}
 	}
 
 	if result.AllTrend.ShortTrend != models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN {
@@ -1465,6 +1474,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		if midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend != models.TREND_UP && midInterval.Position == models.ABOVE_SMA {
 			if shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 {
 				ignoredReason = "starting down gan."
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend != models.TREND_UP {
+		if midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend == models.TREND_DOWN {
+			if shortInterval.Position == models.BELOW_SMA && percentFromSMA < 3 {
+				ignoredReason = "just minor up still trend down 3nd"
 				return true
 			}
 		}
