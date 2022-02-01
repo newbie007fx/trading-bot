@@ -1488,6 +1488,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP {
+		if midInterval.AllTrend.FirstTrend == models.TREND_UP && midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend == models.TREND_UP {
+			if midSecondLastBand.Candle.Open > midSecondLastBand.Candle.Close && getHighestHightIndex(midInterval.Bands) >= bandLen-3 {
+				ignoredReason = "on upper and will starting down"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
