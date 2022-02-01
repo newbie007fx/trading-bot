@@ -125,13 +125,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN {
-		if isHasCrossUpper(result.Bands[:len(result.Bands)/2], false) && result.Position == models.BELOW_SMA {
-			ignoredReason = "down-down from upper and position bellow sma"
-			return true
-		}
-	}
-
 	if result.AllTrend.Trend == models.TREND_UP && result.AllTrend.SecondTrendPercent < 5 {
 		longestIndex := getLongestCandleIndex(result.Bands[len(result.Bands)/2:])
 		secondWaveTrendDetail := CalculateTrendsDetail(result.Bands[longestIndex+len(result.Bands)/2:])
