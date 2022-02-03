@@ -42,6 +42,7 @@ func MakeCryptoRequest(data models.CurrencyNotifConfig, request CandleRequest) *
 		VolumeChanges: bands.VolumeAverageChanges,
 		Position:      bands.Position,
 		Bands:         bands.Data,
+		HeuristicBand: bands.HeuristicBand,
 	}
 
 	return &result
@@ -83,6 +84,7 @@ func MakeCryptoRequestUpdateLasCandle(data models.CurrencyNotifConfig, request C
 		VolumeChanges: bands.VolumeAverageChanges,
 		Position:      bands.Position,
 		Bands:         bands.Data,
+		HeuristicBand: bands.HeuristicBand,
 	}
 
 	return &result

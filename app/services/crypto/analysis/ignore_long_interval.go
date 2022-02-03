@@ -8,23 +8,26 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	bandLen := len(result.Bands)
 
 	lastBand := result.Bands[len(result.Bands)-1]
+	hLastBand := result.HeuristicBand
 	secondLastBand := result.Bands[len(result.Bands)-2]
 
 	midLastBand := midInterval.Bands[len(result.Bands)-1]
+	hMidLastBand := midInterval.HeuristicBand
 	midSecondLastBand := midInterval.Bands[len(result.Bands)-2]
 
 	shortLastBand := shortInterval.Bands[len(result.Bands)-1]
+	hShortLastBand := shortInterval.HeuristicBand
 	shortSecondLastBand := shortInterval.Bands[len(shortInterval.Bands)-2]
 
-	percentFromHeight := (lastBand.Candle.Hight - lastBand.Candle.Close) / lastBand.Candle.Close * 100
-	percentFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	percentFromSMA := (lastBand.SMA - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
+	percentFromHeight := (hLastBand.Candle.Hight - hLastBand.Candle.Close) / hLastBand.Candle.Close * 100
+	percentFromUpper := (hLastBand.Upper - float64(hLastBand.Candle.Close)) / float64(hLastBand.Candle.Close) * 100
+	percentFromSMA := (hLastBand.SMA - float64(hLastBand.Candle.Close)) / float64(hLastBand.Candle.Close) * 100
 
-	midPercentFromUpper := (midLastBand.Upper - float64(midLastBand.Candle.Close)) / float64(midLastBand.Candle.Close) * 100
-	midPercentFromSMA := (midLastBand.SMA - float64(midLastBand.Candle.Close)) / float64(midLastBand.Candle.Close) * 100
+	midPercentFromUpper := (hMidLastBand.Upper - float64(hMidLastBand.Candle.Close)) / float64(hMidLastBand.Candle.Close) * 100
+	midPercentFromSMA := (hMidLastBand.SMA - float64(hMidLastBand.Candle.Close)) / float64(hMidLastBand.Candle.Close) * 100
 
-	shortPercentFromUpper := (shortLastBand.Upper - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
-	shortPercentFromSMA := (shortLastBand.SMA - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
+	shortPercentFromUpper := (hShortLastBand.Upper - float64(hShortLastBand.Candle.Close)) / float64(hShortLastBand.Candle.Close) * 100
+	shortPercentFromSMA := (hShortLastBand.SMA - float64(hShortLastBand.Candle.Close)) / float64(hShortLastBand.Candle.Close) * 100
 
 	if isInAboveUpperBandAndDownTrend(result) && (CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 || isHasDoji(result.Bands[len(result.Bands)-5:])) {
 		if !isLastBandOrPreviousBandCrossSMA(result.Bands) {
@@ -850,7 +853,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 	if isHasCrossSMA(result.Bands[len(result.Bands)-2:], false) || isHasCrossUpper(result.Bands[len(result.Bands)-2:], true) {
 		if midPercentFromUpper < 3 && shortPercentFromUpper < 3 {
-			ignoredReason = "all interval cross upper "
+			ignoredReason = "all interval cross upper 2nd "
 			return true
 		}
 	}

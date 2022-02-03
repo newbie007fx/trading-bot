@@ -22,8 +22,16 @@ func GenerateBollingerBands(historical []models.CandleData) (bands models.Bands)
 		log.Println("invalid historycal data with len: ", len(historical))
 	}
 
+	lastCandle := historical[len(historical)-1]
+	historical = append(historical, lastCandle)
+
 	graphData := len(historical) - SMA_DAYS
 	for i := 0; i <= graphData; i++ {
+		if graphData == i {
+			bands.HeuristicBand = getBandData(historical[start:end])
+			break
+		}
+
 		bands.Data = append(bands.Data, getBandData(historical[start:end]))
 		start++
 		end++
