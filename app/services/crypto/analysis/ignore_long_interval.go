@@ -1507,6 +1507,22 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && result.Direction == BAND_DOWN {
+		if midInterval.AllTrend.ShortTrend == models.TREND_DOWN && midInterval.Position == models.BELOW_SMA && midPercentFromUpper < 3 {
+			ignoredReason = "band down, mid short trend down but percent from upper below 3"
+			return true
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_UP && countCrossSMA(result.Bands[bandLen-3:]) >= 2 {
+		if midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend != models.TREND_UP && isHasCrossUpper(midInterval.Bands[bandLen-4:], true) {
+			if countCrossUpper(midInterval.Bands[bandLen-6:]) > 1 && countCrossUpper(shortInterval.Bands[bandLen/2:]) == 1 {
+				ignoredReason = "minor up thren continue down"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
