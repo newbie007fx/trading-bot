@@ -24,19 +24,32 @@ func GenerateBollingerBands(historical []models.CandleData) (bands models.Bands)
 
 	lastCandle := historical[len(historical)-1]
 	historical = append(historical, lastCandle)
+	historical = append(historical, lastCandle)
+	historical = append(historical, lastCandle)
+	historical = append(historical, lastCandle)
 
 	graphData := len(historical) - SMA_DAYS
-	for i := 0; i <= graphData; i++ {
-		if graphData == i {
-			bands.HeuristicBand = getBandData(historical[start:end])
-			break
-		}
+	heuristic := models.Heuristic{}
 
-		bands.Data = append(bands.Data, getBandData(historical[start:end]))
+	for i := 0; i <= graphData; i++ {
+		if graphData-i < 4 {
+			if graphData-i == 3 {
+				heuristic.FirstBand = getBandData(historical[start:end])
+			} else if graphData-i == 2 {
+				heuristic.SecondBand = getBandData(historical[start:end])
+			} else if graphData-i == 1 {
+				heuristic.ThirdBand = getBandData(historical[start:end])
+			} else {
+				heuristic.FourthBand = getBandData(historical[start:end])
+			}
+		} else {
+			bands.Data = append(bands.Data, getBandData(historical[start:end]))
+		}
 		start++
 		end++
 	}
 
+	bands.HeuristicBand = heuristic
 	bands.AllTrend = CalculateTrendsDetail(bands.Data)
 	bands.Position = getPosition(bands.Data[len(bands.Data)-1])
 

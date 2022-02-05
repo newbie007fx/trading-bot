@@ -33,7 +33,14 @@ type Bands struct {
 	PriceChanges         float32
 	VolumeAverageChanges float32
 	Position             int8
-	HeuristicBand        Band
+	HeuristicBand        Heuristic
+}
+
+type Heuristic struct {
+	FirstBand  Band
+	SecondBand Band
+	ThirdBand  Band
+	FourthBand Band
 }
 
 type BandResult struct {
@@ -49,7 +56,7 @@ type BandResult struct {
 	Bands         []Band
 	Mid           *BandResult
 	Long          *BandResult
-	HeuristicBand Band
+	HeuristicBand Heuristic
 }
 
 type AssetBalance struct {
