@@ -1546,6 +1546,22 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.ShortTrend == models.TREND_DOWN && result.Position == models.BELOW_SMA && !isHasCrossLower(result.Bands[bandLen-3:], false) {
+		if midInterval.AllTrend.ShortTrend == models.TREND_DOWN && midInterval.Position == models.BELOW_SMA && !isHasCrossLower(midInterval.Bands[bandLen-4:], false) {
+			if shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 {
+				ignoredReason = "losng mid short interval below sma but not cross lower"
+				return true
+			}
+		}
+
+		if midInterval.AllTrend.ShortTrend != models.TREND_UP && midInterval.Position == models.BELOW_SMA && isHasCrossLower(midInterval.Bands[bandLen-4:], false) {
+			if shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 && midPercentFromSMA < 3 {
+				ignoredReason = "losng mid short interval below sma but not cross lower 2nd"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 

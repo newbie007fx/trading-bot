@@ -36,6 +36,16 @@ func DispatchRequestJob(request CandleRequest) {
 
 func RequestCandleService() {
 	canldeRequest = make(chan CandleRequest, 100)
+	go callRequest()
+
+	callRequest()
+
+	defer func() {
+		close(canldeRequest)
+	}()
+}
+
+func callRequest() {
 	crypto := driver.GetCrypto()
 	for request := range canldeRequest {
 		checkCounter()
@@ -45,10 +55,6 @@ func RequestCandleService() {
 
 		request.ResponseChan <- response
 	}
-
-	defer func() {
-		close(canldeRequest)
-	}()
 }
 
 func checkCounter() {
