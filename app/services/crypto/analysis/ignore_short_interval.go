@@ -109,5 +109,15 @@ func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 		return true
 	}
 
+	if result.AllTrend.SecondTrend != models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && percentFromUpper < 3 {
+		lowPrice := getLowestPrice(result.Bands)
+		hightPrice := getHigestPrice(result.Bands)
+		percent := (hightPrice - lowPrice) / lowPrice * 100
+		if percent < 3 {
+			ignoredReason = "sideway"
+			return true
+		}
+	}
+
 	return ignored(result)
 }

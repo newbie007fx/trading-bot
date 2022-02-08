@@ -1580,6 +1580,17 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN {
+		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend == models.TREND_DOWN {
+			if midInterval.Position == models.BELOW_SMA && !isHasCrossLower(midInterval.Bands[bandLen-3:], false) {
+				if shortInterval.Position == models.BELOW_SMA && shortHSecondPercentFromSMA < 3 && shortInterval.PriceChanges > 1 {
+					ignoredReason = "on down and just minor up"
+					return true
+				}
+			}
+		}
+	}
+
 	return false
 }
 
