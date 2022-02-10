@@ -1591,6 +1591,28 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && result.Direction == BAND_DOWN {
+		if midInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY && midLastBand.Candle.Close < float32(midLastBand.Upper) && isHasCrossUpper(midInterval.Bands[bandLen-4:], true) {
+			if isOnDown(shortInterval) && shortHSecondPercentFromSMA < 3 && shortInterval.Position == models.BELOW_SMA {
+				ignoredReason = "just down from upper, better not in"
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func isOnDown(result *models.BandResult) bool {
+	if result.AllTrend.FirstTrend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN {
+		lastBand := result.Bands[len(result.Bands)-1]
+		higestPrice := getHigestPrice(result.Bands)
+		if higestPrice != lastBand.Candle.Close {
+			diff := (higestPrice - lastBand.Candle.Close) / lastBand.Candle.Close * 100
+			return diff > 3
+		}
+	}
+
 	return false
 }
 
