@@ -75,7 +75,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 		}
 
 		result.Weight = analysis.CalculateWeight(result)
-		if !analysis.IsIgnored(result, baseTime) && result.Weight >= 0.5 {
+		if !analysis.IsIgnored(result, baseTime) {
 			altCoin = append(altCoin, *result)
 		}
 
