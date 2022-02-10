@@ -341,5 +341,15 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	if result.AllTrend.SecondTrend != models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && percentFromUpper < 3 {
+		lowPrice := getLowestPrice(result.Bands[len(result.Bands)/2:])
+		hightPrice := getHigestPrice(result.Bands[len(result.Bands)/2:])
+		percent := (hightPrice - lowPrice) / lowPrice * 100
+		if percent < 3 && result.Position != models.ABOVE_UPPER {
+			ignoredReason = "sideway"
+			return true
+		}
+	}
+
 	return false
 }

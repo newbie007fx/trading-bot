@@ -14,6 +14,7 @@ type CurrencyNotifConfig struct {
 	HoldPrice           float32 `gorm:"default:0"`
 	HoldedAt            int64   `gorm:"default:0"`
 	ReachTargetProfitAt int64   `gorm:"default:0"`
+	PriceChanges        float32 `gorm:"default:0"`
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
