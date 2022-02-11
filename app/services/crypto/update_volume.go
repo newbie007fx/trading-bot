@@ -38,9 +38,10 @@ func updateVolume() {
 		}
 		vol := countVolume(response.CandleData)
 		pricePercent := priceChanges(response.CandleData)
+		priceToVolume := vol + (vol * pricePercent / 100)
 
 		err := repositories.UpdateCurrencyNotifConfig(data.ID, map[string]interface{}{
-			"volume":        vol,
+			"volume":        vol + priceToVolume,
 			"price_changes": pricePercent,
 		})
 

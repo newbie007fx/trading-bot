@@ -1600,19 +1600,35 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP {
+		if secondLastBand.Candle.Hight-secondLastBand.Candle.Close > secondLastBand.Candle.Close-secondLastBand.Candle.Open {
+			if checkDiffHightClose(midInterval.Bands[bandLen/2:]) {
+				if shortHSecondPercentFromUpper < 3 {
+					ignoredReason = "on down and percent below 3"
+					return true
+				}
+			}
+		}
+	}
+
 	return false
 }
 
 func isOnDown(result *models.BandResult) bool {
 	if result.AllTrend.FirstTrend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN {
-		lastBand := result.Bands[len(result.Bands)-1]
-		higestPrice := getHigestPrice(result.Bands)
-		if higestPrice != lastBand.Candle.Close {
-			diff := (higestPrice - lastBand.Candle.Close) / lastBand.Candle.Close * 100
-			return diff > 3
-		}
+		return checkDiffHightClose(result.Bands)
 	}
 
+	return false
+}
+
+func checkDiffHightClose(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+	higestPrice := getHigestPrice(bands)
+	if higestPrice != lastBand.Candle.Close {
+		diff := (higestPrice - lastBand.Candle.Close) / lastBand.Candle.Close * 100
+		return diff > 3
+	}
 	return false
 }
 
