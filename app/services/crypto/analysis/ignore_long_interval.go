@@ -1611,6 +1611,29 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP {
+		if midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend == models.TREND_UP {
+			if isHasCrossUpper(shortInterval.Bands[bandLen-2:], true) && (percentFromUpper < 3 || midPercentFromUpper < 3) {
+				ignoredReason = "up but not confident"
+				return true
+			}
+
+			if isHasCrossUpper(midInterval.Bands[bandLen-2:], true) && !isHasCrossUpper(shortInterval.Bands[bandLen-5:], true) {
+				ignoredReason = "up but not confident 2nd"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_DOWN && isHasCrossSMA(result.Bands[bandLen-2:], false) {
+		if midLastBand.Candle.Close > float32(midLastBand.SMA) && isHasCrossSMA(midInterval.Bands[bandLen-2:], false) && midInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY {
+			if shortInterval.AllTrend.SecondTrend == models.TREND_DOWN && isHasCrossSMA(shortInterval.Bands[bandLen-2:], false) {
+				ignoredReason = "warning on down, on cross lower"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
