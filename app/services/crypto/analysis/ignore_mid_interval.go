@@ -351,5 +351,12 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_DOWN {
+		if result.Position == models.ABOVE_SMA && !isHasCrossSMA(result.Bands[len(result.Bands)-2:], false) {
+			ignoredReason = "second trend up, short down. above sma but not cross sma"
+			return true
+		}
+	}
+
 	return false
 }
