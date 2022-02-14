@@ -64,7 +64,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if isContaineBearishEngulfing(result) && !isLastBandOrPreviousBandCrossSMA(result.Bands) && shortPercentFromUpper < 3 {
+	if isContaineBearishEngulfing(result) && !isLastBandOrPreviousBandCrossSMA(result.Bands) && shortPercentFromUpper < 3.2 {
 		ignoredReason = "isContaineBearishEngulfing"
 		return true
 	}
@@ -100,7 +100,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		if (shortInterval.AllTrend.FirstTrendPercent <= 50 || isHasCrossLower(shortIntervalHalfBands, false)) && shortInterval.AllTrend.SecondTrendPercent <= 50 {
 			if shortInterval.Position == models.ABOVE_SMA {
 				if result.Position == models.BELOW_SMA {
-					if shortPercentFromUpper < 3.2 && percentFromSMA < 3 {
+					if shortPercentFromUpper < 3.2 && percentFromSMA < 3.2 {
 						ignoredReason = "up down, and margin form up bellow threshold"
 						return true
 					}
@@ -191,7 +191,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	if getHighestIndex(result.Bands) == len(result.Bands)-1 && percentFromUpper < 3 && result.Position == models.ABOVE_SMA {
+	if getHighestIndex(result.Bands) == len(result.Bands)-1 && percentFromUpper < 3.4 && result.Position == models.ABOVE_SMA {
 		if isHasCrossLower(shortInterval.Bands[:len(shortInterval.Bands)/2], false) && isHasCrossUpper(shortInterval.Bands[:len(shortInterval.Bands)/2], true) {
 			if isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)/2:], true) {
 				ignoredReason = "short interval above upper, mid interval above sma and margin below 3 - second"
@@ -215,7 +215,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 
 	shortPercentFromSMA := (shortLastBand.SMA - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
 	if countAboveSMA(result.Bands) == 0 && result.AllTrend.ShortTrend != models.TREND_UP {
-		if countAboveSMA(shortInterval.Bands) == 0 && shortPercentFromSMA < 3 && !isHasCrossLower(result.Bands[len(result.Bands)-3:], false) {
+		if countAboveSMA(shortInterval.Bands) == 0 && shortPercentFromSMA < 3.1 && !isHasCrossLower(result.Bands[len(result.Bands)-3:], false) {
 			ignoredReason = "trend down, short margin from sma < 3"
 			return true
 		}
@@ -231,7 +231,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	if result.AllTrend.ShortTrend != models.TREND_UP {
 		shortLastBandChanges := (shortLastBand.Candle.Close - shortLastBand.Candle.Open) / shortLastBand.Candle.Open * 100
 		if shortLastBandChanges > 3 {
-			if shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3 {
+			if shortInterval.Position == models.BELOW_SMA && shortPercentFromSMA < 3.1 {
 				ignoredReason = "mid short interval down. short below sma high changes, percen below threshold"
 				return true
 			}
@@ -282,7 +282,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 
 	if (lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close > float32(lastBand.SMA)) || result.Position == models.BELOW_SMA {
 		if result.AllTrend.SecondTrend == models.TREND_DOWN && !isHasCrossLower(result.Bands[len(result.Bands)/2:], false) {
-			if shortLastBand.Candle.Open < float32(shortLastBand.SMA) && shortLastBand.Candle.Close > float32(shortLastBand.SMA) && shortPercentFromUpper < 3 {
+			if shortLastBand.Candle.Open < float32(shortLastBand.SMA) && shortLastBand.Candle.Close > float32(shortLastBand.SMA) && shortPercentFromUpper < 3.2 {
 				ignoredReason = "down, not cross lowe. short cross sma but percent from upper below 3"
 				return true
 			}
@@ -327,7 +327,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if countBelowLower(result.Bands[len(result.Bands)-3:], false) > 0 && percentFromSMA < 3 {
+	if countBelowLower(result.Bands[len(result.Bands)-3:], false) > 0 && percentFromSMA < 3.1 {
 		ignoredReason = "contain open close below lower"
 		return true
 	}

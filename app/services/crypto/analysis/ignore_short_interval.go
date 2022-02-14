@@ -75,14 +75,14 @@ func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 		}
 
 		if !isHasCrossUpper(result.Bands[len(result.Bands)/2:], true) && !isHasCrossSMA(result.Bands[len(result.Bands)/2:], false) {
-			if percentFromUpper < 3 && result.AllTrend.SecondTrend < 35 {
+			if percentFromUpper < 3.2 && result.AllTrend.SecondTrend < 35 {
 				ignoredReason = "above sma and 10 band not cross upper or sma"
 				return true
 			}
 		}
 
 		if !isHasCrossUpper(result.Bands[len(result.Bands)-10:], true) && isHasCrossUpper(result.Bands[len(result.Bands)-15:], true) {
-			if percentFromUpper < 3 {
+			if percentFromUpper < 3.2 {
 				ignoredReason = "above sma and percent below 3 2nd logic"
 				return true
 			}
@@ -113,8 +113,15 @@ func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 		lowPrice := getLowestPrice(result.Bands)
 		hightPrice := getHigestPrice(result.Bands)
 		percent := (hightPrice - lowPrice) / lowPrice * 100
-		if percent < 3 && result.Position != models.ABOVE_UPPER {
+		if percent < 3.2 && result.Position != models.ABOVE_UPPER {
 			ignoredReason = "sideway"
+			return true
+		}
+	}
+
+	if isHasCrossSMA(result.Bands[len(result.Bands)-2:], true) {
+		if result.AllTrend.ShortTrend == models.TREND_UP && result.PriceChanges > 3.5 {
+			ignoredReason = "cross sma and price change more than 3.5"
 			return true
 		}
 	}
