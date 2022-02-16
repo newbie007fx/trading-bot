@@ -119,12 +119,5 @@ func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 		}
 	}
 
-	if isHasCrossSMA(result.Bands[len(result.Bands)-2:], true) {
-		if result.AllTrend.ShortTrend == models.TREND_UP && result.PriceChanges > 3.5 {
-			ignoredReason = "cross sma and price change more than 3.5"
-			return true
-		}
-	}
-
 	return ignored(result)
 }

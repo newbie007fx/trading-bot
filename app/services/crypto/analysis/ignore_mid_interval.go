@@ -8,9 +8,10 @@ import (
 func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandResult) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 	secondLastBand := result.Bands[len(result.Bands)-2]
+	hMidFirstBand := result.HeuristicBand.FirstBand
 
-	percentFromSMA := (float32(lastBand.SMA) - lastBand.Candle.Close) / lastBand.Candle.Close * 100
-	percentFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
+	percentFromUpper := (hMidFirstBand.Upper - float64(hMidFirstBand.Candle.Close)) / float64(hMidFirstBand.Candle.Close) * 100
+	percentFromSMA := (hMidFirstBand.SMA - float64(hMidFirstBand.Candle.Close)) / float64(hMidFirstBand.Candle.Close) * 100
 
 	shortLastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
 	hShortSecondBand := shortInterval.HeuristicBand.SecondBand
@@ -359,7 +360,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	}
 
 	if countBelowLower(result.Bands[len(result.Bands)-3:], false) > 0 {
-		if shortPercentFromSMA < 3.2 {
+		if shortPercentFromSMA < 3.1 {
 			ignoredReason = "have below lower and short interval percent below 3"
 			return true
 		}
@@ -371,6 +372,22 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 				ignoredReason = "percent below 3 and short interval cross upper"
 				return true
 			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend != models.TREND_UP {
+		if shortInterval.AllTrend.SecondTrend != models.TREND_UP && shortInterval.AllTrend.ShortTrend == models.TREND_DOWN {
+			if shortInterval.Position == models.BELOW_SMA && !isHasCrossLower(shortInterval.Bands[len(shortInterval.Bands)-2:], false) {
+				ignoredReason = "possibility down, skip"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_SIDEWAY && isHasCrossUpper(result.Bands[len(result.Bands)-3:], true) {
+		if shortInterval.AllTrend.ShortTrend == models.TREND_DOWN {
+			ignoredReason = "possibility down, skip 2nd"
+			return true
 		}
 	}
 
