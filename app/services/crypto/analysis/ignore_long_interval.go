@@ -1714,6 +1714,17 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.ShortTrend == models.TREND_DOWN {
+		if midInterval.AllTrend.Trend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend != models.TREND_UP {
+			if midInterval.Position == models.BELOW_SMA && !isHasCrossLower(midInterval.Bands[bandLen-2:], false) {
+				if countBelowLower(shortInterval.Bands[bandLen/2:], false) > 0 && shortHSecondPercentFromSMA < 3.1 {
+					ignoredReason = "trend down, contain below lower, minor up but short interval pecent from sma below 3r"
+					return true
+				}
+			}
+		}
+	}
+
 	return false
 }
 
