@@ -1717,10 +1717,35 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	if result.AllTrend.ShortTrend == models.TREND_DOWN {
 		if midInterval.AllTrend.Trend == models.TREND_DOWN && midInterval.AllTrend.ShortTrend != models.TREND_UP {
 			if midInterval.Position == models.BELOW_SMA && !isHasCrossLower(midInterval.Bands[bandLen-2:], false) {
-				if countBelowLower(shortInterval.Bands[bandLen/2:], false) > 0 && shortHSecondPercentFromSMA < 3.1 {
-					ignoredReason = "trend down, contain below lower, minor up but short interval pecent from sma below 3r"
+				if shortHSecondPercentFromSMA < 3.1 {
+					ignoredReason = "trend down, contain below lower, minor up but short interval pecent from sma below 3"
 					return true
 				}
+			}
+		}
+
+		if midInterval.AllTrend.Trend == models.TREND_DOWN && countBelowLower(midInterval.Bands[bandLen-6:], false) > 0 {
+			if shortInterval.Position == models.BELOW_SMA && shortHSecondPercentFromSMA < 3.1 {
+				ignoredReason = "trend down, contain below lower, minor up but short interval pecent from sma below 3 2nd"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.Trend == models.TREND_SIDEWAY && result.AllTrend.ShortTrend == models.TREND_UP && result.PriceChanges > 5 {
+		if midInterval.AllTrend.Trend == models.TREND_UP && midInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY && isHasCrossUpper(midInterval.Bands[bandLen-4:], true) {
+			if shortInterval.AllTrend.Trend == models.TREND_UP && shortInterval.Position == models.ABOVE_SMA && shortHFourthPercentFromUpper < 3.2 {
+				ignoredReason = "trend up but start to down"
+				return true
+			}
+		}
+	}
+
+	if result.AllTrend.Trend == models.TREND_UP && result.Position == models.ABOVE_SMA && result.Direction == BAND_DOWN {
+		if midInterval.AllTrend.Trend == models.TREND_SIDEWAY && midInterval.AllTrend.ShortTrend == models.TREND_UP && midHFirstPercentFromUpper < 3.4 {
+			if shortHSecondPercentFromUpper < 3.2 && (isHasCrossUpper(shortInterval.Bands[bandLen-6:], true) || isHasCrossUpper(midInterval.Bands[bandLen-4:], true)) {
+				ignoredReason = "trend up but start to down 2nd"
+				return true
 			}
 		}
 	}
