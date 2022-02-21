@@ -1730,6 +1730,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				return true
 			}
 		}
+
+		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && (midInterval.AllTrend.ShortTrend != models.TREND_UP || midInterval.Direction == BAND_DOWN) {
+			if shortInterval.AllTrend.Trend == models.TREND_DOWN && shortInterval.Position == models.BELOW_SMA && !isHasCrossLower(shortInterval.Bands[bandLen/2:], false) {
+				if shortHSecondPercentFromSMA < 3.1 {
+					ignoredReason = "trend down, short not cross lower and percent below 3"
+					return true
+				}
+			}
+		}
 	}
 
 	if result.AllTrend.Trend == models.TREND_SIDEWAY && result.AllTrend.ShortTrend == models.TREND_UP && result.PriceChanges > 5 {

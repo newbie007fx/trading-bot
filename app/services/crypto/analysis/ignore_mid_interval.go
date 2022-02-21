@@ -15,7 +15,9 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 
 	shortLastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
 	hShortSecondBand := shortInterval.HeuristicBand.SecondBand
+	hShortFourthBand := shortInterval.HeuristicBand.FourthBand
 	shortPercentFromUpper := (float32(hShortSecondBand.Upper) - hShortSecondBand.Candle.Close) / hShortSecondBand.Candle.Close * 100
+	shortHFourthPercentFromUpper := (hShortFourthBand.Upper - float64(hShortFourthBand.Candle.Close)) / float64(hShortFourthBand.Candle.Close) * 100
 
 	if isInAboveUpperBandAndDownTrend(result) && !isLastBandOrPreviousBandCrossSMA(result.Bands) && !reversalFromLower(*shortInterval) {
 		ignoredReason = "isInAboveUpperBandAndDownTrend"
@@ -387,6 +389,13 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_SIDEWAY && isHasCrossUpper(result.Bands[len(result.Bands)-3:], true) {
 		if shortInterval.AllTrend.ShortTrend == models.TREND_DOWN {
 			ignoredReason = "possibility down, skip 2nd"
+			return true
+		}
+	}
+
+	if isHasCrossLower(result.Bands[len(result.Bands)-2:], true) {
+		if shortHFourthPercentFromUpper < 3.2 {
+			ignoredReason = "down and just minor up"
 			return true
 		}
 	}
