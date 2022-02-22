@@ -641,3 +641,17 @@ func getLastIndexCrossLower(bands []models.Band) int {
 func GetIgnoredReason() string {
 	return ignoredReason
 }
+
+func isBandHeadDoubleBody(bands []models.Band) bool {
+	for _, band := range bands {
+		if band.Candle.Close > band.Candle.Open {
+			head := band.Candle.Hight - band.Candle.Close
+			body := band.Candle.Close - band.Candle.Open
+			if head > body*1.8 {
+				return true
+			}
+		}
+	}
+
+	return false
+}

@@ -1833,6 +1833,24 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_UP && isHasCrossUpper(result.Bands[bandLen-2:], true) && isBandHeadDoubleBody(result.Bands[bandLen-2:]) {
+		if isBandHeadDoubleBody(midInterval.Bands[bandLen-2:]) {
+			if shortInterval.AllTrend.Trend != models.TREND_UP && shortInterval.Position == models.BELOW_SMA && shortHSecondPercentFromSMA < 3.1 {
+				ignoredReason = "down, head double body and percent below 3"
+				return true
+			}
+		}
+	}
+
+	if isBandHeadDoubleBody(result.Bands[bandLen-2:]) {
+		if midInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY && isHasCrossUpper(midInterval.Bands[bandLen-4:], true) {
+			if shortInterval.AllTrend.SecondTrend == models.TREND_DOWN && shortInterval.Position == models.ABOVE_SMA {
+				ignoredReason = "already cross upper and start down"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
