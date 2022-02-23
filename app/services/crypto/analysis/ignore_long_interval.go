@@ -1842,10 +1842,17 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	if isBandHeadDoubleBody(result.Bands[bandLen-2:]) {
+	if isBandHeadDoubleBody(result.Bands[bandLen-2:]) || ((result.AllTrend.Trend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN) && result.AllTrend.ShortTrend == models.TREND_DOWN) {
 		if midInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY && isHasCrossUpper(midInterval.Bands[bandLen-4:], true) {
 			if shortInterval.AllTrend.SecondTrend == models.TREND_DOWN && shortInterval.Position == models.ABOVE_SMA {
 				ignoredReason = "already cross upper and start down"
+				return true
+			}
+		}
+
+		if isHasCrossSMA(midInterval.Bands[bandLen-2:], false) {
+			if isHasCrossSMA(shortInterval.Bands[bandLen-2:], false) || (shortInterval.Position == models.BELOW_SMA && shortHSecondPercentFromSMA < 3.1) {
+				ignoredReason = "down, and cross sma"
 				return true
 			}
 		}

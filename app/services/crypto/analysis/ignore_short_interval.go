@@ -7,6 +7,8 @@ import (
 
 func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
+	percentFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
+	percentFromSMA := (lastBand.SMA - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
 	if lastBandHeadDoubleBody(result) {
 		if lastBand.Candle.Close > float32(lastBand.SMA) || (result.AllTrend.ShortTrend == models.TREND_DOWN && lastBand.Candle.Close < float32(lastBand.SMA)) {
@@ -58,7 +60,6 @@ func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 		}
 	}
 
-	percentFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 	if isHasCrossUpper(result.Bands[:len(result.Bands)/2], true) && result.AllTrend.Trend == models.TREND_UP && result.Position == models.ABOVE_SMA {
 		if !isHasCrossUpper(result.Bands[len(result.Bands)-5:], true) && countBelowSMA(result.Bands[len(result.Bands)-5:], true) >= 1 {
 			if result.PriceChanges > 3 && percentFromUpper < 1.5 {
@@ -123,6 +124,15 @@ func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 	if countDownBand(result.Bands[len(result.Bands)-4:]) > 2 && bandPercent < 0.2 {
 		ignoredReason = "significant down and just minor up"
 		return true
+	}
+
+	if result.AllTrend.SecondTrend == BAND_DOWN || result.AllTrend.Trend == models.TREND_DOWN {
+		if countBelowLower(result.Bands[len(result.Bands)-2:], false) > 0 || isHasCrossLower(result.Bands[len(result.Bands)-2:], true) {
+			if percentFromSMA < 3.1 {
+				ignoredReason = "down trend minor up, and percent below 3"
+				return true
+			}
+		}
 	}
 
 	return ignored(result)

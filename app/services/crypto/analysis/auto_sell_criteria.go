@@ -505,6 +505,16 @@ func SpecialCondition(currencyConfig *models.CurrencyNotifConfig, symbol string,
 				return true
 			}
 		}
+
+		midSecondLastBand := midInterval.Bands[len(midInterval.Bands)-2]
+		if countBelowLower(longInterval.Bands[len(longInterval.Bands)-4:], false) > 0 || isHasCrossLower(longInterval.Bands[len(longInterval.Bands)-4:], true) {
+			if isHasCrossSMA(midInterval.Bands[len(midInterval.Bands)-2:], false) || (midInterval.Position == models.ABOVE_SMA && midSecondLastBand.Candle.Low < float32(midSecondLastBand.SMA)) {
+				if lastBand.Candle.Close > float32(lastBand.SMA) && changesInPercent > 3 && changesInPercent < 3.7 {
+					reason = "long interval down, mid cross sma"
+					return true
+				}
+			}
+		}
 	}
 
 	return false
