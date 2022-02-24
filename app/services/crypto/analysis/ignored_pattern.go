@@ -650,6 +650,12 @@ func isBandHeadDoubleBody(bands []models.Band) bool {
 			if head > body*1.8 {
 				return true
 			}
+		} else {
+			head := band.Candle.Hight - band.Candle.Open
+			body := band.Candle.Open - band.Candle.Close
+			if head > body*1.5 {
+				return true
+			}
 		}
 	}
 
