@@ -1373,6 +1373,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				}
 			}
 		}
+
+		if isHasCrossUpper(result.Bands[bandLen-2:], true) || isHasCrossSMA(result.Bands[bandLen-2:], false) {
+			if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && midInterval.Position == models.BELOW_SMA {
+				if isHasCrossLower(midInterval.Bands[bandLen-2:], false) && midHFirstPercentFromSMA < 3.2 {
+					ignoredReason = "trend up but starting to down"
+					return true
+				}
+			}
+		}
 	}
 
 	if result.AllTrend.ShortTrend == models.TREND_UP && result.PriceChanges > 6 && lastBand.Candle.Hight < float32(lastBand.Upper) && isHasCrossUpper(result.Bands[bandLen-4:], true) {
@@ -1915,6 +1924,28 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		if midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.Direction == BAND_DOWN {
 			ignoredReason = "tren up but band down"
 			return true
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP {
+		if midInterval.AllTrend.SecondTrend == models.TREND_UP {
+			if shortInterval.AllTrend.SecondTrend == models.TREND_UP || (shortInterval.AllTrend.FirstTrend == models.TREND_UP && shortInterval.AllTrend.SecondTrend == models.TREND_SIDEWAY) {
+				if shortInterval.AllTrend.ShortTrend == models.TREND_UP && shortHSecondPercentFromUpper < 3.2 && midHFirstPercentFromUpper < 3.4 {
+					ignoredReason = "all interval trend up and pecent from upper below 3"
+					return true
+				}
+			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN {
+		if result.Position == models.BELOW_SMA && !isHasCrossLower(result.Bands[bandLen-3:], false) {
+			if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && (midInterval.AllTrend.ShortTrend == models.TREND_DOWN || (midInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY && isHasCrossLower(midInterval.Bands[bandLen-2:], false))) {
+				if shortInterval.AllTrend.SecondTrend == models.TREND_DOWN && shortHSecondPercentFromSMA < 3.1 {
+					ignoredReason = "trend down below sma but not cross lower"
+					return true
+				}
+			}
 		}
 	}
 
