@@ -400,5 +400,12 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN && isHasCrossLower(result.Bands[len(result.Bands)-1:], true) {
+		if isHasCrossLower(shortInterval.Bands[len(shortInterval.Bands)-4:], true) {
+			ignoredReason = "trend down and cros lower on body"
+			return true
+		}
+	}
+
 	return false
 }

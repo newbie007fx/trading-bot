@@ -1900,12 +1900,21 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 
 		if midInterval.AllTrend.ShortTrend != models.TREND_UP && midInterval.Position == models.BELOW_SMA {
-			if isHasCrossSMA(midInterval.Bands[bandLen-6:], false) && !isHasCrossLower(midInterval.Bands[bandLen-6:], false) {
-				if isHasCrossSMA(shortInterval.Bands[bandLen-2:], false) || midHFirstPercentFromSMA < 3.2 {
-					ignoredReason = "tren down, mionor up and already cross sma"
-					return true
+			if isHasCrossSMA(midInterval.Bands[bandLen-2:], false) && !isHasCrossLower(midInterval.Bands[bandLen-6:], false) {
+				if countBelowSMA(midInterval.Bands[bandLen-7:bandLen-1], true) == 0 {
+					if isHasCrossSMA(shortInterval.Bands[bandLen-2:], false) || midPercentFromUpper < 3.4 || !isHasCrossLower(shortInterval.Bands[bandLen-4:], false) {
+						ignoredReason = "tren down, mionor up and already cross sma"
+						return true
+					}
 				}
 			}
+		}
+	}
+
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.Direction == BAND_DOWN {
+		if midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.Direction == BAND_DOWN {
+			ignoredReason = "tren up but band down"
+			return true
 		}
 	}
 
