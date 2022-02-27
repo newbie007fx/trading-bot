@@ -152,11 +152,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	if previousBandDownAndLastBandHammerOrDoji(result.Bands) {
-		ignoredReason = "previous band down and last band hammer or doji"
-		return true
-	}
-
 	if result.Position == models.ABOVE_UPPER && !isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-5:], true) {
 		if shortPercentFromUpper < 3.2 {
 			ignoredReason = "above upper and short interval 5 band not cross upper and margin below 3"

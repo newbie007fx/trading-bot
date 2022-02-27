@@ -175,7 +175,7 @@ func CheckCoin(data models.CurrencyNotifConfig, interval string, startDate, endD
 		ResponseChan: responseChan,
 	}
 
-	if close == 0 || hight == 0 {
+	if close == 0 && hight == 0 {
 		return MakeCryptoRequest(data, request)
 	}
 
