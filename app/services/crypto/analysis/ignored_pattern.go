@@ -127,18 +127,6 @@ func crossSMAAndPreviousBandNotHaveAboveSMA(bands []models.Band) bool {
 	return false
 }
 
-func previousBandDownAndLastBandHammerOrDoji(bands []models.Band) bool {
-	lastBand := bands[len(bands)-1]
-	secondLastBand := bands[len(bands)-2]
-	if secondLastBand.Candle.Close < secondLastBand.Candle.Open && isHasCrossLower(bands[len(bands)-2:], false) {
-		if IsHammer(lastBand) || IsDoji(lastBand, true) {
-			return true
-		}
-	}
-
-	return false
-}
-
 func isReversal(bands []models.Band) bool {
 	lowestIndex := getLowestIndex(bands[len(bands)-4:])
 	trend := CalculateTrendsDetail(bands[:len(bands)-4+lowestIndex])

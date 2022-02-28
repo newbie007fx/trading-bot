@@ -28,12 +28,11 @@ type Band struct {
 }
 
 type Bands struct {
-	Data                 []Band
-	AllTrend             TrendDetail
-	PriceChanges         float32
-	VolumeAverageChanges float32
-	Position             int8
-	HeuristicBand        Heuristic
+	Data          []Band
+	AllTrend      TrendDetail
+	PriceChanges  float32
+	Position      int8
+	HeuristicBand Heuristic
 }
 
 type Heuristic struct {
