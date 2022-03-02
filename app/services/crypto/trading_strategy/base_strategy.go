@@ -56,7 +56,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 85
+	limit := 90
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
 
@@ -91,7 +91,7 @@ func GetEndDate(baseTime time.Time) int64 {
 		unixTime = unixTime - (int64(baseTime.Second()) % 60)
 	}
 
-	unixTime = (unixTime * 1000) - 1
+	unixTime = (unixTime - 1) * 1000
 
 	return unixTime
 }

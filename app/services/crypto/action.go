@@ -126,24 +126,10 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 	higest := analysis.GetHighestHightPriceByTime(datetime, result.Bands, analysis.Time_type_1h)
 	lowest := analysis.GetLowestLowPriceByTime(datetime, result.Bands, analysis.Time_type_1h)
 	resultMid := CheckCoin(config, "1h", 0, timeInMili, result.CurrentPrice, higest, lowest)
-	weightMid := analysis.CalculateWeightLongInterval(resultMid)
-	msg += fmt.Sprintf("\nweight midInterval for coin %s: %.2f", config.Symbol, weightMid)
-	msg += "\n"
-	msg += "detail weight: \n"
-	for key, val := range analysis.GetLongIntervalWeightLogData() {
-		msg += fmt.Sprintf("%s: %.2f\n", key, val)
-	}
 
 	higest = analysis.GetHighestHightPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h)
 	lowest = analysis.GetLowestLowPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h)
 	resultLong := CheckCoin(config, "4h", 0, timeInMili, resultMid.CurrentPrice, higest, lowest)
-	weightLong := analysis.CalculateWeightLongInterval(resultLong)
-	msg += fmt.Sprintf("\nweight long Interval for coin %s: %.2f", config.Symbol, weightLong)
-	msg += "\n"
-	msg += "detail weight: \n"
-	for key, val := range analysis.GetLongIntervalWeightLogData() {
-		msg += fmt.Sprintf("%s: %.2f\n", key, val)
-	}
 
 	shortIgnored := analysis.IsIgnored(result, datetime)
 	msg += fmt.Sprintf("\nignord short interval: %t\n", shortIgnored)

@@ -202,7 +202,6 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 }
 
 func getWeightCustomInterval(result, coin models.BandResult, interval string, previous *models.BandResult) float32 {
-	weight := analysis.CalculateWeightLongInterval(&result)
 	ignored := false
 
 	if interval == "1h" {
@@ -215,7 +214,7 @@ func getWeightCustomInterval(result, coin models.BandResult, interval string, pr
 		return 0
 	}
 
-	return weight
+	return 1
 }
 
 func sendHoldMsg(result *models.BandResult) string {

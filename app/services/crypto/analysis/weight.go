@@ -5,136 +5,23 @@ import (
 )
 
 var weightLogData map[string]float32
-var longIntervalWeightLogData map[string]float32
 
 func CalculateWeight(result *models.BandResult) float32 {
 	weightLogData = map[string]float32{}
 
-	weight := priceChangeWeight(result.PriceChanges)
-	weightLogData["priceWeight"] = weight
-
 	positionWeight := getPositionWeight(result.Bands, false)
 	weightLogData["positionWeight"] = positionWeight
-	weight += positionWeight
+	weight := positionWeight
 
 	priceMarginWeight := getPriceMarginWithUpperBandWeight(result.Bands)
 	weightLogData["priceMarginWeight"] = priceMarginWeight
 	weight += priceMarginWeight
-
-	patternWeight := getPatternWeight(result)
-	weightLogData["patternWeight"] = patternWeight
-	weight += patternWeight
-
-	weightReversal := reversalWeight(result)
-	weightLogData["reversalWeight"] = weightReversal
-	weight += weightReversal
-
-	return weight
-}
-
-func CalculateWeightLongInterval(result *models.BandResult) float32 {
-	longIntervalWeightLogData = map[string]float32{}
-
-	positionWeight := getPositionWeight(result.Bands, true)
-	weight := positionWeight
-	longIntervalWeightLogData["PositionWeight"] = positionWeight
-
-	priceMarginWeight := getPriceMarginWithUpperBandWeight(result.Bands)
-	weight += priceMarginWeight
-	longIntervalWeightLogData["PriceMargin"] = priceMarginWeight
-
-	patternWeight := getPatternWeight(result)
-	weight += patternWeight
-	longIntervalWeightLogData["PatternWeight"] = patternWeight
-
-	weightReseversal := reversalWeight(result)
-	weight += weightReseversal
-	longIntervalWeightLogData["weightReversal"] = weightReseversal
 
 	return weight
 }
 
 func GetWeightLogData() map[string]float32 {
 	return weightLogData
-}
-
-func GetLongIntervalWeightLogData() map[string]float32 {
-	return longIntervalWeightLogData
-}
-
-func priceChangeWeight(priceChange float32) float32 {
-	if priceChange >= 1.4 {
-		return 0.5
-	} else if priceChange >= 1.2 {
-		return 0.46
-	} else if priceChange >= 1 {
-		return 0.42
-	} else if priceChange >= 0.75 {
-		return 0.38
-	} else if priceChange >= 0.5 {
-		return 0.34
-	} else if priceChange >= 0.3 {
-		return 0.28
-	}
-
-	return 0.16
-}
-
-func reversalWeight(result *models.BandResult) float32 {
-	var weight float32 = 0.001
-	trend := CalculateTrendsDetail(result.Bands[:len(result.Bands)-1])
-
-	lastSixData := result.Bands[len(result.Bands)-6:]
-	if trend.Trend == models.TREND_UP || CalculateTrendShort(lastSixData[2:]) != models.TREND_UP || ((result.PriceChanges < 0.8 && CountSquentialUpBand(lastSixData) < 3) || result.PriceChanges < 1.1) {
-		lastSixDataTrend := CalculateTrendsDetail(lastSixData)
-		if lastSixDataTrend.FirstTrend == models.TREND_DOWN && lastSixDataTrend.SecondTrend == models.TREND_UP {
-			weight = 0.08
-		} else {
-			weight = 0.05
-		}
-	} else {
-		weight = 0.15
-	}
-
-	lastBand := lastSixData[5]
-	highUpNotInterested := CalculateTrendShort(lastSixData[2:]) == models.TREND_UP && lastBand.Candle.Close > float32(lastBand.Upper)
-	if CountUpBand(lastSixData[1:]) < 2 && highUpNotInterested {
-		return 0.08
-	}
-
-	firstBand := lastSixData[0]
-	secondBand := lastSixData[1]
-	thirdBand := lastSixData[2]
-	fourthBand := lastSixData[3]
-	isBandCrossWithLower := firstBand.Candle.Low <= float32(firstBand.Lower) || secondBand.Candle.Low <= float32(secondBand.Lower) || thirdBand.Candle.Low <= float32(thirdBand.Lower) || fourthBand.Candle.Low <= float32(fourthBand.Lower)
-	isBandCrossWithSMA := firstBand.Candle.Low <= float32(firstBand.SMA) || secondBand.Candle.Low <= float32(secondBand.SMA) || thirdBand.Candle.Low <= float32(thirdBand.SMA) || fourthBand.Candle.Low <= float32(fourthBand.SMA)
-	isBandCrossWithUpper := firstBand.Candle.Low <= float32(firstBand.Upper) || secondBand.Candle.Low <= float32(secondBand.Upper) || thirdBand.Candle.Low <= float32(thirdBand.Upper) || fourthBand.Candle.Low <= float32(fourthBand.Upper)
-	if isBandCrossWithLower && float64(lastBand.Candle.Open) > lastBand.Lower {
-		weight += 0.12
-		if result.AllTrend.FirstTrend != models.TREND_DOWN || result.AllTrend.SecondTrend != models.TREND_DOWN {
-			weight += 0.3
-		}
-	} else if isBandCrossWithSMA {
-		weight += 0.05
-		if float64(lastBand.Candle.Open) > lastBand.SMA {
-			weight += 0.05
-		}
-	} else if isBandCrossWithUpper && float64(lastBand.Candle.Open) > lastBand.Upper {
-		weight += 0.08
-	}
-
-	return weight
-}
-
-func getPatternWeight(result *models.BandResult) float32 {
-	listMatchPattern := GetCandlePattern(result)
-
-	var weight float32 = 0.001
-	if len(listMatchPattern) > 0 {
-		weight = 0.2
-	}
-
-	return weight
 }
 
 func getPriceMarginWithUpperBandWeight(bands []models.Band) float32 {

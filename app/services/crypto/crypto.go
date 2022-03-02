@@ -36,7 +36,6 @@ func DispatchRequestJob(request CandleRequest) {
 
 func RequestCandleService() {
 	canldeRequest = make(chan CandleRequest, 100)
-	go callRequest()
 
 	callRequest()
 
