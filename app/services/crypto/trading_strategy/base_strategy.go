@@ -65,6 +65,8 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 	log.Println("inored coin list:", ignoredCoins)
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, ignoredCoins)
 
+	resetIgnoreCoin()
+
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
 			Symbol:       data.Symbol,
@@ -103,6 +105,10 @@ func GetEndDate(baseTime time.Time) int64 {
 	unixTime = (unixTime - 1) * 1000
 
 	return unixTime
+}
+
+func resetIgnoreCoin() {
+	helper.GetSimpleStore().Set("ignore_coins", "")
 }
 
 func ignoreCoin(coinSymbol string) {
