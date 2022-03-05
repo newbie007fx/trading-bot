@@ -1430,6 +1430,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				}
 			}
 		}
+
+		if isHasCrossSMA(result.Bands[bandLen-1:], true) {
+			if isHasCrossUpper(midInterval.Bands[bandLen-2:], true) {
+				if isHasCrossUpper(shortInterval.Bands[bandLen-5:], true) && !isHasCrossSMA(shortInterval.Bands[bandLen-5:], false) {
+					ignoredReason = "trend down minor up and short percent from upper below 3"
+					return true
+				}
+			}
+		}
 	}
 
 	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP {
@@ -1440,9 +1449,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			}
 		}
 
-		if midInterval.Position == models.ABOVE_SMA && countCrossUpper(midInterval.Bands[bandLen-5:]) < 2 && !isHasCrossSMA(midInterval.Bands[bandLen-2:], false) {
-			ignoredReason = "trend up, mid down from upper not cross sma"
-			return true
+		if midInterval.Position == models.ABOVE_SMA && countCrossUpper(midInterval.Bands[bandLen-5:]) == 1 && !isHasCrossSMA(midInterval.Bands[bandLen-2:], false) {
+			if !isHasCrossSMA(shortInterval.Bands[bandLen-2:], false) {
+				ignoredReason = "trend up, mid down from upper not cross sma"
+				return true
+			}
 		}
 	}
 
@@ -2041,6 +2052,17 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			if shortHSecondPercentFromUpper < 3.2 && midHFirstPercentFromSMA < 3.2 {
 				ignoredReason = "trend down and minor up aja"
 				return true
+			}
+		}
+	}
+
+	if isHasCrossUpper(result.Bands[bandLen-2:], true) {
+		if isHasCrossUpper(midInterval.Bands[bandLen-2:], true) {
+			if (isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen/2:]) || isHasCrossUpper(shortInterval.Bands[bandLen/2:], false)) && shortInterval.Position == models.ABOVE_SMA {
+				if !isHasCrossUpper(shortInterval.Bands[bandLen-5:], true) && !isHasCrossSMA(shortInterval.Bands[bandLen-5:], false) {
+					ignoredReason = "trend up and short starting down"
+					return true
+				}
 			}
 		}
 	}
