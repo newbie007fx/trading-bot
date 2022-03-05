@@ -59,7 +59,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 80
+	limit := 85
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	ignoredCoins := getIgnoreCoin()
 	log.Println("inored coin list:", ignoredCoins)

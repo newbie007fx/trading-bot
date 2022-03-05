@@ -173,6 +173,11 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, altCoins[i].Bands, analysis.Time_type_1h)
 		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, altCoins[i].Bands, analysis.Time_type_1h)
 		resultMid := crypto.CheckCoin(*currencyConfig, "1h", 0, timeInMilli, altCoins[i].CurrentPrice, higest, lowest)
+
+		if (resultMid.AllTrend.Trend == models.TREND_DOWN || resultMid.AllTrend.SecondTrend == models.TREND_DOWN) && resultMid.AllTrend.ShortTrend == models.TREND_DOWN && resultMid.Direction == analysis.BAND_DOWN {
+			ignoreCoin(resultMid.Symbol)
+		}
+
 		midWeight := getWeightCustomInterval(*resultMid, altCoins[i], "1h", nil)
 		if midWeight == 0 {
 			continue
