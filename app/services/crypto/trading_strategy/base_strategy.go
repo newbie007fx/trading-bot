@@ -118,7 +118,7 @@ func ignoreCoin(coinSymbol string) {
 func getIgnoreCoin() []string {
 	st := helper.GetSimpleStore()
 	coinString := st.Get("ignore_coins")
-	if coinString != nil {
+	if coinString == nil {
 		return nil
 	}
 
