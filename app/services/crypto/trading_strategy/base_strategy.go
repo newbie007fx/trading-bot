@@ -1,7 +1,10 @@
 package trading_strategy
 
 import (
+	"fmt"
 	"log"
+	"strings"
+	"telebot-trading/app/helper"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto"
@@ -25,7 +28,7 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 	responseChan := make(chan crypto.CandleResponse)
 
 	condition := map[string]interface{}{"is_on_hold": true}
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil)
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil, nil)
 
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
@@ -56,9 +59,10 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 90
+	limit := 80
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit)
+	ignoredCoins := getIgnoreCoin()
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, ignoredCoins)
 
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
@@ -71,6 +75,10 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 		result := crypto.MakeCryptoRequest(data, request)
 		if result == nil || result.Direction == analysis.BAND_DOWN {
+			if (result.AllTrend.Trend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN) && result.AllTrend.ShortTrend == models.TREND_DOWN {
+				ignoreCoin(result.Symbol)
+			}
+
 			continue
 		}
 
@@ -94,4 +102,24 @@ func GetEndDate(baseTime time.Time) int64 {
 	unixTime = (unixTime - 1) * 1000
 
 	return unixTime
+}
+
+func ignoreCoin(coinSymbol string) {
+	st := helper.GetSimpleStore()
+	coinString := st.Get("ignore_coins")
+	if coinString != nil {
+		coinSymbol = fmt.Sprintf("%s,%s", *coinString, coinSymbol)
+	}
+
+	st.Set("ignore_coins", coinSymbol)
+}
+
+func getIgnoreCoin() []string {
+	st := helper.GetSimpleStore()
+	coinString := st.Get("ignore_coins")
+	if coinString != nil {
+		return nil
+	}
+
+	return strings.Split(*coinString, ",")
 }

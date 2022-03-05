@@ -8,7 +8,7 @@ import (
 )
 
 func List(c echo.Context) error {
-	data := repositories.GetCurrencyNotifConfigs(nil, nil)
+	data := repositories.GetCurrencyNotifConfigs(nil, nil, nil)
 	return c.Render(http.StatusOK, "currency_config/list.gohtml", map[string]interface{}{
 		"currency_configs": data,
 	})

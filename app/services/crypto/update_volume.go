@@ -18,7 +18,7 @@ func updateVolume() {
 
 	responseChan := make(chan CandleResponse)
 
-	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil)
+	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil, nil)
 	for _, data := range *currency_configs {
 		time.Sleep(1 * time.Second)
 

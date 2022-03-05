@@ -88,7 +88,7 @@ func checkCounter() {
 func GetWalletBalance() []map[string]interface{} {
 	data := []map[string]interface{}{}
 	condition := map[string]interface{}{"is_on_hold": true}
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil)
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil, nil)
 	if len(*currency_configs) > 0 {
 		currentTime := time.Now()
 		timeInMili := currentTime.Unix() * 1000
