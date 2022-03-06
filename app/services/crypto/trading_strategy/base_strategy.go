@@ -78,7 +78,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 		result := crypto.MakeCryptoRequest(data, request)
 		if result == nil || result.Direction == analysis.BAND_DOWN {
-			if (result.Position == models.BELOW_SMA || result.Position == models.BELOW_LOWER) && result.AllTrend.ShortTrend == models.TREND_DOWN {
+			if (result.AllTrend.Trend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN) && result.AllTrend.ShortTrend == models.TREND_DOWN {
 				ignoreCoin(result.Symbol)
 			}
 
