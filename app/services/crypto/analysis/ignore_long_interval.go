@@ -464,6 +464,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				return true
 			}
 		}
+
+		if result.Position == models.BELOW_SMA && hFirstPercentFromSMA < 3.4 {
+			if midInterval.AllTrend.SecondTrend == models.TREND_DOWN || (midLastBand.Candle.Close < float32(midLastBand.Upper) && isHasCrossUpper(midInterval.Bands[bandLen/2:], false)) {
+				if isHasCrossSMA(midInterval.Bands[bandLen-2:], false) && isHasCrossSMA(shortInterval.Bands[bandLen-2:], false) {
+					ignoredReason = "trend down and cross sma"
+					return true
+				}
+			}
+		}
 	}
 
 	if result.Position == models.ABOVE_SMA && countAboveSMA(result.Bands[len(result.Bands)-5:]) == 5 && !isHasCrossUpper(result.Bands[len(result.Bands)-5:], true) {

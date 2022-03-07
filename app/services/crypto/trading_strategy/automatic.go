@@ -174,7 +174,7 @@ func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResu
 		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, altCoins[i].Bands, analysis.Time_type_1h)
 		resultMid := crypto.CheckCoin(*currencyConfig, "1h", 0, timeInMilli, altCoins[i].CurrentPrice, higest, lowest)
 
-		if (resultMid.AllTrend.Trend == models.TREND_DOWN || resultMid.AllTrend.SecondTrend == models.TREND_DOWN) && resultMid.AllTrend.ShortTrend == models.TREND_DOWN && resultMid.Direction == analysis.BAND_DOWN && baseCheckingTime.Minute() > 2 {
+		if resultMid.AllTrend.SecondTrend == models.TREND_DOWN && resultMid.AllTrend.ShortTrend == models.TREND_DOWN && resultMid.Direction == analysis.BAND_DOWN && altCheckingTime.Minute() > 2 {
 			ignoreCoin(resultMid.Symbol)
 		}
 

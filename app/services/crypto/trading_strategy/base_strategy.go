@@ -62,7 +62,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 	limit := 85
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	ignoredCoins := getIgnoreCoin()
-	log.Println("inored coin list:", ignoredCoins)
+	log.Println("ignored coin list:", ignoredCoins)
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, ignoredCoins)
 
 	resetIgnoreCoin()
@@ -78,7 +78,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 		result := crypto.MakeCryptoRequest(data, request)
 		if result == nil || result.Direction == analysis.BAND_DOWN {
-			if (result.AllTrend.Trend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN) && result.AllTrend.ShortTrend == models.TREND_DOWN {
+			if result != nil && result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN {
 				ignoreCoin(result.Symbol)
 			}
 
