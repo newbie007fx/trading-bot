@@ -66,6 +66,7 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
 		holdCoin := checkCryptoHoldCoinPrice(baseCheckingTime)
+		sellTime := GetEndDate(baseCheckingTime, OPERATION_SELL)
 		msg := ""
 		if len(holdCoin) > 0 {
 
@@ -77,8 +78,8 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					continue
 				}
 
-				holdCoinMid := crypto.CheckCoin(*currencyConfig, "1h", 0, GetEndDate(baseCheckingTime), 0, 0, 0)
-				holdCoinLong := crypto.CheckCoin(*currencyConfig, "4h", 0, GetEndDate(baseCheckingTime), 0, 0, 0)
+				holdCoinMid := crypto.CheckCoin(*currencyConfig, "1h", 0, sellTime, 0, 0, 0)
+				holdCoinLong := crypto.CheckCoin(*currencyConfig, "4h", 0, sellTime, 0, 0, 0)
 				if holdCoinMid == nil || holdCoinLong == nil {
 					log.Println("error hold coin nil. skip need to sell checking process")
 					continue
@@ -91,7 +92,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					if err != nil {
 						tmpMsg = err.Error()
 					} else {
-						tmpMsg = fmt.Sprintf("coin berikut akan dijual %d:\n", GetEndDate(baseCheckingTime))
+						tmpMsg = fmt.Sprintf("coin berikut akan dijual %d:\n", sellTime)
 						tmpMsg += crypto.GenerateMsg(coin)
 						tmpMsg += "\n"
 						tmpMsg += crypto.HoldCoinMessage(*currencyConfig, &coin)
@@ -162,7 +163,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *[]models.BandResult {
 	results := []models.BandResult{}
-	timeInMilli := GetEndDate(altCheckingTime)
+	timeInMilli := GetEndDate(altCheckingTime, OPERATION_BUY)
 	for i := range altCoins {
 		currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(altCoins[i].Symbol)
 		if err != nil {

@@ -114,7 +114,7 @@ func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 		lowPrice := getLowestPrice(result.Bands)
 		hightPrice := getHigestPrice(result.Bands)
 		percent := (hightPrice - lowPrice) / lowPrice * 100
-		if percent < 3.2 && result.Position != models.ABOVE_UPPER {
+		if percent < 3.2 && result.Position != models.ABOVE_UPPER && !(result.Position == models.BELOW_SMA && isHasCrossLower(result.Bands[len(result.Bands)-2:], false)) {
 			ignoredReason = "sideway"
 			return true
 		}

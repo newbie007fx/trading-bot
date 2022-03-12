@@ -23,7 +23,7 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 
 	holdCoin := []models.BandResult{}
 
-	endDate := GetEndDate(requestTime)
+	endDate := GetEndDate(requestTime, OPERATION_SELL)
 
 	responseChan := make(chan crypto.CandleResponse)
 
@@ -55,7 +55,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 	altCoin := []models.BandResult{}
 
-	endDate := GetEndDate(baseTime)
+	endDate := GetEndDate(baseTime, OPERATION_BUY)
 
 	responseChan := make(chan crypto.CandleResponse)
 
@@ -95,16 +95,21 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 	return altCoin
 }
 
-func GetEndDate(baseTime time.Time) int64 {
+const OPERATION_SELL = 1
+const OPERATION_BUY = 2
+
+func GetEndDate(baseTime time.Time, operation int64) int64 {
 	unixTime := baseTime.Unix()
 
 	if baseTime.Minute()%15 == 0 {
-		unixTime = unixTime - (int64(baseTime.Second()) % 60)
+		unixTime = unixTime - (int64(baseTime.Second()) % 60) - 1
 	}
 
-	unixTime = (unixTime - 1) * 1000
+	if operation == OPERATION_BUY {
+		unixTime = (unixTime - 120)
+	}
 
-	return unixTime
+	return unixTime * 1000
 }
 
 func resetIgnoreCoin() {

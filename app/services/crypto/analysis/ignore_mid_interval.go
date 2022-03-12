@@ -395,5 +395,26 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
+	if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_SIDEWAY && result.Position == models.BELOW_SMA && !isHasCrossLower(result.Bands, false) {
+		if shortHFourthPercentFromUpper < 3.2 && shortPercentFromUpper < 3.2 {
+			ignoredReason = "trend down and not cross lower and percent from upper below 3"
+			return true
+		}
+	}
+
+	if result.AllTrend.ShortTrend == models.TREND_DOWN && isHasCrossLower(result.Bands[len(result.Bands)-2:], true) && countDownBand(result.Bands[len(result.Bands)-2:]) > 0 {
+		ignoredReason = "trend down and contain band cross lower on body"
+		return true
+	}
+
+	if result.AllTrend.ShortTrend == models.TREND_DOWN && isHasCrossSMA(result.Bands[len(result.Bands)-2:], false) {
+		if isHasOpenCloseAboveUpper(result.Bands[len(result.Bands)-4:]) && !isHasCrossLower(result.Bands[len(result.Bands)-2:], false) {
+			if shortInterval.AllTrend.SecondTrend == models.TREND_DOWN && shortInterval.Position == models.BELOW_SMA {
+				ignoredReason = "trend down and contain band cross lower on body 2nd"
+				return true
+			}
+		}
+	}
+
 	return false
 }
