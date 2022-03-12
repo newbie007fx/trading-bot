@@ -98,7 +98,7 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 			return true
 		}
 
-		if isHasOpenCloseAboveUpper(result.Bands[len(result.Bands)-3:]) && changesInPercent > 2.6 && changesInPercent < 3 {
+		if isHasOpenCloseAboveUpper(result.Bands[len(result.Bands)-3:]) && changesInPercent > 2 && changesInPercent < 3 {
 			reason = "has Open close above upper"
 			return true
 		}
@@ -454,12 +454,23 @@ func SpecialCondition(currencyConfig *models.CurrencyNotifConfig, symbol string,
 
 	midLastBand := midInterval.Bands[len(midInterval.Bands)-1]
 	longLastBand := longInterval.Bands[len(longInterval.Bands)-1]
-	if currencyConfig.HoldPrice < lastBand.Candle.Close && changesInPercent > 3 {
-		if lastBand.Candle.Open > float32(lastBand.Upper) && lastBand.Candle.Close > float32(lastBand.Upper) {
+	if currencyConfig.HoldPrice < lastBand.Candle.Close {
+		if isHasOpenCloseAboveUpper(shortInterval.Bands[len(shortInterval.Bands)-4:]) {
 			if midLastBand.Candle.Open < float32(midLastBand.Upper) && midLastBand.Candle.Close > float32(midLastBand.Upper) {
 				if longLastBand.Candle.Open < float32(longLastBand.Upper) && longLastBand.Candle.Close > float32(longLastBand.Upper) {
-					reason = "open close above upper, mid cross upper, long cross upper"
-					return true
+					if changesInPercent > 3 && changesInPercent <= 4 {
+						reason = "open close above upper, mid cross upper, long cross upper"
+						return true
+					}
+				}
+
+				if longLastBand.Candle.Open < float32(longLastBand.SMA) && longLastBand.Candle.Close > float32(longLastBand.SMA) {
+					if longInterval.AllTrend.SecondTrend == models.TREND_DOWN && longInterval.AllTrend.ShortTrend == models.TREND_UP {
+						if changesInPercent > 1.5 && changesInPercent < 2 {
+							reason = "open close above upper, mid cross upper, long cross upper 2nd"
+							return true
+						}
+					}
 				}
 			}
 		}
