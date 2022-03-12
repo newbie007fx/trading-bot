@@ -110,16 +110,6 @@ func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 		return true
 	}
 
-	if result.AllTrend.SecondTrend != models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && percentFromUpper < 3 {
-		lowPrice := getLowestPrice(result.Bands)
-		hightPrice := getHigestPrice(result.Bands)
-		percent := (hightPrice - lowPrice) / lowPrice * 100
-		if percent < 3.2 && result.Position != models.ABOVE_UPPER && !(result.Position == models.BELOW_SMA && isHasCrossLower(result.Bands[len(result.Bands)-2:], false)) {
-			ignoredReason = "sideway"
-			return true
-		}
-	}
-
 	bandPercent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
 	if countDownBand(result.Bands[len(result.Bands)-4:]) > 2 && bandPercent < 0.2 {
 		ignoredReason = "significant down and just minor up"

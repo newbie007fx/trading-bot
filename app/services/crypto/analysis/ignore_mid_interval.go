@@ -24,7 +24,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		return true
 	}
 
-	if lastBandHeadDoubleBody(result) && lastBand.Candle.Close > float32(lastBand.SMA) {
+	if lastBandHeadDoubleBody(result) && lastBand.Candle.Close > float32(lastBand.SMA) && !(shortInterval.AllTrend.SecondTrend == models.TREND_DOWN && isHasCrossLower(shortInterval.Bands[len(shortInterval.Bands)/2:], false)) {
 		ignoredReason = "lastBandHeadDoubleBody"
 		return true
 	}
@@ -269,7 +269,7 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	if result.Position == models.BELOW_SMA && countCrossLower(result.Bands[len(result.Bands)-5:]) > 3 {
+	if result.Position == models.BELOW_SMA && countCrossLower(result.Bands[len(result.Bands)-5:]) > 3 && result.AllTrend.ShortTrend != models.TREND_UP {
 		if shortInterval.Position == models.ABOVE_SMA && !isHasCrossUpper(shortInterval.Bands, true) {
 			if shortPercentFromUpper < 3.2 && percentFromHigest(result.Bands) < 3 {
 				ignoredReason = "short above sma and percent below 3 2nd"
@@ -339,16 +339,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	if result.AllTrend.SecondTrend != models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && percentFromUpper < 3.4 {
-		lowPrice := getLowestPrice(result.Bands[len(result.Bands)/2:])
-		hightPrice := getHigestPrice(result.Bands[len(result.Bands)/2:])
-		percent := (hightPrice - lowPrice) / lowPrice * 100
-		if percent < 3 && result.Position != models.ABOVE_UPPER {
-			ignoredReason = "sideway"
-			return true
-		}
-	}
-
 	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_DOWN {
 		if result.Position == models.ABOVE_SMA && !isHasCrossSMA(result.Bands[len(result.Bands)-2:], false) {
 			ignoredReason = "second trend up, short down. above sma but not cross sma"
@@ -411,6 +401,28 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		if isHasOpenCloseAboveUpper(result.Bands[len(result.Bands)-4:]) && !isHasCrossLower(result.Bands[len(result.Bands)-2:], false) {
 			if shortInterval.AllTrend.SecondTrend == models.TREND_DOWN && shortInterval.Position == models.BELOW_SMA {
 				ignoredReason = "trend down and contain band cross lower on body 2nd"
+				return true
+			}
+		}
+	}
+
+	if !isHasCrossLower(result.Bands[len(result.Bands)-2:], false) {
+		if shortInterval.AllTrend.SecondTrend != models.TREND_UP && shortInterval.AllTrend.ShortTrend == models.TREND_UP && shortPercentFromUpper < 3 {
+			lowPrice := getLowestPrice(shortInterval.Bands)
+			hightPrice := getHigestPrice(shortInterval.Bands)
+			percent := (hightPrice - lowPrice) / lowPrice * 100
+			if percent < 3.2 && shortInterval.Position != models.ABOVE_UPPER && !(shortInterval.Position == models.BELOW_SMA && isHasCrossLower(shortInterval.Bands[len(shortInterval.Bands)-2:], false)) {
+				ignoredReason = "sideway"
+				return true
+			}
+		}
+
+		if result.AllTrend.SecondTrend != models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && percentFromUpper < 3.4 {
+			lowPrice := getLowestPrice(result.Bands[len(result.Bands)/2:])
+			hightPrice := getHigestPrice(result.Bands[len(result.Bands)/2:])
+			percent := (hightPrice - lowPrice) / lowPrice * 100
+			if percent < 3 && result.Position != models.ABOVE_UPPER {
+				ignoredReason = "sideway 2nd"
 				return true
 			}
 		}
