@@ -1770,9 +1770,14 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			}
 		}
 
-		if midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend == models.TREND_SIDEWAY {
-			if isHasCrossUpper(result.Bands[bandLen/2:], true) || !isHasCrossLower(result.Bands[bandLen-2:], false) {
+		if midInterval.AllTrend.ShortTrend != models.TREND_UP {
+			if isHasCrossUpper(shortInterval.Bands[bandLen/2:], true) || !isHasCrossLower(shortInterval.Bands[bandLen-2:], false) {
 				ignoredReason = "sideway2"
+				return true
+			}
+
+			if (shortInterval.AllTrend.Trend == models.TREND_DOWN || shortInterval.AllTrend.SecondTrend == models.TREND_DOWN) && isHasCrossSMA(shortInterval.Bands[bandLen/2:], false) && shortInterval.PriceChanges > 5 {
+				ignoredReason = "long trend up and side way, up already significant"
 				return true
 			}
 		}
@@ -1944,7 +1949,7 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	}
 
 	if result.AllTrend.Trend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN {
-		if result.Direction == BAND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN {
+		if result.Direction == BAND_DOWN && result.AllTrend.ShortTrend != models.TREND_UP {
 			if (midInterval.AllTrend.SecondTrend == models.TREND_DOWN || midInterval.AllTrend.Trend == models.TREND_DOWN) && midInterval.AllTrend.ShortTrend == models.TREND_DOWN {
 				if shortInterval.AllTrend.Trend == models.TREND_DOWN || shortInterval.AllTrend.SecondTrend == models.TREND_DOWN {
 					ignoredReason = "all trend down and long interval band is down"

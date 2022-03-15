@@ -1,9 +1,7 @@
 package trading_strategy
 
 import (
-	"fmt"
 	"log"
-	"strings"
 	"telebot-trading/app/helper"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
@@ -59,11 +57,9 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 85
+	limit := 95
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
-	ignoredCoins := getIgnoreCoin()
-	log.Println("ignored coin list:", ignoredCoins)
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, ignoredCoins)
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, nil)
 
 	resetIgnoreCoin()
 
@@ -78,10 +74,6 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 		result := crypto.MakeCryptoRequest(data, request)
 		if result == nil || result.Direction == analysis.BAND_DOWN {
-			if result != nil && result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN {
-				ignoreCoin(result.Symbol)
-			}
-
 			continue
 		}
 
@@ -114,24 +106,4 @@ func GetEndDate(baseTime time.Time, operation int64) int64 {
 
 func resetIgnoreCoin() {
 	helper.GetSimpleStore().Set("ignore_coins", "")
-}
-
-func ignoreCoin(coinSymbol string) {
-	st := helper.GetSimpleStore()
-	coinString := st.Get("ignore_coins")
-	if coinString != nil {
-		coinSymbol = fmt.Sprintf("%s,%s", *coinString, coinSymbol)
-	}
-
-	st.Set("ignore_coins", coinSymbol)
-}
-
-func getIgnoreCoin() []string {
-	st := helper.GetSimpleStore()
-	coinString := st.Get("ignore_coins")
-	if coinString == nil {
-		return nil
-	}
-
-	return strings.Split(*coinString, ",")
 }

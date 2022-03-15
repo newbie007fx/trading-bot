@@ -99,20 +99,6 @@ func downFromUpperBelowSMA(result models.BandResult) bool {
 	return false
 }
 
-func headMoreThan30PrecentToBody(band models.Band) bool {
-	hightFromOpen := band.Candle.Hight - band.Candle.Open
-	hightHead := band.Candle.Hight - band.Candle.Close
-
-	return (hightHead/hightFromOpen)*100 > 30
-}
-
-func headMoreThanBody(band models.Band) bool {
-	hightBody := band.Candle.Close - band.Candle.Open
-	hightHead := band.Candle.Hight - band.Candle.Close
-
-	return hightHead > hightBody
-}
-
 func crossSMAAndPreviousBandNotHaveAboveSMA(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	if lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close > float32(lastBand.SMA) {
