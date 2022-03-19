@@ -20,24 +20,6 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 		return true
 	}
 
-	whenDown := result.AllTrend.Trend == models.TREND_DOWN || (lastBand.Candle.Open < float32(lastBand.SMA) && lastBand.Candle.Close < float32(lastBand.SMA))
-	if SellPattern(&result) && isCandleComplete && (changesInPercent > 1 || result.AllTrend.SecondTrend == models.TREND_DOWN) && !whenDown {
-		midLastBand := resultMid.Bands[len(result.Bands)-1]
-		midSecondLastBand := resultMid.Bands[len(result.Bands)-2]
-		previousMidBandValid := false
-		if midSecondLastBand.Candle.Close > midSecondLastBand.Candle.Open {
-			halfMidSecondLastBand := (midSecondLastBand.Candle.Close-midSecondLastBand.Candle.Open)/2 + midSecondLastBand.Candle.Open
-			previousMidBandValid = midLastBand.Candle.Close > halfMidSecondLastBand
-		}
-		lastbandCrossLower := lastBand.Candle.Low < float32(lastBand.Lower) && lastBand.Candle.Close > float32(lastBand.Lower)
-		if changesInPercent < 3 && (resultMid.Direction != BAND_DOWN || previousMidBandValid || lastbandCrossLower) {
-
-		} else {
-			reason = "sell with criteria bearish engulfing"
-			return true
-		}
-	}
-
 	if currencyConfig.HoldPrice > result.CurrentPrice {
 		if skipSell(*resultMid) {
 			log.Println("skip sell gans")
@@ -418,16 +400,6 @@ func isHoldedMoreThanDurationThreshold(config *models.CurrencyNotifConfig, resul
 			reason = "sell after hold more than threshold"
 			return true
 		}
-	}
-
-	return false
-}
-
-func SellPattern(bandResult *models.BandResult) bool {
-	lastBand := bandResult.Bands[len(bandResult.Bands)-1]
-	secondLastBand := bandResult.Bands[len(bandResult.Bands)-2]
-	if BearishEngulfing(bandResult.Bands[len(bandResult.Bands)-3:]) {
-		return lastBand.Candle.Close < lastBand.Candle.Open && secondLastBand.Candle.Close < secondLastBand.Candle.Open
 	}
 
 	return false
