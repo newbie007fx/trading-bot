@@ -1,7 +1,6 @@
 package analysis
 
 import (
-	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -21,11 +20,6 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 	}
 
 	if currencyConfig.HoldPrice > result.CurrentPrice {
-		if skipSell(*resultMid) {
-			log.Println("skip sell gans")
-			return false
-		}
-
 		if sellOnDown(result, currencyConfig, lastBand) {
 			return true
 		}
@@ -71,6 +65,11 @@ func IsNeedToSell(currencyConfig *models.CurrencyNotifConfig, result models.Band
 
 		if changesInPercent > 3 && changesInPercent < 3.5 && aboveUpperAndMidIntervalCrossSMA(result, *resultMid) {
 			reason = "above upper and mid interval cross sma"
+			return true
+		}
+
+		if changesInPercent > 3 && changesInPercent < 5 && aboveSMAAndMidCrossUpper(result, *resultMid) {
+			reason = "above sma and mid interval cross upper"
 			return true
 		}
 
@@ -283,21 +282,19 @@ func getIndexMoreThanLimitOpenTime(bands []models.Band, openTime int64) int {
 	return 0
 }
 
-func skipSell(resultMid models.BandResult) bool {
-	lastBand := resultMid.Bands[len(resultMid.Bands)-1]
-	if resultMid.AllTrend.SecondTrend == models.TREND_UP && lastBand.Candle.Close > float32(lastBand.SMA) {
-		if countAboveSMA(resultMid.Bands[len(resultMid.Bands)/2:]) >= len(resultMid.Bands)/2 && countDownBand(resultMid.Bands[len(resultMid.Bands)-3:]) < 3 {
-			return true
-		}
+func aboveUpperAndMidIntervalCrossSMA(resultShort, resultMid models.BandResult) bool {
+	midLastBand := resultMid.Bands[len(resultMid.Bands)-1]
+	if resultShort.Position == models.ABOVE_UPPER && resultMid.Position == models.ABOVE_SMA && midLastBand.Candle.Open < float32(midLastBand.SMA) {
+		return countBelowSMA(resultMid.Bands[len(resultMid.Bands)-6:len(resultMid.Bands)-1], false) == 5 && !isHasCrossLower(resultMid.Bands[len(resultMid.Bands)-6:len(resultMid.Bands)-1], false)
 	}
 
 	return false
 }
 
-func aboveUpperAndMidIntervalCrossSMA(resultShort, resultMid models.BandResult) bool {
-	midLastBand := resultMid.Bands[len(resultMid.Bands)-1]
-	if resultShort.Position == models.ABOVE_UPPER && resultMid.Position == models.ABOVE_SMA && midLastBand.Candle.Open < float32(midLastBand.SMA) {
-		return countBelowSMA(resultMid.Bands[len(resultMid.Bands)-6:len(resultMid.Bands)-1], false) == 5 && !isHasCrossLower(resultMid.Bands[len(resultMid.Bands)-6:len(resultMid.Bands)-1], false)
+func aboveSMAAndMidCrossUpper(resultShort, resultMid models.BandResult) bool {
+	shortHigestIndex := getHighestIndex(resultShort.Bands)
+	if resultShort.Position == models.ABOVE_SMA && resultMid.Position == models.ABOVE_UPPER && shortHigestIndex == len(resultMid.Bands)-1 {
+		return true
 	}
 
 	return false
