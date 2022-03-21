@@ -47,9 +47,21 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		return true
 	}
 
-	if result.Position == models.ABOVE_UPPER && result.AllTrend.ShortTrend != models.TREND_UP {
-		ignoredReason = "position above upper and not trend up"
-		return true
+	if result.Position == models.ABOVE_UPPER {
+		if result.AllTrend.ShortTrend != models.TREND_UP || result.Direction == BAND_DOWN {
+			ignoredReason = "position above upper and not trend up"
+			return true
+		}
+
+		midHigestIndex := getHighestIndex(midInterval.Bands)
+		if midHigestIndex == bandLen-1 && midInterval.AllTrend.ShortTrend == models.TREND_UP && midInterval.Position == models.ABOVE_SMA {
+			if !isHasCrossUpper(midInterval.Bands[bandLen-4:], true) && isHasCrossUpper(midInterval.Bands[bandLen-8:], true) {
+				if shortHSecondPercentFromUpper < 3.2 {
+					ignoredReason = "position above upper and higest but not cross upper"
+					return true
+				}
+			}
+		}
 	}
 
 	if midInterval.Position == models.ABOVE_SMA && shortInterval.Position == models.ABOVE_SMA {
@@ -935,6 +947,15 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 				return true
 			}
 		}
+
+		if result.AllTrend.ShortTrend == models.TREND_DOWN {
+			if midInterval.AllTrend.ShortTrend == models.TREND_DOWN && midHFourthPercentFromUpper < 3.3 {
+				if shortInterval.AllTrend.SecondTrend == models.TREND_DOWN && shortHFourthPercentFromUpper < 3.2 {
+					ignoredReason = "up trend, start down and short percent below 3"
+					return true
+				}
+			}
+		}
 	}
 
 	if result.AllTrend.Trend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN && result.Position == models.BELOW_SMA {
@@ -980,9 +1001,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 
 	if result.AllTrend.ShortTrend == models.TREND_UP && result.Direction == BAND_DOWN {
 		if midInterval.AllTrend.FirstTrend == models.TREND_UP && midInterval.AllTrend.SecondTrend == models.TREND_UP && midInterval.AllTrend.ShortTrend == models.TREND_DOWN {
-			if shortInterval.Position == models.BELOW_SMA && shortHSecondPercentFromSMA < 3.1 {
-				ignoredReason = "up trend, start down, short below sma percent below 3"
-				return true
+			if shortInterval.AllTrend.ShortTrend != models.TREND_UP || !(isHasCrossSMA(midInterval.Bands[bandLen-2:], false) && midInterval.Direction == models.TREND_UP) {
+				if shortInterval.Position == models.BELOW_SMA && shortHSecondPercentFromSMA < 3.1 {
+					ignoredReason = "up trend, start down, short below sma percent below 3"
+					return true
+				}
 			}
 		}
 
@@ -1004,9 +1027,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			}
 
 			if shortInterval.Position == models.BELOW_SMA {
-				if shortHSecondPercentFromSMA < 3.1 && midHFirstPercentFromUpper < 3.3 {
-					ignoredReason = "band down below and percent below 3"
-					return true
+				if shortInterval.AllTrend.ShortTrend != models.TREND_UP || !(isHasCrossSMA(midInterval.Bands[bandLen-2:], false) && midInterval.Direction == models.TREND_UP) {
+					if shortHSecondPercentFromSMA < 3.1 && midHFirstPercentFromUpper < 3.3 {
+						ignoredReason = "band down below and percent below 3"
+						return true
+					}
 				}
 			}
 		}
@@ -1893,10 +1918,12 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 			}
 		}
 
-		if isHasCrossSMA(midInterval.Bands[bandLen-2:], false) {
-			if isHasCrossSMA(shortInterval.Bands[bandLen-2:], false) || (shortInterval.Position == models.BELOW_SMA && shortHSecondPercentFromSMA < 3.1 && midHFirstPercentFromUpper < 3.3) {
-				ignoredReason = "down, and cross sma"
-				return true
+		if shortInterval.Position != models.BELOW_SMA || shortInterval.AllTrend.ShortTrend != models.TREND_UP || !(isHasCrossSMA(midInterval.Bands[bandLen-2:], false) && midInterval.Direction == models.TREND_UP) {
+			if isHasCrossSMA(midInterval.Bands[bandLen-2:], false) {
+				if isHasCrossSMA(shortInterval.Bands[bandLen-2:], false) || (shortInterval.Position == models.BELOW_SMA && shortHSecondPercentFromSMA < 3.1 && midHFirstPercentFromUpper < 3.3) {
+					ignoredReason = "down, and cross sma"
+					return true
+				}
 			}
 		}
 	}
@@ -1999,10 +2026,12 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 	}
 
 	if result.AllTrend.ShortTrend == models.TREND_UP && (result.Direction == BAND_DOWN || percentFromUpper < 3.4 || isHasCrossUpper(result.Bands[bandLen-2:], true)) {
-		if midInterval.AllTrend.SecondTrend == models.TREND_UP {
-			if shortHSecondPercentFromUpper < 3.2 || midHFirstPercentFromUpper < 3.3 {
-				ignoredReason = "all interval trend up and pecent from upper below 3"
-				return true
+		if shortInterval.Position != models.BELOW_SMA || shortInterval.AllTrend.ShortTrend != models.TREND_UP || !(isHasCrossSMA(midInterval.Bands[bandLen-2:], false) && midInterval.Direction == models.TREND_UP) {
+			if midInterval.AllTrend.SecondTrend == models.TREND_UP && CountUpBand(result.Bands[bandLen-3:]) != 3 {
+				if shortHSecondPercentFromUpper < 3.2 || midHFirstPercentFromUpper < 3.3 {
+					ignoredReason = "all interval trend up and pecent from upper below 3"
+					return true
+				}
 			}
 		}
 	}
@@ -2077,9 +2106,11 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 
 		if shortInterval.AllTrend.Trend == models.TREND_DOWN || shortInterval.AllTrend.SecondTrend == models.TREND_DOWN || (result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.SecondTrend == models.TREND_SIDEWAY) || midInterval.Direction == BAND_DOWN {
-			if (!isHasCrossLower(shortInterval.Bands, false) || shortHSecondPercentFromSMA < 3.1) || shortHSecondPercentFromUpper < 3.2 {
-				ignoredReason = "after cross upper band down, and short percent below 3"
-				return true
+			if (!isHasCrossLower(midInterval.Bands[bandLen-4:], false) && !isHasCrossSMA(midInterval.Bands[bandLen-4:], false)) || !isHasCrossLower(shortInterval.Bands[bandLen/2:], false) {
+				if (!isHasCrossLower(shortInterval.Bands, false) || shortHSecondPercentFromSMA < 3.1) || shortHSecondPercentFromUpper < 3.2 {
+					ignoredReason = "after cross upper band down, and short percent below 3"
+					return true
+				}
 			}
 		}
 	}

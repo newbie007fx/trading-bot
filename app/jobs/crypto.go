@@ -88,7 +88,7 @@ func isMuted() bool {
 func isTimeToUpdateVolume(time time.Time) bool {
 	minute := time.Minute()
 	hour := time.Hour()
-	if (hour == 5 || hour == 17) && minute == 1 {
+	if (hour == 0 || hour == 6 || hour == 12 || hour == 18) && minute == 3 {
 		return true
 	}
 

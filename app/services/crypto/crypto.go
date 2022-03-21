@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"sync"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto/driver"
@@ -29,6 +30,7 @@ var canldeRequest chan CandleRequest
 var previousTimeCheck time.Time = time.Now()
 var thresholdPerMinute int64 = 140
 var counter int64 = 0
+var worker int64 = 4
 
 func DispatchRequestJob(request CandleRequest) {
 	canldeRequest <- request
@@ -37,23 +39,31 @@ func DispatchRequestJob(request CandleRequest) {
 func RequestCandleService() {
 	canldeRequest = make(chan CandleRequest, 100)
 
-	callRequest()
+	var wg sync.WaitGroup
+	for i := 0; i < int(worker); i++ {
+		wg.Add(1)
+		go callRequest(canldeRequest, &wg)
+	}
 
 	defer func() {
 		close(canldeRequest)
 	}()
+
+	wg.Wait()
 }
 
-func callRequest() {
+func callRequest(request chan CandleRequest, wg *sync.WaitGroup) {
 	crypto := driver.GetCrypto()
-	for request := range canldeRequest {
+	for req := range request {
 		checkCounter()
 
 		response := CandleResponse{}
-		response.CandleData, response.Err = crypto.GetCandlesData(request.Symbol, request.Limit, request.StartDate, request.EndDate, request.Resolution)
+		response.CandleData, response.Err = crypto.GetCandlesData(req.Symbol, req.Limit, req.StartDate, req.EndDate, req.Resolution)
 
-		request.ResponseChan <- response
+		req.ResponseChan <- response
 	}
+
+	wg.Done()
 }
 
 func checkCounter() {
