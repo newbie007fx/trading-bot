@@ -586,26 +586,42 @@ func firstCrossUpper(shortInterval, midInterval models.BandResult, changeInPerce
 
 	if midInterval.Position == models.ABOVE_UPPER && shortInterval.Position == models.ABOVE_UPPER {
 		if !isHasCrossUpper(midInterval.Bands[:len(midInterval.Bands)-1], true) && isHasCrossLower(midInterval.Bands[:len(midInterval.Bands)-1], false) {
-			return changeInPercent > 3 && changeInPercent < 3.5
+			if changeInPercent > 3 && changeInPercent < 3.5 {
+				return true
+			}
 		}
 	}
 
 	if shortInterval.Position == models.ABOVE_UPPER && ((midLastBand.Candle.Open < float32(midLastBand.SMA) && midLastBand.Candle.Close > float32(midLastBand.SMA)) || (midLastBand.Candle.Open < float32(midLastBand.Upper) && midLastBand.Candle.Close > float32(midLastBand.Upper))) {
 		if !isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-6:len(shortInterval.Bands)-1], true) || isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-6:len(midInterval.Bands)-1], true) {
-			return changeInPercent > 3 && changeInPercent < 3.5
+			if changeInPercent > 3 && changeInPercent < 3.5 {
+				return true
+			}
 		}
 	}
 
 	if shortInterval.Position == models.ABOVE_SMA && isHasCrossSMA(shortInterval.Bands[len(shortInterval.Bands)-2:], false) {
 		if isHasBelowLower(midInterval.Bands[len(midInterval.Bands)-3:]) {
-			return changeInPercent > 3 && changeInPercent < 3.5
+			if changeInPercent > 3 && changeInPercent < 3.5 {
+				return true
+			}
 		}
 	}
 
 	percentFromHigest := (shortLastBand.Candle.Hight - currencyNotifConfig.HoldPrice) / currencyNotifConfig.HoldPrice * 100
 	if shortLastBand.Candle.Open > float32(shortLastBand.Upper) && shortLastBand.Candle.Close > float32(shortLastBand.Upper) {
 		if isHasCrossSMA([]models.Band{midLastBand}, false) || isHasCrossUpper([]models.Band{midLastBand}, true) {
-			return percentFromHigest > 3 && changeInPercent > 2.5
+			if percentFromHigest > 3 && changeInPercent > 2.5 && changeInPercent < 4 {
+				return true
+			}
+		}
+	}
+
+	if isHasCrossLower(midInterval.Bands[len(midInterval.Bands)/2:], false) && (midInterval.AllTrend.Trend == models.TREND_DOWN || midInterval.AllTrend.SecondTrend == models.TREND_DOWN) {
+		if shortInterval.AllTrend.SecondTrend == models.TREND_UP && shortInterval.Position == models.ABOVE_UPPER {
+			if changeInPercent > 2 && changeInPercent < 3 {
+				return true
+			}
 		}
 	}
 

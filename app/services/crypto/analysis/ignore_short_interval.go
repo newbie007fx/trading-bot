@@ -110,6 +110,11 @@ func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 		return true
 	}
 
+	if lastBand.Candle.Close > float32(lastBand.Upper) {
+		ignoredReason = "above upper"
+		return true
+	}
+
 	bandPercent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
 	if countDownBand(result.Bands[len(result.Bands)-4:]) > 2 && bandPercent < 0.2 {
 		ignoredReason = "significant down and just minor up"
