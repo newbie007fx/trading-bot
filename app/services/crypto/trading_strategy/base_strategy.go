@@ -2,7 +2,6 @@ package trading_strategy
 
 import (
 	"log"
-	"telebot-trading/app/helper"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto"
@@ -57,11 +56,9 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 95
+	limit := 90
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, nil)
-
-	resetIgnoreCoin()
 
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
@@ -102,8 +99,4 @@ func GetEndDate(baseTime time.Time, operation int64) int64 {
 	}
 
 	return unixTime * 1000
-}
-
-func resetIgnoreCoin() {
-	helper.GetSimpleStore().Set("ignore_coins", "")
 }
