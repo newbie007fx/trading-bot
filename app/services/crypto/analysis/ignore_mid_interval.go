@@ -205,12 +205,6 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 		}
 	}
 
-	margin := lastBand.Candle.Close - lastBand.Candle.Open
-	if lastBand.Candle.Open+margin < float32(lastBand.Lower) {
-		ignoredReason = "open close below avg lower"
-		return true
-	}
-
 	shortPercentFromSMA := (shortLastBand.SMA - float64(shortLastBand.Candle.Close)) / float64(shortLastBand.Candle.Close) * 100
 	if countAboveSMA(result.Bands) == 0 && result.AllTrend.ShortTrend != models.TREND_UP {
 		if countAboveSMA(shortInterval.Bands) == 0 && shortPercentFromSMA < 3.1 && !isHasCrossLower(result.Bands[len(result.Bands)-3:], false) {

@@ -854,10 +854,18 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
+	shortHigestBand := getHighestIndex(shortInterval.Bands)
 	if (isHasCrossSMA(result.Bands[len(result.Bands)-2:], false) || isHasCrossUpper(result.Bands[len(result.Bands)-2:], true)) && result.AllTrend.ShortTrend != models.TREND_DOWN {
 		if midHFirstPercentFromUpper < 3.3 && shortHSecondPercentFromUpper < 3.2 {
 			ignoredReason = "all interval cross upper 2nd "
 			return true
+		}
+
+		if isHasCrossUpper(midInterval.Bands[bandLen-2:], true) {
+			if shortInterval.Bands[shortHigestBand].Candle.Hight > float32(shortInterval.Bands[shortHigestBand].Upper) && CalculateTrendShort(shortInterval.Bands[shortHigestBand:]) == models.TREND_DOWN {
+				ignoredReason = "cross sma and short down from upper "
+				return true
+			}
 		}
 	}
 
