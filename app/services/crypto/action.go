@@ -75,8 +75,8 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 	} else {
 		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, 0, 0, 0)
 		closeBand = oneMinuteResult.Bands[len(oneMinuteResult.Bands)-1]
-		higest := analysis.GetHighestHightPriceByTime(currentTime, oneMinuteResult.Bands, analysis.Time_type_15m)
-		lowest := analysis.GetLowestLowPriceByTime(currentTime, oneMinuteResult.Bands, analysis.Time_type_15m)
+		higest := analysis.GetHighestHightPriceByTime(currentTime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
+		lowest := analysis.GetLowestLowPriceByTime(currentTime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
 		result = CheckCoin(config, "15m", 0, timeInMili, closeBand.Candle.Open, higest, lowest)
 	}
 
@@ -123,13 +123,17 @@ func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string 
 		msg += fmt.Sprintf("%s: %.2f\n", key, val)
 	}
 
-	higest := analysis.GetHighestHightPriceByTime(datetime, result.Bands, analysis.Time_type_1h)
-	lowest := analysis.GetLowestLowPriceByTime(datetime, result.Bands, analysis.Time_type_1h)
+	higest := analysis.GetHighestHightPriceByTime(datetime, result.Bands, analysis.Time_type_1h, true)
+	lowest := analysis.GetLowestLowPriceByTime(datetime, result.Bands, analysis.Time_type_1h, true)
 	resultMid := CheckCoin(config, "1h", 0, timeInMili, result.CurrentPrice, higest, lowest)
 
-	higest = analysis.GetHighestHightPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h)
-	lowest = analysis.GetLowestLowPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h)
+	msg += "\n" + GenerateMsg(*resultMid)
+
+	higest = analysis.GetHighestHightPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h, true)
+	lowest = analysis.GetLowestLowPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h, true)
 	resultLong := CheckCoin(config, "4h", 0, timeInMili, resultMid.CurrentPrice, higest, lowest)
+
+	msg += "\n" + GenerateMsg(*resultLong)
 
 	shortIgnored := analysis.IsIgnored(result, datetime)
 	msg += fmt.Sprintf("\nignord short interval: %t\n", shortIgnored)
@@ -161,19 +165,19 @@ func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 		coin = CheckCoin(config, "15m", 0, timeInMili, 0, 0, 0)
 	} else {
 		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, 0, 0, 0)
-		higest := analysis.GetHighestHightPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m)
-		lowest := analysis.GetLowestLowPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m)
+		higest := analysis.GetHighestHightPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
+		lowest := analysis.GetLowestLowPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
 		coin = CheckCoin(config, "15m", 0, timeInMili, oneMinuteResult.CurrentPrice, higest, lowest)
 	}
 
 	log.Println("close price", coin.Bands[len(coin.Bands)-1].Candle.Close)
 	log.Println("higest price", coin.Bands[len(coin.Bands)-1].Candle.Hight)
 
-	higest := analysis.GetHighestHightPriceByTime(datetime, coin.Bands, analysis.Time_type_1h)
-	lowest := analysis.GetLowestLowPriceByTime(datetime, coin.Bands, analysis.Time_type_1h)
+	higest := analysis.GetHighestHightPriceByTime(datetime, coin.Bands, analysis.Time_type_1h, true)
+	lowest := analysis.GetLowestLowPriceByTime(datetime, coin.Bands, analysis.Time_type_1h, true)
 	coinMid := CheckCoin(config, "1h", 0, timeInMili, coin.CurrentPrice, higest, lowest)
-	higest = analysis.GetHighestHightPriceByTime(datetime, coinMid.Bands, analysis.Time_type_4h)
-	lowest = analysis.GetLowestLowPriceByTime(datetime, coinMid.Bands, analysis.Time_type_4h)
+	higest = analysis.GetHighestHightPriceByTime(datetime, coinMid.Bands, analysis.Time_type_4h, true)
+	lowest = analysis.GetLowestLowPriceByTime(datetime, coinMid.Bands, analysis.Time_type_4h, true)
 	coinLong := CheckCoin(config, "4h", 0, timeInMili, coinMid.CurrentPrice, higest, lowest)
 	isNeedTosell := analysis.IsNeedToSell(&config, *coin, datetime, coinMid)
 	if isNeedTosell || analysis.SpecialCondition(&config, coin.Symbol, *coin, *coinMid, *coinLong) {

@@ -22,20 +22,25 @@ func GetCurrentBollingerBands(candlesData []models.CandleData) (bands models.Ban
 	return
 }
 
-func GetHighestHightPriceByTime(currentTime time.Time, bands []models.Band, timeType int) float32 {
+func GetHighestHightPriceByTime(currentTime time.Time, bands []models.Band, timeType int, isLog bool) float32 {
 	var numberBands int = 0
 	var utcZone, _ = time.LoadLocation("UTC")
 	currentTime = currentTime.In(utcZone)
 
+	additional := 0
+	if isLog {
+		additional = 1
+	}
+
 	if timeType == Time_type_15m {
-		numberBands = (currentTime.Minute() + 1) % 15
+		numberBands = (currentTime.Minute() + additional) % 15
 		if numberBands == 0 {
 			numberBands = 15
 		}
 	} else if timeType == Time_type_1h {
-		numberBands = int(math.Ceil(float64(currentTime.Minute()+1) / 15))
+		numberBands = int(math.Ceil(float64(currentTime.Minute()+additional) / 15))
 	} else {
-		numberBands = (currentTime.Hour() + 1) % 4
+		numberBands = (currentTime.Hour() + additional) % 4
 		if numberBands == 0 {
 			numberBands = 4
 		}
@@ -44,20 +49,24 @@ func GetHighestHightPriceByTime(currentTime time.Time, bands []models.Band, time
 	return GetHigestHightPrice(bands[len(bands)-numberBands:])
 }
 
-func GetLowestLowPriceByTime(currentTime time.Time, bands []models.Band, timeType int) float32 {
+func GetLowestLowPriceByTime(currentTime time.Time, bands []models.Band, timeType int, isLog bool) float32 {
 	var numberBands int = 0
 	var utcZone, _ = time.LoadLocation("UTC")
 	currentTime = currentTime.In(utcZone)
+	additional := 0
+	if isLog {
+		additional = 1
+	}
 
 	if timeType == Time_type_15m {
-		numberBands = (currentTime.Minute() + 1) % 15
+		numberBands = (currentTime.Minute() + additional) % 15
 		if numberBands == 0 {
 			numberBands = 15
 		}
 	} else if timeType == Time_type_1h {
-		numberBands = int(math.Ceil(float64(currentTime.Minute()+1) / 15))
+		numberBands = int(math.Ceil(float64(currentTime.Minute()+additional) / 15))
 	} else {
-		numberBands = (currentTime.Hour() + 1) % 4
+		numberBands = (currentTime.Hour() + additional) % 4
 		if numberBands == 0 {
 			numberBands = 4
 		}

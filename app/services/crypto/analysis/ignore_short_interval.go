@@ -121,5 +121,12 @@ func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 		return true
 	}
 
+	if result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN {
+		if isHasCrossLower(result.Bands[len(result.Bands)-2:], true) {
+			ignoredReason = "second and short down trend and cross lower on body"
+			return true
+		}
+	}
+
 	return ignored(result)
 }
