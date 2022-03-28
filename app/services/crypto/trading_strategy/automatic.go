@@ -148,8 +148,8 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 }
 
 func setLimitCheckOnTrendUp() {
-	percent := float64(countTrendUp / LIMIT_COIN_CHECK * 100)
-	result := float64(10 * percent / 100)
+	percent := float64(countTrendUp) / float64(LIMIT_COIN_CHECK) * float64(100)
+	result := float64(20 * percent / 100)
 	checkOnTrendUpLimit = int(math.Ceil(float64(result)))
 }
 
@@ -221,35 +221,35 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*model
 	return nil
 }
 
-func (ats *AutomaticTradingStrategy) getPotentialCoin(altCoins []models.BandResult) *models.BandResult {
-	timeInMilli := GetEndDate(altCheckingTime, OPERATION_BUY)
-	for _, coin := range altCoins {
-		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
-		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
-		resultMid := crypto.CheckCoin(coin.Symbol, "1h", 0, timeInMilli, coin.CurrentPrice, higest, lowest)
+// func (ats *AutomaticTradingStrategy) getPotentialCoin(altCoins []models.BandResult) *models.BandResult {
+// 	timeInMilli := GetEndDate(altCheckingTime, OPERATION_BUY)
+// 	for _, coin := range altCoins {
+// 		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
+// 		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
+// 		resultMid := crypto.CheckCoin(coin.Symbol, "1h", 0, timeInMilli, coin.CurrentPrice, higest, lowest)
 
-		if resultMid.AllTrend.SecondTrend == models.TREND_DOWN && resultMid.AllTrend.ShortTrend == models.TREND_DOWN && resultMid.Direction == analysis.BAND_DOWN {
-			continue
-		}
+// 		if resultMid.AllTrend.SecondTrend == models.TREND_DOWN && resultMid.AllTrend.ShortTrend == models.TREND_DOWN && resultMid.Direction == analysis.BAND_DOWN {
+// 			continue
+// 		}
 
-		if analysis.IsIgnoredMidInterval(resultMid, &coin) {
-			continue
-		}
-		coin.Mid = resultMid
+// 		if analysis.IsIgnoredMidInterval(resultMid, &coin) {
+// 			continue
+// 		}
+// 		coin.Mid = resultMid
 
-		higest = analysis.GetHighestHightPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
-		lowest = analysis.GetLowestLowPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
-		resultLong := crypto.CheckCoin(coin.Symbol, "4h", 0, timeInMilli, resultMid.CurrentPrice, higest, lowest)
-		if analysis.IsIgnoredLongInterval(resultLong, &coin, resultMid) {
-			continue
-		}
-		coin.Long = resultLong
+// 		higest = analysis.GetHighestHightPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
+// 		lowest = analysis.GetLowestLowPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
+// 		resultLong := crypto.CheckCoin(coin.Symbol, "4h", 0, timeInMilli, resultMid.CurrentPrice, higest, lowest)
+// 		if analysis.IsIgnoredLongInterval(resultLong, &coin, resultMid) {
+// 			continue
+// 		}
+// 		coin.Long = resultLong
 
-		return &coin
-	}
+// 		return &coin
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func sendHoldMsg(result *models.BandResult) string {
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(result.Symbol)

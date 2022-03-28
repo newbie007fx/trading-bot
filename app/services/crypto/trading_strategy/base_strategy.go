@@ -9,10 +9,10 @@ import (
 	"time"
 )
 
-const LIMIT_COIN_CHECK int = 60
+const LIMIT_COIN_CHECK int = 80
 
 var countTrendUp int = 0
-var checkOnTrendUpLimit int = 10
+var checkOnTrendUpLimit int = 20
 
 type TradingStrategy interface {
 	Execute(currentTime time.Time)
@@ -108,7 +108,9 @@ func checkCoinOnTrendUp(baseTime time.Time, previousResult map[string]*models.Ba
 	responseChan := make(chan crypto.CandleResponse)
 
 	limit := checkOnTrendUpLimit
-	log.Println("check on trend up limit:", limit)
+	if limit == 0 {
+		log.Println("skip process check on trend up limit is zero", limit)
+	}
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	orderBy := "price_changes desc"
 	currencyConfigs := repositories.GetCurrencyNotifConfigs(&condition, &limit, &orderBy)
