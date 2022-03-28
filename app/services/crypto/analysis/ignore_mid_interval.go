@@ -19,6 +19,13 @@ func IsIgnoredMidInterval(result *models.BandResult, shortInterval *models.BandR
 	shortPercentFromUpper := (float32(hShortSecondBand.Upper) - hShortSecondBand.Candle.Close) / hShortSecondBand.Candle.Close * 100
 	shortHFourthPercentFromUpper := (hShortFourthBand.Upper - float64(hShortFourthBand.Candle.Close)) / float64(hShortFourthBand.Candle.Close) * 100
 
+	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_UP && result.Direction == BAND_DOWN {
+		if lastBand.Candle.Close > float32(lastBand.SMA) {
+			ignoredReason = "on trend up but band down"
+			return true
+		}
+	}
+
 	if isInAboveUpperBandAndDownTrend(result) && !isLastBandOrPreviousBandCrossSMA(result.Bands) && !reversalFromLower(*shortInterval) {
 		ignoredReason = "isInAboveUpperBandAndDownTrend"
 		return true

@@ -3,6 +3,7 @@ package trading_strategy
 import (
 	"fmt"
 	"log"
+	"math"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto"
@@ -13,8 +14,6 @@ import (
 var baseCheckingTime time.Time
 var altCheckingTime time.Time
 var holdCount int64 = 0
-
-//var isOnTrendUp bool = false
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
@@ -79,14 +78,13 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					continue
 				}
 
-				holdCoinMid := crypto.CheckCoin(currencyConfig.Symbol, "1h", 0, sellTime, 0, 0, 0)
 				holdCoinLong := crypto.CheckCoin(currencyConfig.Symbol, "4h", 0, sellTime, 0, 0, 0)
-				if holdCoinMid == nil || holdCoinLong == nil {
+				if holdCoinLong == nil {
 					log.Println("error hold coin nil. skip need to sell checking process")
 					continue
 				}
-				isNeedTosell := analysis.IsNeedToSell(currencyConfig, coin, baseCheckingTime, holdCoinMid)
-				if isNeedTosell || analysis.SpecialCondition(currencyConfig, coin.Symbol, coin, *holdCoinMid, *holdCoinLong) {
+
+				if analysis.CheckIsNeedSellOnTrendUp(currencyConfig, coin, *holdCoinLong) {
 					bands := coin.Bands
 					lastBand := bands[len(bands)-1]
 					err = crypto.ReleaseCoin(*currencyConfig, lastBand.Candle)
@@ -117,7 +115,8 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 		altCheckingTime = baseCheckingTime
 
 		allResults, altCoins := checkCryptoAltCoinPrice(altCheckingTime)
-		//isOnTrendUp = countTrendUp/LIMIT_COIN_CHECK*100 >= 70
+
+		setLimitCheckOnTrendUp()
 
 		msg := ""
 		if len(altCoins) > 0 {
@@ -132,19 +131,25 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 				}
 			}
 
-			if coin := ats.getPotentialCoin(altCoins); coin != nil {
-				if holdCount < maxHold {
-					if ok, resMsg := holdAndGenerateMessage(coin); ok {
-						msg += resMsg
-						msg += "status check regular\n\n"
-						holdCount++
-					}
-				}
-			}
+			// if coin := ats.getPotentialCoin(altCoins); coin != nil {
+			// 	if holdCount < maxHold {
+			// 		if ok, resMsg := holdAndGenerateMessage(coin); ok {
+			// 			msg += resMsg
+			// 			msg += "status check regular\n\n"
+			// 			holdCount++
+			// 		}
+			// 	}
+			// }
 		}
 
 		crypto.SendNotif(msg)
 	}
+}
+
+func setLimitCheckOnTrendUp() {
+	percent := float64(countTrendUp / LIMIT_COIN_CHECK * 100)
+	result := float64(30 * percent / 100)
+	checkOnTrendUpLimit = int(math.Ceil(float64(result)))
 }
 
 func holdAndGenerateMessage(coin *models.BandResult) (bool, string) {

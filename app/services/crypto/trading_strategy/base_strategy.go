@@ -12,6 +12,7 @@ import (
 const LIMIT_COIN_CHECK int = 90
 
 var countTrendUp int = 0
+var checkOnTrendUpLimit int = 25
 
 type TradingStrategy interface {
 	Execute(currentTime time.Time)
@@ -64,7 +65,7 @@ func checkCryptoAltCoinPrice(baseTime time.Time) (map[string]*models.BandResult,
 	countTrendUp = 0
 
 	limit := LIMIT_COIN_CHECK
-	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
+	condition := map[string]interface{}{"is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, nil)
 
 	for _, data := range *currency_configs {
@@ -106,13 +107,13 @@ func checkCoinOnTrendUp(baseTime time.Time, previousResult map[string]*models.Ba
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 30
+	limit := checkOnTrendUpLimit
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	orderBy := "price_changes desc"
 	currencyConfigs := repositories.GetCurrencyNotifConfigs(&condition, &limit, &orderBy)
 
 	for _, data := range *currencyConfigs {
-		if data.PriceChanges <= 0 {
+		if data.PriceChanges < 1 {
 			continue
 		}
 

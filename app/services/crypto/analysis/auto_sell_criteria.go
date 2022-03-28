@@ -637,3 +637,21 @@ func isHasBelowLower(bands []models.Band) bool {
 
 	return false
 }
+
+func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortInterval, longInterval models.BandResult) bool {
+	lastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
+
+	if currencyConfig.HoldPrice > shortInterval.CurrentPrice {
+		if sellOnDown(shortInterval, currencyConfig, lastBand) {
+			return true
+		}
+	} else {
+		lastHightChangePercent := (lastBand.Candle.Close - lastBand.Candle.Open) / (lastBand.Candle.Hight - lastBand.Candle.Open) * 100
+		if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-1:]) && (lastHightChangePercent <= 60 || shortInterval.Direction == BAND_DOWN) {
+			reason = "has Open close above upper"
+			return true
+		}
+	}
+
+	return false
+}
