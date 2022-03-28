@@ -651,7 +651,7 @@ func CountUpBand(bands []models.Band) int {
 }
 
 func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
-	if isHasOpenCloseAboveUpper(shortInterval.Bands[len(shortInterval.Bands)-3:]) {
+	if isHasOpenCloseAboveUpper(shortInterval.Bands[len(shortInterval.Bands)-1:]) {
 		ignoredReason = "contain open close above upper"
 		return true
 	}
@@ -660,7 +660,7 @@ func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
 }
 
 func IgnoredOnUpTrendMid(midInterval models.BandResult) bool {
-	if isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-6:]) {
+	if isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-1:]) {
 		ignoredReason = "contain open close above upper"
 		return true
 	}
@@ -669,7 +669,7 @@ func IgnoredOnUpTrendMid(midInterval models.BandResult) bool {
 }
 
 func IgnoredOnUpTrendLong(longInterval models.BandResult) bool {
-	if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-8:]) {
+	if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-1:]) {
 		ignoredReason = "contain open close above upper"
 		return true
 	}

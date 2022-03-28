@@ -13,7 +13,8 @@ import (
 var baseCheckingTime time.Time
 var altCheckingTime time.Time
 var holdCount int64 = 0
-var isOnTrendUp bool = false
+
+//var isOnTrendUp bool = false
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
@@ -116,47 +117,27 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 		altCheckingTime = baseCheckingTime
 
 		allResults, altCoins := checkCryptoAltCoinPrice(altCheckingTime)
-		isOnTrendUp = countTrendUp/LIMIT_COIN_CHECK*100 >= 70
+		//isOnTrendUp = countTrendUp/LIMIT_COIN_CHECK*100 >= 70
 
 		msg := ""
 		if len(altCoins) > 0 {
-			var coin *models.BandResult
-			if isOnTrendUp {
-				coin = ats.checkOnTrendUp(allResults)
-			} else {
-				coin = ats.getPotentialCoin(altCoins)
-			}
-
-			if coin == nil {
-				continue
-			}
-
 			maxHold := crypto.GetMaxHold()
-			if holdCount == maxHold {
-				break
+			if coin := ats.checkOnTrendUp(allResults); coin != nil {
+				if holdCount < maxHold {
+					if ok, resMsg := holdAndGenerateMessage(coin); ok {
+						msg += resMsg
+						msg += "status check on trend up\n\n"
+						holdCount++
+					}
+				}
 			}
 
-			currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
-			if err == nil {
-				bands := coin.Bands
-				lastBand := bands[len(bands)-1]
-				err = crypto.HoldCoin(*currencyConfig, lastBand.Candle)
-				if err != nil {
-					msg = err.Error()
-				} else {
-					msg += fmt.Sprintf("coin berikut telah dihold on %d:\n", altCheckingTime.Unix())
-					msg += crypto.GenerateMsg(*coin)
-					msg += sendHoldMsg(coin)
-					msg += "\n"
-					msg += "coin mid interval:\n"
-					msg += crypto.GenerateMsg(*coin.Mid)
-					msg += "\n"
-					msg += "coin long interval:\n"
-					msg += crypto.GenerateMsg(*coin.Long)
-					msg += "\n"
-					msg += "\n"
-					if isOnTrendUp {
-						msg += "status on trend UP\n"
+			if coin := ats.getPotentialCoin(altCoins); coin != nil {
+				if holdCount < maxHold {
+					if ok, resMsg := holdAndGenerateMessage(coin); ok {
+						msg += resMsg
+						msg += "status check regular\n\n"
+						holdCount++
 					}
 				}
 			}
@@ -164,6 +145,33 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 		crypto.SendNotif(msg)
 	}
+}
+
+func holdAndGenerateMessage(coin *models.BandResult) (bool, string) {
+	msg := ""
+	hold := true
+	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
+	if err == nil {
+		bands := coin.Bands
+		lastBand := bands[len(bands)-1]
+		err = crypto.HoldCoin(*currencyConfig, lastBand.Candle)
+		if err != nil {
+			msg = err.Error()
+			hold = false
+		} else {
+			msg += fmt.Sprintf("coin berikut telah dihold on %d:\n", altCheckingTime.Unix())
+			msg += crypto.GenerateMsg(*coin)
+			msg += sendHoldMsg(coin)
+			msg += "\n"
+			msg += "coin mid interval:\n"
+			msg += crypto.GenerateMsg(*coin.Mid)
+			msg += "\n"
+			msg += "coin long interval:\n"
+			msg += crypto.GenerateMsg(*coin.Long)
+			msg += "\n"
+		}
+	}
+	return hold, msg
 }
 
 func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*models.BandResult) *models.BandResult {
