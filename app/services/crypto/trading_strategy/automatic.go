@@ -148,7 +148,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	percent := float64(countTrendUp / LIMIT_COIN_CHECK * 100)
-	result := float64(20 * percent / 100)
+	result := float64(10 * percent / 100)
 	checkOnTrendUpLimit = int(math.Ceil(float64(result)))
 }
 

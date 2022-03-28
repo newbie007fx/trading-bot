@@ -9,10 +9,10 @@ import (
 	"time"
 )
 
-const LIMIT_COIN_CHECK int = 85
+const LIMIT_COIN_CHECK int = 60
 
 var countTrendUp int = 0
-var checkOnTrendUpLimit int = 25
+var checkOnTrendUpLimit int = 10
 
 type TradingStrategy interface {
 	Execute(currentTime time.Time)
