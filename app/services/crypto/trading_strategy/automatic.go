@@ -117,6 +117,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 		allResults, altCoins := checkCryptoAltCoinPrice(altCheckingTime)
 
 		setLimitCheckOnTrendUp()
+		log.Println("count trend up", countTrendUp)
 
 		msg := ""
 		if len(altCoins) > 0 {
