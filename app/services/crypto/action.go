@@ -70,14 +70,14 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 
 	isTimeOnFifteenMinute := currentTime.Unix()%(15*60) == 0
 	if isTimeOnFifteenMinute {
-		result = CheckCoin(config, "15m", 0, timeInMili, 0, 0, 0)
+		result = CheckCoin(config.Symbol, "15m", 0, timeInMili, 0, 0, 0)
 		closeBand = result.Bands[len(result.Bands)-1]
 	} else {
-		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, 0, 0, 0)
+		oneMinuteResult := CheckCoin(config.Symbol, "1m", 0, timeInMili, 0, 0, 0)
 		closeBand = oneMinuteResult.Bands[len(oneMinuteResult.Bands)-1]
 		higest := analysis.GetHighestHightPriceByTime(currentTime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
 		lowest := analysis.GetLowestLowPriceByTime(currentTime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
-		result = CheckCoin(config, "15m", 0, timeInMili, closeBand.Candle.Open, higest, lowest)
+		result = CheckCoin(config.Symbol, "15m", 0, timeInMili, closeBand.Candle.Open, higest, lowest)
 	}
 
 	if result == nil {
@@ -95,7 +95,7 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 			ResponseChan: responseChanMid,
 		}
 		closeBand := result.Bands[len(result.Bands)-1]
-		result = MakeCryptoRequestUpdateLasCandle(config, requestMid, closeBand.Candle.Close, closeBand.Candle.Hight, closeBand.Candle.Low)
+		result = MakeCryptoRequestUpdateLasCandle(requestMid, closeBand.Candle.Close, closeBand.Candle.Hight, closeBand.Candle.Low)
 		if result == nil {
 			return "invalid requested date"
 		}
@@ -109,29 +109,21 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 	return msg
 }
 
-func GetWeightLog(config models.CurrencyNotifConfig, datetime time.Time) string {
+func GetWeightLog(symbol string, datetime time.Time) string {
 	timeInMili := datetime.Unix() * 1000
 
-	result := CheckCoin(config, "15m", 0, timeInMili, 0, 0, 0)
-
-	weight := analysis.CalculateWeight(result)
+	result := CheckCoin(symbol, "15m", 0, timeInMili, 0, 0, 0)
 	msg := GenerateMsg(*result)
-	msg += fmt.Sprintf("\nweight log %s for coin %s: %.2f", datetime.Format("January 2, 2006 15:04:05"), config.Symbol, weight)
-	msg += "\n"
-	msg += "detail weight: \n"
-	for key, val := range analysis.GetWeightLogData() {
-		msg += fmt.Sprintf("%s: %.2f\n", key, val)
-	}
 
 	higest := analysis.GetHighestHightPriceByTime(datetime, result.Bands, analysis.Time_type_1h, true)
 	lowest := analysis.GetLowestLowPriceByTime(datetime, result.Bands, analysis.Time_type_1h, true)
-	resultMid := CheckCoin(config, "1h", 0, timeInMili, result.CurrentPrice, higest, lowest)
+	resultMid := CheckCoin(symbol, "1h", 0, timeInMili, result.CurrentPrice, higest, lowest)
 
 	msg += "\n" + GenerateMsg(*resultMid)
 
 	higest = analysis.GetHighestHightPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h, true)
 	lowest = analysis.GetLowestLowPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h, true)
-	resultLong := CheckCoin(config, "4h", 0, timeInMili, resultMid.CurrentPrice, higest, lowest)
+	resultLong := CheckCoin(symbol, "4h", 0, timeInMili, resultMid.CurrentPrice, higest, lowest)
 
 	msg += "\n" + GenerateMsg(*resultLong)
 
@@ -162,12 +154,12 @@ func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 
 	isTimeOnFifteenMinute := datetime.Unix()%(15*60) == 0
 	if isTimeOnFifteenMinute {
-		coin = CheckCoin(config, "15m", 0, timeInMili, 0, 0, 0)
+		coin = CheckCoin(config.Symbol, "15m", 0, timeInMili, 0, 0, 0)
 	} else {
-		oneMinuteResult := CheckCoin(config, "1m", 0, timeInMili, 0, 0, 0)
+		oneMinuteResult := CheckCoin(config.Symbol, "1m", 0, timeInMili, 0, 0, 0)
 		higest := analysis.GetHighestHightPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
 		lowest := analysis.GetLowestLowPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
-		coin = CheckCoin(config, "15m", 0, timeInMili, oneMinuteResult.CurrentPrice, higest, lowest)
+		coin = CheckCoin(config.Symbol, "15m", 0, timeInMili, oneMinuteResult.CurrentPrice, higest, lowest)
 	}
 
 	log.Println("close price", coin.Bands[len(coin.Bands)-1].Candle.Close)
@@ -175,10 +167,10 @@ func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 
 	higest := analysis.GetHighestHightPriceByTime(datetime, coin.Bands, analysis.Time_type_1h, true)
 	lowest := analysis.GetLowestLowPriceByTime(datetime, coin.Bands, analysis.Time_type_1h, true)
-	coinMid := CheckCoin(config, "1h", 0, timeInMili, coin.CurrentPrice, higest, lowest)
+	coinMid := CheckCoin(config.Symbol, "1h", 0, timeInMili, coin.CurrentPrice, higest, lowest)
 	higest = analysis.GetHighestHightPriceByTime(datetime, coinMid.Bands, analysis.Time_type_4h, true)
 	lowest = analysis.GetLowestLowPriceByTime(datetime, coinMid.Bands, analysis.Time_type_4h, true)
-	coinLong := CheckCoin(config, "4h", 0, timeInMili, coinMid.CurrentPrice, higest, lowest)
+	coinLong := CheckCoin(config.Symbol, "4h", 0, timeInMili, coinMid.CurrentPrice, higest, lowest)
 	isNeedTosell := analysis.IsNeedToSell(&config, *coin, datetime, coinMid)
 	if isNeedTosell || analysis.SpecialCondition(&config, coin.Symbol, *coin, *coinMid, *coinLong) {
 		msg := fmt.Sprintf("sell log on %s:\n", datetime.Format("January 2, 2006 15:04:05"))

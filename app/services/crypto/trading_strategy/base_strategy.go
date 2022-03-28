@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+const LIMIT_COIN_CHECK int = 90
+
+var countTrendUp int = 0
+
 type TradingStrategy interface {
 	Execute(currentTime time.Time)
 	InitService()
@@ -36,7 +40,7 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 			ResponseChan: responseChan,
 		}
 
-		result := crypto.MakeCryptoRequest(data, request)
+		result := crypto.MakeCryptoRequest(request)
 		if result == nil {
 			continue
 		}
@@ -47,16 +51,19 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 	return holdCoin
 }
 
-func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
+func checkCryptoAltCoinPrice(baseTime time.Time) (map[string]*models.BandResult, []models.BandResult) {
 	log.Println("starting crypto check price for alt coin worker")
 
 	altCoin := []models.BandResult{}
+	allResults := map[string]*models.BandResult{}
 
 	endDate := GetEndDate(baseTime, OPERATION_BUY)
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 90
+	countTrendUp = 0
+
+	limit := LIMIT_COIN_CHECK
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, nil)
 
@@ -69,16 +76,62 @@ func checkCryptoAltCoinPrice(baseTime time.Time) []models.BandResult {
 			ResponseChan: responseChan,
 		}
 
-		result := crypto.MakeCryptoRequest(data, request)
-		if result == nil || result.Direction == analysis.BAND_DOWN {
+		result := crypto.MakeCryptoRequest(request)
+		if result == nil {
 			continue
 		}
 
-		result.Weight = analysis.CalculateWeight(result)
+		allResults[result.Symbol] = result
+		if result.Direction == analysis.BAND_DOWN {
+			continue
+		}
+
+		if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP {
+			countTrendUp++
+		}
+
 		if !analysis.IsIgnored(result, baseTime) {
 			altCoin = append(altCoin, *result)
 		}
 
+	}
+
+	return allResults, altCoin
+}
+
+func checkCoinOnTrendUp(baseTime time.Time, previousResult map[string]*models.BandResult) []models.BandResult {
+	altCoin := []models.BandResult{}
+
+	endDate := GetEndDate(baseTime, OPERATION_BUY)
+
+	responseChan := make(chan crypto.CandleResponse)
+
+	limit := 80
+	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
+	orderBy := "price_changes desc"
+	currencyConfigs := repositories.GetCurrencyNotifConfigs(&condition, &limit, &orderBy)
+
+	for _, data := range *currencyConfigs {
+		var result *models.BandResult
+		if resultLoc, ok := previousResult[data.Symbol]; ok {
+			result = resultLoc
+		} else {
+			request := crypto.CandleRequest{
+				Symbol:       data.Symbol,
+				EndDate:      endDate,
+				Limit:        40,
+				Resolution:   "15m",
+				ResponseChan: responseChan,
+			}
+
+			result = crypto.MakeCryptoRequest(request)
+		}
+
+		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.AllTrend.SecondTrend != models.TREND_UP {
+			continue
+		}
+
+		altCoin = append(altCoin, *result)
 	}
 
 	return altCoin

@@ -3,7 +3,6 @@ package trading_strategy
 import (
 	"fmt"
 	"log"
-	"sort"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto"
@@ -14,6 +13,7 @@ import (
 var baseCheckingTime time.Time
 var altCheckingTime time.Time
 var holdCount int64 = 0
+var isOnTrendUp bool = false
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
@@ -78,8 +78,8 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					continue
 				}
 
-				holdCoinMid := crypto.CheckCoin(*currencyConfig, "1h", 0, sellTime, 0, 0, 0)
-				holdCoinLong := crypto.CheckCoin(*currencyConfig, "4h", 0, sellTime, 0, 0, 0)
+				holdCoinMid := crypto.CheckCoin(currencyConfig.Symbol, "1h", 0, sellTime, 0, 0, 0)
+				holdCoinLong := crypto.CheckCoin(currencyConfig.Symbol, "4h", 0, sellTime, 0, 0, 0)
 				if holdCoinMid == nil || holdCoinLong == nil {
 					log.Println("error hold coin nil. skip need to sell checking process")
 					continue
@@ -115,44 +115,46 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 	for <-checkPriceChan {
 		altCheckingTime = baseCheckingTime
 
-		altCoins := checkCryptoAltCoinPrice(altCheckingTime)
+		allResults, altCoins := checkCryptoAltCoinPrice(altCheckingTime)
+		isOnTrendUp = countTrendUp/LIMIT_COIN_CHECK*100 >= 70
+
 		msg := ""
 		if len(altCoins) > 0 {
-			coins := ats.sortAndGetHigest(altCoins)
-			if coins == nil {
+			var coin *models.BandResult
+			if isOnTrendUp {
+				coin = ats.checkOnTrendUp(allResults)
+			} else {
+				coin = ats.getPotentialCoin(altCoins)
+			}
+
+			if coin == nil {
 				continue
 			}
 
 			maxHold := crypto.GetMaxHold()
-			for _, coin := range *coins {
-				if holdCount == maxHold {
-					break
-				}
+			if holdCount == maxHold {
+				break
+			}
 
-				currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
-				if err == nil {
-					bands := coin.Bands
-					lastBand := bands[len(bands)-1]
-					err = crypto.HoldCoin(*currencyConfig, lastBand.Candle)
-					if err != nil {
-						msg = err.Error()
-					} else {
-						msg += fmt.Sprintf("coin berikut telah dihold on %d:\n", altCheckingTime.Unix())
-						msg += crypto.GenerateMsg(coin)
-						msg += fmt.Sprintf("weight: <b>%.2f</b>\n", coin.Weight)
-						msg += "\n"
-						msg += sendHoldMsg(&coin)
-						msg += "\n"
-						msg += "coin mid interval:\n"
-						msg += crypto.GenerateMsg(*coin.Mid)
-						msg += "\n"
-						msg += "coin long interval:\n"
-						msg += crypto.GenerateMsg(*coin.Long)
-						msg += "\n"
-						msg += "\n"
-
-						holdCount++
-					}
+			currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
+			if err == nil {
+				bands := coin.Bands
+				lastBand := bands[len(bands)-1]
+				err = crypto.HoldCoin(*currencyConfig, lastBand.Candle)
+				if err != nil {
+					msg = err.Error()
+				} else {
+					msg += fmt.Sprintf("coin berikut telah dihold on %d:\n", altCheckingTime.Unix())
+					msg += crypto.GenerateMsg(*coin)
+					msg += sendHoldMsg(coin)
+					msg += "\n"
+					msg += "coin mid interval:\n"
+					msg += crypto.GenerateMsg(*coin.Mid)
+					msg += "\n"
+					msg += "coin long interval:\n"
+					msg += crypto.GenerateMsg(*coin.Long)
+					msg += "\n"
+					msg += "\n"
 				}
 			}
 		}
@@ -161,66 +163,74 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 	}
 }
 
-func (ats *AutomaticTradingStrategy) sortAndGetHigest(altCoins []models.BandResult) *[]models.BandResult {
-	results := []models.BandResult{}
+func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*models.BandResult) *models.BandResult {
 	timeInMilli := GetEndDate(altCheckingTime, OPERATION_BUY)
-	for i := range altCoins {
-		currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(altCoins[i].Symbol)
-		if err != nil {
-			log.Println(err.Error())
+	altCoins := checkCoinOnTrendUp(altCheckingTime, allResults)
+	for _, coin := range altCoins {
+		if analysis.IgnoredOnUpTrendShort(coin) {
 			continue
 		}
 
-		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, altCoins[i].Bands, analysis.Time_type_1h, false)
-		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, altCoins[i].Bands, analysis.Time_type_1h, false)
-		resultMid := crypto.CheckCoin(*currencyConfig, "1h", 0, timeInMilli, altCoins[i].CurrentPrice, higest, lowest)
+		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
+		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
+		resultMid := crypto.CheckCoin(coin.Symbol, "1h", 0, timeInMilli, coin.CurrentPrice, higest, lowest)
+
+		if resultMid.AllTrend.ShortTrend == models.TREND_DOWN || resultMid.Direction == analysis.BAND_DOWN {
+			continue
+		}
+
+		if analysis.IgnoredOnUpTrendMid(*resultMid) {
+			continue
+		}
+		coin.Mid = resultMid
+
+		higest = analysis.GetHighestHightPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
+		lowest = analysis.GetLowestLowPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
+		resultLong := crypto.CheckCoin(coin.Symbol, "4h", 0, timeInMilli, resultMid.CurrentPrice, higest, lowest)
+
+		if resultLong.Direction == analysis.BAND_DOWN {
+			continue
+		}
+
+		if analysis.IgnoredOnUpTrendLong(*resultLong) {
+			continue
+		}
+		coin.Long = resultLong
+
+		return &coin
+	}
+
+	return nil
+}
+
+func (ats *AutomaticTradingStrategy) getPotentialCoin(altCoins []models.BandResult) *models.BandResult {
+	timeInMilli := GetEndDate(altCheckingTime, OPERATION_BUY)
+	for _, coin := range altCoins {
+		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
+		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
+		resultMid := crypto.CheckCoin(coin.Symbol, "1h", 0, timeInMilli, coin.CurrentPrice, higest, lowest)
 
 		if resultMid.AllTrend.SecondTrend == models.TREND_DOWN && resultMid.AllTrend.ShortTrend == models.TREND_DOWN && resultMid.Direction == analysis.BAND_DOWN {
 			continue
 		}
 
-		midWeight := getWeightCustomInterval(*resultMid, altCoins[i], "1h", nil)
-		if midWeight == 0 {
+		if analysis.IsIgnoredMidInterval(resultMid, &coin) {
 			continue
 		}
-		altCoins[i].Mid = resultMid
-		altCoins[i].Weight += midWeight
+		coin.Mid = resultMid
 
 		higest = analysis.GetHighestHightPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
 		lowest = analysis.GetLowestLowPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
-		resultLong := crypto.CheckCoin(*currencyConfig, "4h", 0, timeInMilli, resultMid.CurrentPrice, higest, lowest)
-		longWight := getWeightCustomInterval(*resultLong, altCoins[i], "4h", resultMid)
-		if longWight == 0 {
+		resultLong := crypto.CheckCoin(coin.Symbol, "4h", 0, timeInMilli, resultMid.CurrentPrice, higest, lowest)
+		if analysis.IsIgnoredLongInterval(resultLong, &coin, resultMid) {
 			continue
 		}
-		altCoins[i].Long = resultLong
-		altCoins[i].Weight += longWight
-		results = append(results, altCoins[i])
+		coin.Long = resultLong
 
+		return &coin
 	}
 
-	if len(results) > 0 {
-		sort.Slice(results, func(i, j int) bool { return results[i].Weight > results[j].Weight })
-
-		return &results
-	}
 	return nil
-}
-
-func getWeightCustomInterval(result, coin models.BandResult, interval string, previous *models.BandResult) float32 {
-	ignored := false
-
-	if interval == "1h" {
-		ignored = analysis.IsIgnoredMidInterval(&result, &coin)
-	} else {
-		ignored = analysis.IsIgnoredLongInterval(&result, &coin, previous)
-	}
-
-	if ignored {
-		return 0
-	}
-
-	return 1
 }
 
 func sendHoldMsg(result *models.BandResult) string {

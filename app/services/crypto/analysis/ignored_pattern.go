@@ -635,3 +635,44 @@ func isBandHeadDoubleBody(bands []models.Band) bool {
 
 	return false
 }
+
+func CountUpBand(bands []models.Band) int {
+	counter := 0
+	for _, band := range bands {
+		if band.Candle.Open < band.Candle.Close {
+			difference := band.Candle.Close - band.Candle.Open
+			if (difference / band.Candle.Open * 100) > 0.1 {
+				counter++
+			}
+		}
+	}
+
+	return counter
+}
+
+func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
+	if isHasOpenCloseAboveUpper(shortInterval.Bands[len(shortInterval.Bands)-3:]) {
+		ignoredReason = "contain open close above upper"
+		return true
+	}
+
+	return false
+}
+
+func IgnoredOnUpTrendMid(midInterval models.BandResult) bool {
+	if isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-6:]) {
+		ignoredReason = "contain open close above upper"
+		return true
+	}
+
+	return false
+}
+
+func IgnoredOnUpTrendLong(longInterval models.BandResult) bool {
+	if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-8:]) {
+		ignoredReason = "contain open close above upper"
+		return true
+	}
+
+	return false
+}

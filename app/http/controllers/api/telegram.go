@@ -196,7 +196,7 @@ func handlerWeightLog(symbol, date string) (string, error) {
 		return "", errors.New("invalid log date value")
 	}
 	tm := time.Unix(i, 0)
-	msg := crypto.GetWeightLog(*currencyConfig, tm)
+	msg := crypto.GetWeightLog(currencyConfig.Symbol, tm)
 	return msg, nil
 }
 

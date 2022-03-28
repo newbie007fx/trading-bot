@@ -180,22 +180,6 @@ func IsIgnoredLongInterval(result *models.BandResult, shortInterval *models.Band
 		}
 	}
 
-	if result.AllTrend.FirstTrend == models.TREND_DOWN && result.AllTrend.FirstTrendPercent < 20 {
-		if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.SecondTrendPercent < 20 {
-			index := getHighestIndex(result.Bands[len(result.Bands)/2:])
-			if index < len(result.Bands)/2 && CountSquentialUpBand(result.Bands[len(result.Bands)-3:]) < 2 && !isLastBandOrPreviousBandCrossSMA(result.Bands) {
-				if index < (len(result.Bands)/2)-4 {
-					index = (len(result.Bands) / 2) - 4
-				}
-				lastDataFromHight := result.Bands[(len(result.Bands)/2)+index:]
-				if CalculateTrendShort(lastDataFromHight) != models.TREND_UP {
-					ignoredReason = "down and up significan then down trend"
-					return true
-				}
-			}
-		}
-	}
-
 	if result.AllTrend.FirstTrend == models.TREND_UP && result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.SecondTrend < 10 {
 		if lastBand.Candle.Hight < float32(lastBand.Upper) && secondLastBand.Candle.Hight < float32(secondLastBand.Upper) && hFirstPercentFromUpper < 3.4 {
 			ignoredReason = "up significan but last two band not cross upper"

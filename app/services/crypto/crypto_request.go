@@ -6,7 +6,7 @@ import (
 	"telebot-trading/app/services/crypto/analysis"
 )
 
-func MakeCryptoRequest(data models.CurrencyNotifConfig, request CandleRequest) *models.BandResult {
+func MakeCryptoRequest(request CandleRequest) *models.BandResult {
 	DispatchRequestJob(request)
 
 	response := <-request.ResponseChan
@@ -47,7 +47,7 @@ func MakeCryptoRequest(data models.CurrencyNotifConfig, request CandleRequest) *
 	return &result
 }
 
-func MakeCryptoRequestUpdateLasCandle(data models.CurrencyNotifConfig, request CandleRequest, close, hight, low float32) *models.BandResult {
+func MakeCryptoRequestUpdateLasCandle(request CandleRequest, close, hight, low float32) *models.BandResult {
 	DispatchRequestJob(request)
 
 	response := <-request.ResponseChan

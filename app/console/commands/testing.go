@@ -40,7 +40,7 @@ func TestingWeightCommand() *cobra.Command {
 			return
 		}
 		tm := time.Unix(i, 0)
-		msg := crypto.GetWeightLog(*currencyConfig, tm)
+		msg := crypto.GetWeightLog(currencyConfig.Symbol, tm)
 		log.Println(msg)
 	}
 
