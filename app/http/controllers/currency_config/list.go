@@ -8,7 +8,8 @@ import (
 )
 
 func List(c echo.Context) error {
-	data := repositories.GetCurrencyNotifConfigs(nil, nil, nil)
+	orderBy := "is_master desc, is_on_hold desc, price_changes desc"
+	data := repositories.GetCurrencyNotifConfigs(nil, nil, &orderBy)
 	return c.Render(http.StatusOK, "currency_config/list.gohtml", map[string]interface{}{
 		"currency_configs": data,
 	})
