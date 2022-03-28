@@ -106,7 +106,7 @@ func checkCoinOnTrendUp(baseTime time.Time, previousResult map[string]*models.Ba
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := 80
+	limit := 10
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	orderBy := "price_changes desc"
 	currencyConfigs := repositories.GetCurrencyNotifConfigs(&condition, &limit, &orderBy)
