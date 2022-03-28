@@ -155,6 +155,9 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 					msg += crypto.GenerateMsg(*coin.Long)
 					msg += "\n"
 					msg += "\n"
+					if isOnTrendUp {
+						msg += "status on trend UP\n"
+					}
 				}
 			}
 		}
