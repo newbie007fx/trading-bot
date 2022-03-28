@@ -674,5 +674,10 @@ func IgnoredOnUpTrendLong(longInterval models.BandResult) bool {
 		return true
 	}
 
+	if countDownBand(longInterval.Bands[len(longInterval.Bands)-3:]) > 0 {
+		ignoredReason = "contain band down"
+		return true
+	}
+
 	return false
 }

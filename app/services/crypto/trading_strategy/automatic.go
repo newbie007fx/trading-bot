@@ -148,7 +148,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	percent := float64(countTrendUp / LIMIT_COIN_CHECK * 100)
-	result := float64(30 * percent / 100)
+	result := float64(20 * percent / 100)
 	checkOnTrendUpLimit = int(math.Ceil(float64(result)))
 }
 
@@ -166,6 +166,7 @@ func holdAndGenerateMessage(coin *models.BandResult) (bool, string) {
 		} else {
 			msg += fmt.Sprintf("coin berikut telah dihold on %d:\n", altCheckingTime.Unix())
 			msg += crypto.GenerateMsg(*coin)
+			msg += "\n"
 			msg += sendHoldMsg(coin)
 			msg += "\n"
 			msg += "coin mid interval:\n"
