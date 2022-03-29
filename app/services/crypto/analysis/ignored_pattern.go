@@ -688,8 +688,9 @@ func IgnoredOnUpTrendLong(longInterval models.BandResult) bool {
 		return true
 	}
 
-	if countDownBand(longInterval.Bands[len(longInterval.Bands)-2:]) > 0 {
-		ignoredReason = "contain band down"
+	higestIndex := getHighestIndex(longInterval.Bands[len(longInterval.Bands)-10:])
+	if higestIndex != len(longInterval.Bands[len(longInterval.Bands)-10:])-1 {
+		ignoredReason = "not in higest"
 		return true
 	}
 
