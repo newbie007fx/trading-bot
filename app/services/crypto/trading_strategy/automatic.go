@@ -193,7 +193,7 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*model
 		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
 		resultMid := crypto.CheckCoin(coin.Symbol, "1h", 0, timeInMilli, coin.CurrentPrice, higest, lowest)
 
-		if resultMid.AllTrend.ShortTrend == models.TREND_DOWN || resultMid.Direction == analysis.BAND_DOWN {
+		if resultMid.AllTrend.ShortTrend != models.TREND_UP || resultMid.Direction == analysis.BAND_DOWN {
 			continue
 		}
 

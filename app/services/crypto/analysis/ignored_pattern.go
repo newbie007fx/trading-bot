@@ -650,9 +650,23 @@ func CountUpBand(bands []models.Band) int {
 	return counter
 }
 
+func headMoreThanBody(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+
+	head := lastBand.Candle.Hight - lastBand.Candle.Close
+	body := lastBand.Candle.Close - lastBand.Candle.Open
+
+	return head > body
+}
+
 func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
 	if isHasOpenCloseAboveUpper(shortInterval.Bands[len(shortInterval.Bands)-1:]) {
 		ignoredReason = "contain open close above upper"
+		return true
+	}
+
+	if shortInterval.Position == models.ABOVE_UPPER && headMoreThanBody(shortInterval.Bands) {
+		ignoredReason = "above upper and head more than body"
 		return true
 	}
 
@@ -669,12 +683,12 @@ func IgnoredOnUpTrendMid(midInterval models.BandResult) bool {
 }
 
 func IgnoredOnUpTrendLong(longInterval models.BandResult) bool {
-	if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-1:]) {
+	if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-2:]) {
 		ignoredReason = "contain open close above upper"
 		return true
 	}
 
-	if countDownBand(longInterval.Bands[len(longInterval.Bands)-3:]) > 0 {
+	if countDownBand(longInterval.Bands[len(longInterval.Bands)-2:]) > 0 {
 		ignoredReason = "contain band down"
 		return true
 	}

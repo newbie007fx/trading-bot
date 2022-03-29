@@ -107,11 +107,12 @@ func checkCoinOnTrendUp(baseTime time.Time, previousResult map[string]*models.Ba
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	limit := checkOnTrendUpLimit
-	if limit == 0 {
-		log.Println("skip process check on trend up limit is zero", limit)
+	if checkOnTrendUpLimit == 0 {
+		log.Println("skip process check on trend up limit is zero")
 		return altCoin
 	}
+
+	limit := checkOnTrendUpLimit + 2
 
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	orderBy := "price_changes desc"
