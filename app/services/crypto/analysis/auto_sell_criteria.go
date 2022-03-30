@@ -638,17 +638,30 @@ func isHasBelowLower(bands []models.Band) bool {
 	return false
 }
 
-func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortInterval, longInterval models.BandResult) bool {
+func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortInterval, midInterval, longInterval models.BandResult) bool {
 	lastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
+	changes := shortInterval.CurrentPrice - currencyConfig.HoldPrice
+	changesInPercent := changes / currencyConfig.HoldPrice * 100
 
 	if currencyConfig.HoldPrice > shortInterval.CurrentPrice {
 		if sellOnDown(shortInterval, currencyConfig, lastBand) {
 			return true
 		}
 	} else {
-		lastHightChangePercent := (lastBand.Candle.Close - lastBand.Candle.Open) / (lastBand.Candle.Hight - lastBand.Candle.Open) * 100
-		if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-1:]) && (lastHightChangePercent <= 60 || shortInterval.Direction == BAND_DOWN) {
+		if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-1:]) && (shortInterval.Direction == BAND_DOWN || (changesInPercent > 5 && changesInPercent < 10)) {
 			reason = "has Open close above upper"
+			return true
+		}
+
+		higestHightIndexLong := getHighestHightIndex(longInterval.Bands[len(longInterval.Bands)/2:])
+		if higestHightIndexLong < len(longInterval.Bands[len(longInterval.Bands)/2:])-2 && changesInPercent > 5 && shortInterval.Direction == BAND_DOWN {
+			reason = "long not on higest hight, percent already more that 5"
+			return true
+		}
+
+		higestHightIndexMid := getHighestHightIndex(midInterval.Bands[len(midInterval.Bands)/2:])
+		if higestHightIndexMid < len(midInterval.Bands[len(midInterval.Bands)/2:])-2 && changesInPercent > 5 && countAboveUpper(midInterval.Bands[len(midInterval.Bands)-2:]) == 2 {
+			reason = "mid not on higest hight, percent already more that 5"
 			return true
 		}
 	}

@@ -18,12 +18,7 @@ func updateVolume() {
 
 	responseChan := make(chan CandleResponse)
 
-	var limit *int = nil
-	currentTime := time.Time{}
-	if currentTime.Hour()%4 != 0 {
-		defaultLimit := 50
-		limit = &defaultLimit
-	}
+	var limit *int = getLimit()
 
 	currency_configs := repositories.GetCurrencyNotifConfigs(nil, limit, nil)
 	for _, data := range *currency_configs {
@@ -77,4 +72,21 @@ func priceChanges(candles []models.CandleData) float32 {
 	lastCandle := candles[len(candles)-1]
 
 	return (lastCandle.Close - firstCandle.Close) / firstCandle.Close * 100
+}
+
+func getLimit() *int {
+	currentTime := time.Time{}
+	limit := 0
+
+	if currentTime.Minute() != 3 {
+		limit = 25
+	} else {
+		if currentTime.Hour()%4 != 0 {
+			limit = 50
+		} else {
+			return nil
+		}
+	}
+
+	return &limit
 }

@@ -679,12 +679,28 @@ func IgnoredOnUpTrendMid(midInterval models.BandResult) bool {
 		return true
 	}
 
+	if midInterval.AllTrend.FirstTrend == models.TREND_DOWN {
+		ignoredReason = "first trend down"
+		return true
+	}
+
+	higestIndex := getHighestIndex(midInterval.Bands[len(midInterval.Bands)-10:])
+	if higestIndex != len(midInterval.Bands[len(midInterval.Bands)-10:])-1 {
+		ignoredReason = "not in higest"
+		return true
+	}
+
 	return false
 }
 
 func IgnoredOnUpTrendLong(longInterval models.BandResult) bool {
 	if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-2:]) {
 		ignoredReason = "contain open close above upper"
+		return true
+	}
+
+	if countDownBand(longInterval.Bands[len(longInterval.Bands)-2:]) > 0 {
+		ignoredReason = "previous band down"
 		return true
 	}
 

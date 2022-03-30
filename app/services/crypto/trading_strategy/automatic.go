@@ -78,13 +78,14 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					continue
 				}
 
+				holdCoinMid := crypto.CheckCoin(currencyConfig.Symbol, "1h", 0, sellTime, 0, 0, 0)
 				holdCoinLong := crypto.CheckCoin(currencyConfig.Symbol, "4h", 0, sellTime, 0, 0, 0)
-				if holdCoinLong == nil {
+				if holdCoinMid == nil || holdCoinLong == nil {
 					log.Println("error hold coin nil. skip need to sell checking process")
 					continue
 				}
 
-				if analysis.CheckIsNeedSellOnTrendUp(currencyConfig, coin, *holdCoinLong) {
+				if analysis.CheckIsNeedSellOnTrendUp(currencyConfig, coin, *holdCoinMid, *holdCoinLong) {
 					bands := coin.Bands
 					lastBand := bands[len(bands)-1]
 					err = crypto.ReleaseCoin(*currencyConfig, lastBand.Candle)
@@ -149,7 +150,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	percent := float64(countTrendUp) / float64(LIMIT_COIN_CHECK) * float64(100)
-	result := float64(30 * percent / 100)
+	result := float64(20 * percent / 100)
 	checkOnTrendUpLimit = int(math.Ceil(float64(result)))
 }
 
