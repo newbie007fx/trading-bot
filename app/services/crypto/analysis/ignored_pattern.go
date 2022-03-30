@@ -690,6 +690,17 @@ func IgnoredOnUpTrendMid(midInterval models.BandResult) bool {
 		return true
 	}
 
+	changes := priceChanges(midInterval.Bands[len(midInterval.Bands)-8:])
+	if changes < 5 {
+		ignoredReason = "price changes below 5"
+		return true
+	}
+
+	if countDownBand(midInterval.Bands[len(midInterval.Bands)-4:]) > 1 && countDownBand(midInterval.Bands[len(midInterval.Bands)-2:]) == 1 {
+		ignoredReason = "up down"
+		return true
+	}
+
 	return false
 }
 
@@ -711,4 +722,11 @@ func IgnoredOnUpTrendLong(longInterval models.BandResult) bool {
 	}
 
 	return false
+}
+
+func priceChanges(bands []models.Band) float32 {
+	firstBand := bands[len(bands)-8]
+	lastBand := bands[len(bands)-1]
+
+	return (lastBand.Candle.Close - firstBand.Candle.Close) / firstBand.Candle.Close * 100
 }

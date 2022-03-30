@@ -112,7 +112,7 @@ func checkCoinOnTrendUp(baseTime time.Time, previousResult map[string]*models.Ba
 		return altCoin
 	}
 
-	limit := checkOnTrendUpLimit + 2
+	limit := checkOnTrendUpLimit + 1
 
 	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
 	orderBy := "price_changes desc"
