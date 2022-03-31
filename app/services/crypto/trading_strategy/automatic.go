@@ -115,42 +115,41 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 	for <-checkPriceChan {
 		altCheckingTime = baseCheckingTime
 
-		allResults, altCoins := checkCryptoAltCoinPrice(altCheckingTime)
+		allResults := map[string]*models.BandResult{}
 
 		setLimitCheckOnTrendUp()
 		log.Println("count trend up", countTrendUp)
 
 		msg := ""
-		if len(altCoins) > 0 {
-			maxHold := crypto.GetMaxHold()
-			if coin := ats.checkOnTrendUp(allResults); coin != nil {
-				if holdCount < maxHold {
-					if ok, resMsg := holdAndGenerateMessage(coin); ok {
-						msg += resMsg
-						msg += "status check on trend up\n\n"
-						holdCount++
-					}
+
+		maxHold := crypto.GetMaxHold()
+		if coin := ats.checkOnTrendUp(allResults); coin != nil {
+			if holdCount < maxHold {
+				if ok, resMsg := holdAndGenerateMessage(coin); ok {
+					msg += resMsg
+					msg += "status check on trend up\n\n"
+					holdCount++
 				}
 			}
-
-			// if coin := ats.getPotentialCoin(altCoins); coin != nil {
-			// 	if holdCount < maxHold {
-			// 		if ok, resMsg := holdAndGenerateMessage(coin); ok {
-			// 			msg += resMsg
-			// 			msg += "status check regular\n\n"
-			// 			holdCount++
-			// 		}
-			// 	}
-			// }
 		}
+
+		// if coin := ats.getPotentialCoin(altCoins); coin != nil {
+		// 	if holdCount < maxHold {
+		// 		if ok, resMsg := holdAndGenerateMessage(coin); ok {
+		// 			msg += resMsg
+		// 			msg += "status check regular\n\n"
+		// 			holdCount++
+		// 		}
+		// 	}
+		// }
 
 		crypto.SendNotif(msg)
 	}
 }
 
 func setLimitCheckOnTrendUp() {
-	percent := float64(countTrendUp) / float64(LIMIT_COIN_CHECK) * float64(100)
-	result := float64(20 * percent / 100)
+	//percent := float64(countTrendUp) / float64(LIMIT_COIN_CHECK) * float64(100)
+	result := float64(20 * 30 / 100)
 	checkOnTrendUpLimit = int(math.Ceil(float64(result)))
 }
 

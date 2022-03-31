@@ -691,7 +691,7 @@ func IgnoredOnUpTrendMid(midInterval models.BandResult) bool {
 	}
 
 	changes := priceChanges(midInterval.Bands[len(midInterval.Bands)-8:])
-	if changes < 5 {
+	if changes < 3 {
 		ignoredReason = "price changes below 5"
 		return true
 	}
