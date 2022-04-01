@@ -162,7 +162,7 @@ func isHasCrossUpper(bands []models.Band, withHead bool) bool {
 				}
 			}
 		} else {
-			if band.Candle.Open < float32(band.Upper) && band.Candle.Close > float32(band.Upper) {
+			if band.Candle.Open <= float32(band.Upper) && band.Candle.Close > float32(band.Upper) {
 				return true
 			}
 		}
@@ -650,13 +650,17 @@ func CountUpBand(bands []models.Band) int {
 	return counter
 }
 
-func headMoreThanBody(bands []models.Band) bool {
-	lastBand := bands[len(bands)-1]
+func isContainHeadMoreThanBody(bands []models.Band) bool {
+	for _, band := range bands {
+		head := band.Candle.Hight - band.Candle.Close
+		body := band.Candle.Close - band.Candle.Open
 
-	head := lastBand.Candle.Hight - lastBand.Candle.Close
-	body := lastBand.Candle.Close - lastBand.Candle.Open
+		if head > body {
+			return true
+		}
+	}
 
-	return head > body
+	return false
 }
 
 func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
@@ -665,7 +669,7 @@ func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
 		return true
 	}
 
-	if shortInterval.Position == models.ABOVE_UPPER && headMoreThanBody(shortInterval.Bands) {
+	if shortInterval.Position == models.ABOVE_UPPER && isContainHeadMoreThanBody(shortInterval.Bands[len(shortInterval.Bands)-1:]) {
 		ignoredReason = "above upper and head more than body"
 		return true
 	}
@@ -673,20 +677,26 @@ func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
 	return false
 }
 
-func IgnoredOnUpTrendMid(midInterval models.BandResult) bool {
+func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 	if isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-1:]) {
 		ignoredReason = "contain open close above upper"
-		return true
-	}
-
-	if midInterval.AllTrend.FirstTrend == models.TREND_DOWN {
-		ignoredReason = "first trend down"
 		return true
 	}
 
 	higestIndex := getHighestIndex(midInterval.Bands[len(midInterval.Bands)-10:])
 	if higestIndex != len(midInterval.Bands[len(midInterval.Bands)-10:])-1 {
 		ignoredReason = "not in higest"
+		return true
+	}
+
+	higestHightIndex := getHighestHightIndex(midInterval.Bands[len(midInterval.Bands)-5:])
+	if higestHightIndex < len(midInterval.Bands[len(midInterval.Bands)-5:])-2 {
+		ignoredReason = "previous band have higest high"
+		return true
+	}
+
+	if higestHightIndex != len(midInterval.Bands[len(midInterval.Bands)-5:])-1 && countDownBand(midInterval.Bands[len(midInterval.Bands)-2:]) == 1 {
+		ignoredReason = "previous band have higest high and previous band down"
 		return true
 	}
 
@@ -701,10 +711,28 @@ func IgnoredOnUpTrendMid(midInterval models.BandResult) bool {
 		return true
 	}
 
+	if isContainHeadMoreThanBody(midInterval.Bands[len(midInterval.Bands)-2 : len(midInterval.Bands)-1]) {
+		if countDownBand(midInterval.Bands[len(midInterval.Bands)-2:]) == 1 {
+			ignoredReason = "contain head more thank body and previous band down"
+			return true
+		}
+
+		if isBandHeadDoubleBody(midInterval.Bands[len(midInterval.Bands)-2 : len(midInterval.Bands)-1]) {
+			ignoredReason = "head double body"
+			return true
+		}
+
+		if !isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-2:len(midInterval.Bands)-1], false) {
+			ignoredReason = "more than body and cross upper head only"
+			return true
+		}
+	}
+
 	return false
 }
 
-func IgnoredOnUpTrendLong(longInterval models.BandResult) bool {
+func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandResult) bool {
+	bandLen := len(longInterval.Bands)
 	if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-2:]) {
 		ignoredReason = "contain open close above upper"
 		return true
@@ -721,7 +749,38 @@ func IgnoredOnUpTrendLong(longInterval models.BandResult) bool {
 		return true
 	}
 
+	if longInterval.Position == models.ABOVE_UPPER {
+		if countCrossUpper(longInterval.Bands[bandLen-4:]) == 1 {
+			if shortInterval.Position == models.ABOVE_UPPER {
+				if isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+					ignoredReason = "cross upper and just one, short inter val head more than body upper"
+					return true
+				}
+			}
+		}
+
+		if midInterval.AllTrend.FirstTrend == models.TREND_DOWN {
+			ignoredReason = "mid first trend down"
+			return true
+		}
+	}
+
+	higestHightIndex := getHighestHightIndex(longInterval.Bands[len(longInterval.Bands)-5:])
+	if higestHightIndex < len(longInterval.Bands[len(longInterval.Bands)-5:])-2 {
+		if midInterval.Position == models.ABOVE_UPPER && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1 {
+			ignoredReason = "previous band have higest high and mid cross upper just one"
+			return true
+		}
+	}
+
 	return false
+}
+
+func isUpperHeadMoreThanUpperBody(band models.Band) bool {
+	body := float32(band.Upper) - band.Candle.Open
+	head := band.Candle.Close - float32(band.Upper)
+
+	return body < head
 }
 
 func priceChanges(bands []models.Band) float32 {
