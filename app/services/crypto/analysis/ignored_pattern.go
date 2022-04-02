@@ -678,7 +678,7 @@ func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
 }
 
 func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
-	if isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-1:]) {
+	if isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-2 : len(midInterval.Bands)-1]) {
 		ignoredReason = "contain open close above upper"
 		return true
 	}
@@ -750,16 +750,18 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 	}
 
 	if longInterval.Position == models.ABOVE_UPPER {
-		if countCrossUpper(longInterval.Bands[bandLen-4:]) == 1 {
-			if shortInterval.Position == models.ABOVE_UPPER {
-				if isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
-					ignoredReason = "cross upper and just one, short inter val head more than body upper"
-					return true
+		if midInterval.AllTrend.FirstTrend == models.TREND_UP && midInterval.AllTrend.SecondTrend == models.TREND_UP {
+			if countCrossUpper(longInterval.Bands[bandLen-4:]) == 1 || (countDownBand(longInterval.Bands[bandLen-4:]) > 0 && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1) {
+				if shortInterval.Position == models.ABOVE_UPPER {
+					if isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+						ignoredReason = "cross upper and just one, short inter val head more than body upper"
+						return true
+					}
 				}
 			}
 		}
 
-		if midInterval.AllTrend.FirstTrend == models.TREND_DOWN {
+		if midInterval.AllTrend.FirstTrend == models.TREND_DOWN && countCrossUpper(longInterval.Bands[bandLen-4:]) > 1 {
 			ignoredReason = "mid first trend down"
 			return true
 		}
@@ -769,6 +771,18 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 	if higestHightIndex < len(longInterval.Bands[len(longInterval.Bands)-5:])-2 {
 		if midInterval.Position == models.ABOVE_UPPER && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1 {
 			ignoredReason = "previous band have higest high and mid cross upper just one"
+			return true
+		}
+	}
+
+	if isUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1]) {
+		if isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) {
+			ignoredReason = "long and mid head more than body upper"
+			return true
+		}
+
+		if countDownBand(shortInterval.Bands[len(shortInterval.Bands)-4:]) > 1 && countDownBand(shortInterval.Bands[len(shortInterval.Bands)-2:]) == 1 {
+			ignoredReason = "more than body upper && short up down"
 			return true
 		}
 	}
