@@ -638,8 +638,9 @@ func isHasBelowLower(bands []models.Band) bool {
 	return false
 }
 
-func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortInterval, midInterval, longInterval models.BandResult) bool {
+func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortInterval, midInterval, longInterval models.BandResult, currentTime time.Time) bool {
 	lastBand := shortInterval.Bands[len(shortInterval.Bands)-1]
+	longlastBand := longInterval.Bands[len(longInterval.Bands)-1]
 	changes := shortInterval.CurrentPrice - currencyConfig.HoldPrice
 	changesInPercent := changes / currencyConfig.HoldPrice * 100
 
@@ -662,6 +663,12 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 		higestHightIndexMid := getHighestHightIndex(midInterval.Bands[len(midInterval.Bands)/2:])
 		if higestHightIndexMid < len(midInterval.Bands[len(midInterval.Bands)/2:])-2 && changesInPercent > 5 && countAboveUpper(midInterval.Bands[len(midInterval.Bands)-2:]) == 2 {
 			reason = "mid not on higest hight, percent already more that 5"
+			return true
+		}
+
+		minute := currentTime.Minute()
+		if ((minute%15 == 0 && shortInterval.Direction == BAND_DOWN) || (isUpperHeadMoreThanUpperBody(longlastBand) && shortInterval.Direction == BAND_DOWN)) && changesInPercent > 10 {
+			reason = "change more than 10 and short interval band down"
 			return true
 		}
 	}
