@@ -80,7 +80,7 @@ func hammer(bands []models.Band) bool {
 }
 
 func IsHammer(band models.Band) bool {
-	threshold := 10
+	threshold := 20
 	if band.Candle.Open > band.Candle.Close {
 		threshold = 25
 	}
@@ -96,7 +96,7 @@ func IsHammer(band models.Band) bool {
 			percent = candleBody / different * 100
 		}
 
-		return percent >= 65
+		return percent >= 55
 	}
 
 	return false

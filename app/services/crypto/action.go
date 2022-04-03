@@ -171,8 +171,7 @@ func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 	higest = analysis.GetHighestHightPriceByTime(datetime, coinMid.Bands, analysis.Time_type_4h, true)
 	lowest = analysis.GetLowestLowPriceByTime(datetime, coinMid.Bands, analysis.Time_type_4h, true)
 	coinLong := CheckCoin(config.Symbol, "4h", 0, timeInMili, coinMid.CurrentPrice, higest, lowest)
-	isNeedTosell := analysis.IsNeedToSell(&config, *coin, datetime, coinMid)
-	if isNeedTosell || analysis.SpecialCondition(&config, coin.Symbol, *coin, *coinMid, *coinLong) {
+	if analysis.CheckIsNeedSellOnTrendUp(&config, *coin, *coinMid, *coinLong, datetime) {
 		msg := fmt.Sprintf("sell log on %s:\n", datetime.Format("January 2, 2006 15:04:05"))
 		msg += GenerateMsg(*coin)
 		msg += "\n"

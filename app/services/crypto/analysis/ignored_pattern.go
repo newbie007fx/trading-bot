@@ -235,6 +235,17 @@ func countCrossUpper(bands []models.Band) int {
 	return count
 }
 
+func countCrossUpperOnBody(bands []models.Band) int {
+	count := 0
+	for _, data := range bands {
+		if data.Candle.Open < float32(data.Upper) && data.Candle.Close > float32(data.Upper) {
+			count++
+		}
+	}
+
+	return count
+}
+
 func countCrossSMA(bands []models.Band) int {
 	count := 0
 	for _, data := range bands {
@@ -636,6 +647,21 @@ func isBandHeadDoubleBody(bands []models.Band) bool {
 	return false
 }
 
+func countHeadDoubleBody(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		if band.Candle.Close > band.Candle.Open {
+			head := band.Candle.Hight - band.Candle.Close
+			body := band.Candle.Close - band.Candle.Open
+			if head > body*1.8 {
+				count++
+			}
+		}
+	}
+
+	return count
+}
+
 func CountUpBand(bands []models.Band) int {
 	counter := 0
 	for _, band := range bands {
@@ -661,6 +687,20 @@ func isContainHeadMoreThanBody(bands []models.Band) bool {
 	}
 
 	return false
+}
+
+func countHeadMoreThanBody(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		head := band.Candle.Hight - band.Candle.Close
+		body := band.Candle.Close - band.Candle.Open
+
+		if head > body {
+			count++
+		}
+	}
+
+	return count
 }
 
 func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
@@ -770,6 +810,49 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			if countDownBand(shortInterval.Bands[bandLen-4:]) > 2 {
 				ignoredReason = "cross upper, mid head more than body upper"
 				return true
+			}
+		}
+
+		if countCrossUpperOnBody(longInterval.Bands[bandLen-4:]) == 1 {
+			if isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-1:]) {
+				ignoredReason = "mid contain open close above upper"
+				return true
+			}
+
+			if isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) && isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+				ignoredReason = "mid and short has head more than body upper"
+				return true
+			}
+
+			if isContainHeadMoreThanBody(midInterval.Bands[bandLen-1:]) && isContainHeadMoreThanBody(shortInterval.Bands[bandLen-2:]) {
+				ignoredReason = "mid and short has head more than body"
+				return true
+			}
+
+			if countCrossUpperOnBody(longInterval.Bands[bandLen-8:]) > 1 && (CalculateTrendShort(longInterval.Bands[bandLen-5:bandLen-1]) != models.TREND_UP || CalculateTrendShort(longInterval.Bands[bandLen-4:bandLen-1]) != models.TREND_UP) {
+				ignoredReason = "after up"
+				return true
+			}
+
+			if countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 {
+				ignoredReason = "cross upper and just one"
+				return true
+			}
+
+			if CountUpBand(midInterval.Bands[bandLen-2:]) == 2 && isHasHammer(midInterval.Bands[bandLen-2:]) {
+				ignoredReason = "cross upper and just one, mid has hammer"
+				return true
+			}
+		}
+	}
+
+	if longInterval.Position == models.ABOVE_SMA {
+		if !isHasCrossUpper(longInterval.Bands[bandLen-2:], true) {
+			if !isHasCrossUpper(midInterval.Bands[bandLen-4:], true) {
+				if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-8:]) == 1 {
+					ignoredReason = "short above upper but just one"
+					return true
+				}
 			}
 		}
 	}

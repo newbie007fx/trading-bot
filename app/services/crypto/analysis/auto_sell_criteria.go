@@ -671,6 +671,13 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 			reason = "change more than 10 and short interval band down"
 			return true
 		}
+
+		if countHeadMoreThanBody(longInterval.Bands[len(longInterval.Bands)-3:]) > 1 {
+			if shortInterval.Position == models.ABOVE_UPPER && midInterval.Position == models.ABOVE_UPPER && changesInPercent > 3 {
+				reason = "change more than 10 and short interval band down"
+				return true
+			}
+		}
 	}
 
 	return false
