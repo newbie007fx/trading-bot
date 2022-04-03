@@ -714,6 +714,11 @@ func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
 		return true
 	}
 
+	if shortInterval.PriceChanges < 3 {
+		ignoredReason = "price change below 3"
+		return true
+	}
+
 	return false
 }
 
