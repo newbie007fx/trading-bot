@@ -110,10 +110,12 @@ func GetWalletBalance() []map[string]interface{} {
 				continue
 			}
 
+			percentChange := (candlesData[0].Close - config.HoldPrice) / config.HoldPrice * 100
 			tmp := map[string]interface{}{
 				"symbol":          config.Symbol,
 				"balance":         config.Balance,
 				"estimation_usdt": candlesData[0].Close * config.Balance,
+				"percent_change":  percentChange,
 			}
 
 			data = append(data, tmp)

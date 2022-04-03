@@ -184,12 +184,12 @@ func GetSellLog(config models.CurrencyNotifConfig, datetime time.Time) string {
 
 func GetBalances() string {
 	msg := "Balance status: \nWallet Balance:\n"
-	format := "Symbol: <b>%s</b> \nBalance: <b>%f</b> \nEstimation In USDT: <b>%f</b> \n"
+	format := "Symbol: <b>%s</b> \nBalance: <b>%f</b> \nEstimation In USDT: <b>%f</b> \nPercent Changes: <b>%f</b> \n"
 
 	walletBalances := GetWalletBalance()
 	var totalWalletBalance float32 = 0
 	for _, walb := range walletBalances {
-		msg += fmt.Sprintf(format, walb["symbol"], walb["balance"], walb["estimation_usdt"])
+		msg += fmt.Sprintf(format, walb["symbol"], walb["balance"], walb["estimation_usdt"], walb["percent_change"])
 		totalWalletBalance += walb["estimation_usdt"].(float32)
 	}
 

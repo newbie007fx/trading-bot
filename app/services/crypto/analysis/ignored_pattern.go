@@ -871,7 +871,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 	}
 
 	if isUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1]) {
-		if isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) {
+		if isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) && shortInterval.Position != models.ABOVE_UPPER {
 			ignoredReason = "long and mid head more than body upper"
 			return true
 		}
