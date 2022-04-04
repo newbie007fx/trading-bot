@@ -678,6 +678,17 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 				return true
 			}
 		}
+
+		if longInterval.Position == models.ABOVE_SMA && longInterval.AllTrend.FirstTrend == models.TREND_UP && longInterval.AllTrend.SecondTrend == models.TREND_UP {
+			if !isHasCrossUpper(longInterval.Bands[len(longInterval.Bands)-4:], true) {
+				if isContainHeadMoreThanBody(midInterval.Bands[len(midInterval.Bands)-2:]) {
+					if isHasCrossUpper(shortInterval.Bands[len(shortInterval.Bands)-1:], true) && changesInPercent > 5 {
+						reason = "not in relly trend up and percent more than 5"
+						return true
+					}
+				}
+			}
+		}
 	}
 
 	return false

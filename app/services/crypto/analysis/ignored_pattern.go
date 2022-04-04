@@ -882,6 +882,26 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 	}
 
+	if longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+		// possibly check if short/mid interval cross upper
+		ignoredReason = "second trend down"
+		return true
+	}
+
+	if longInterval.Position == models.ABOVE_SMA {
+		if longInterval.AllTrend.SecondTrend != models.TREND_UP {
+			ignoredReason = "above sma and second trend not up"
+			return true
+		}
+
+		if isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) || isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-2]) {
+			if shortInterval.Position == models.ABOVE_UPPER {
+				ignoredReason = "open close above upper"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
@@ -890,6 +910,16 @@ func isUpperHeadMoreThanUpperBody(band models.Band) bool {
 	head := band.Candle.Close - float32(band.Upper)
 
 	return body < head
+}
+
+func isHasUpperHeadMoreThanUpperBody(bands []models.Band) bool {
+	for _, band := range bands {
+		if isUpperHeadMoreThanUpperBody(band) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func priceChanges(bands []models.Band) float32 {
