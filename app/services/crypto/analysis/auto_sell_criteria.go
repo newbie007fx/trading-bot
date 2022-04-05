@@ -649,6 +649,7 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 			return true
 		}
 	} else {
+		bandLen := len(longInterval.Bands)
 		if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-1:]) && (shortInterval.Direction == BAND_DOWN || (changesInPercent > 5 && changesInPercent < 10)) {
 			reason = "has Open close above upper"
 			return true
@@ -686,6 +687,22 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 						reason = "not in relly trend up and percent more than 5"
 						return true
 					}
+				}
+			}
+		}
+
+		if longInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(longInterval.Bands[bandLen-4:]) == 1 {
+			if isHasUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1:]) && changesInPercent > 7 {
+				if isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) || isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) {
+					reason = "cross upper just one percen more than 7"
+					return true
+				}
+			}
+
+			if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 && changesInPercent > 5 {
+				if isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) || isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) {
+					reason = "cross upper just one percen more than 5"
+					return true
 				}
 			}
 		}
