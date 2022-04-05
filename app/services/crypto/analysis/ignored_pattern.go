@@ -916,6 +916,13 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			ignoredReason = "more than body upper && short up down"
 			return true
 		}
+
+		if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 {
+			if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen/2:]) == 1 {
+				ignoredReason = "more than body upper && short cross upper but just one"
+				return true
+			}
+		}
 	}
 
 	if longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
