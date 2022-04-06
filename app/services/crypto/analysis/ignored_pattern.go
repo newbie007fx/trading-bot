@@ -789,7 +789,7 @@ func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 		}
 	}
 
-	if midInterval.Position == models.ABOVE_SMA {
+	if midInterval.Position == models.ABOVE_SMA || countCrossUpper(midInterval.Bands[bandLen-5:]) == 1 {
 		if countBandPercentChangesMoreThan(midInterval.Bands[bandLen-5:], 3) == 0 {
 			ignoredReason = "above sma and no significant band change"
 			return true
