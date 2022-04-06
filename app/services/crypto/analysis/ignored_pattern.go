@@ -678,11 +678,13 @@ func CountUpBand(bands []models.Band) int {
 
 func isContainHeadMoreThanBody(bands []models.Band) bool {
 	for _, band := range bands {
-		head := band.Candle.Hight - band.Candle.Close
-		body := band.Candle.Close - band.Candle.Open
+		if band.Candle.Close > band.Candle.Open {
+			head := band.Candle.Hight - band.Candle.Close
+			body := band.Candle.Close - band.Candle.Open
 
-		if head > body {
-			return true
+			if head > body {
+				return true
+			}
 		}
 	}
 
@@ -760,23 +762,36 @@ func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 	}
 
 	if countDownBand(midInterval.Bands[len(midInterval.Bands)-4:]) > 1 && countDownBand(midInterval.Bands[len(midInterval.Bands)-2:]) == 1 {
-		ignoredReason = "up down"
-		return true
+		if countBandPercentChangesMoreThan(midInterval.Bands[bandLen-5:], 5) != 1 {
+			ignoredReason = "up down"
+			return true
+		}
 	}
 
-	if isContainHeadMoreThanBody(midInterval.Bands[len(midInterval.Bands)-2 : len(midInterval.Bands)-1]) {
-		if countDownBand(midInterval.Bands[len(midInterval.Bands)-2:]) == 1 && CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-5:len(midInterval.Bands)-1]) != models.TREND_UP {
+	if countDownBand(midInterval.Bands[len(midInterval.Bands)-2:]) == 1 && CalculateTrendShort(midInterval.Bands[len(midInterval.Bands)-5:len(midInterval.Bands)-1]) != models.TREND_UP {
+		if countBandPercentChangesMoreThan(midInterval.Bands[bandLen-5:], 5) != 1 {
 			ignoredReason = "contain head more thank body and previous band down"
 			return true
 		}
+	}
 
+	if isContainHeadMoreThanBody(midInterval.Bands[len(midInterval.Bands)-2 : len(midInterval.Bands)-1]) {
 		if isBandHeadDoubleBody(midInterval.Bands[len(midInterval.Bands)-2 : len(midInterval.Bands)-1]) {
 			ignoredReason = "head double body"
 			return true
 		}
 
 		if !isHasCrossUpper(midInterval.Bands[len(midInterval.Bands)-2:len(midInterval.Bands)-1], false) && midInterval.Bands[len(midInterval.Bands)-2].Candle.Close > midInterval.Bands[len(midInterval.Bands)-2].Candle.Open {
-			ignoredReason = "more than body and cross upper head only"
+			if countBandPercentChangesMoreThan(midInterval.Bands[bandLen-5:], 5) != 1 {
+				ignoredReason = "more than body and cross upper head only"
+				return true
+			}
+		}
+	}
+
+	if midInterval.Position == models.ABOVE_SMA {
+		if countBandPercentChangesMoreThan(midInterval.Bands[bandLen-5:], 3) == 0 {
+			ignoredReason = "above sma and no significant band change"
 			return true
 		}
 	}
@@ -794,7 +809,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 
 	if countDownBand(longInterval.Bands[len(longInterval.Bands)-2:]) > 0 {
 		ignoredReason = "previous band down"
-		return true
+		//return true
 	}
 
 	higestIndex := getHighestIndex(longInterval.Bands[len(longInterval.Bands)-10:])
@@ -878,8 +893,10 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 
 		if longInterval.AllTrend.SecondTrend != models.TREND_UP {
-			ignoredReason = "above sma and second trend not up"
-			return true
+			if countBandPercentChangesMoreThan(midInterval.Bands[bandLen-5:], 5) != 1 || countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-5:], 5) != 1 {
+				ignoredReason = "above sma and second trend not up"
+				return true
+			}
 		}
 
 		if isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) || isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-2]) {
@@ -907,7 +924,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 	}
 
 	if isUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1]) {
-		if isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) && shortInterval.Position != models.ABOVE_UPPER {
+		if isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) {
 			ignoredReason = "long and mid head more than body upper"
 			return true
 		}
@@ -926,9 +943,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 	}
 
 	if longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
-		// possibly check if short/mid interval cross upper
-		ignoredReason = "second trend down"
-		return true
+		if countBandPercentChangesMoreThan(midInterval.Bands[bandLen-5:], 5) != 1 || countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-5:], 5) != 1 {
+			// possibly check if short/mid interval cross upper
+			ignoredReason = "second trend down"
+			return true
+		}
 	}
 
 	return false
@@ -939,6 +958,20 @@ func isUpperHeadMoreThanUpperBody(band models.Band) bool {
 	head := band.Candle.Close - float32(band.Upper)
 
 	return body < head
+}
+
+func countBandPercentChangesMoreThan(bands []models.Band, percent float32) int {
+	count := 0
+	for _, band := range bands {
+		if band.Candle.Open < band.Candle.Close {
+			percentChanges := (band.Candle.Close - band.Candle.Open) / band.Candle.Open * 100
+			if percentChanges >= percent {
+				count++
+			}
+		}
+	}
+
+	return count
 }
 
 func isHasUpperHeadMoreThanUpperBody(bands []models.Band) bool {
