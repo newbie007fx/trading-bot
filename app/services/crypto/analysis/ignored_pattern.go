@@ -913,6 +913,13 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 		}
+
+		if longInterval.PriceChanges > 10 && !isHasCrossUpper(longInterval.Bands[bandLen-5:], true) && countAboveSMA(longInterval.Bands[bandLen-5:]) < 2 {
+			if isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-4:]) || countDownBand(midInterval.Bands[bandLen-4:]) > 1 {
+				ignoredReason = "above sma, significan up and mid has open close above upper"
+				return true
+			}
+		}
 	}
 
 	higestHightIndex := getHighestHightIndex(longInterval.Bands[len(longInterval.Bands)-5:])
