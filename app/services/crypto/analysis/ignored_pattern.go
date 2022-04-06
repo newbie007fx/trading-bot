@@ -914,10 +914,21 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
-		if longInterval.PriceChanges > 10 && !isHasCrossUpper(longInterval.Bands[bandLen-5:], true) && countAboveSMA(longInterval.Bands[bandLen-5:]) < 2 {
-			if isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-4:]) || countDownBand(midInterval.Bands[bandLen-4:]) > 1 {
-				ignoredReason = "above sma, significan up and mid has open close above upper"
-				return true
+		if !isHasCrossUpper(longInterval.Bands[bandLen-5:], true) && longInterval.PriceChanges > 10 {
+			if countAboveSMA(longInterval.Bands[bandLen-5:]) < 2 {
+				if isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-4:]) || countDownBand(midInterval.Bands[bandLen-4:]) > 1 {
+					ignoredReason = "above sma, significan up and mid has open close above upper"
+					return true
+				}
+			}
+
+			if isHasCrossUpper(midInterval.Bands[bandLen-2:], true) {
+				if isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-2:]) {
+					if countBandPercentChangesMoreThan(shortInterval.Bands, 5) == 0 && countBandPercentChangesMoreThan(shortInterval.Bands, 3) < 2 {
+						ignoredReason = "above sma, not significan up"
+						return true
+					}
+				}
 			}
 		}
 	}
