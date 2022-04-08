@@ -951,6 +951,13 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
+		if isHasUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1:]) {
+			if isBandHeadDoubleBody(shortInterval.Bands[bandLen-1:]) {
+				ignoredReason = "above sma, mid upper head more than body, short head double body"
+				return true
+			}
+		}
+
 		if isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-1:]) {
 			ignoredReason = "above sma and mid contain open close above upper"
 			return true
