@@ -691,18 +691,29 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 			}
 		}
 
-		if longInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(longInterval.Bands[bandLen-4:]) == 1 {
-			if isHasUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1:]) && changesInPercent > 7 {
-				if isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) || isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) {
-					reason = "cross upper just one percen more than 7"
-					return true
+		if longInterval.Position == models.ABOVE_UPPER {
+			if countCrossUpperOnBody(longInterval.Bands[bandLen-4:]) == 1 {
+				if isHasUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1:]) && changesInPercent > 7 {
+					if isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) || isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) {
+						reason = "cross upper just one percen more than 7"
+						return true
+					}
+				}
+
+				if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 && changesInPercent > 5 {
+					if isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) || isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) {
+						reason = "cross upper just one percen more than 5"
+						return true
+					}
 				}
 			}
 
-			if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 && changesInPercent > 5 {
-				if isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) || isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) {
-					reason = "cross upper just one percen more than 5"
-					return true
+			if isHasUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1:]) && countCrossUpperOnBody(longInterval.Bands[bandLen-2:]) == 2 {
+				if longInterval.AllTrend.ShortTrend == models.TREND_UP && longInterval.PriceChanges > 10 {
+					if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen/2:], 3) == 0 && shortInterval.Position == models.ABOVE_UPPER && changesInPercent > 5 {
+						reason = "not significan up, change already > 10 and percen more than 5"
+						return true
+					}
 				}
 			}
 		}
