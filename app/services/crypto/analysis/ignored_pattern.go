@@ -913,9 +913,9 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
-		if isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) || isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-2]) {
+		if isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) || isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-2]) || isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) {
 			if shortInterval.Position == models.ABOVE_UPPER {
-				ignoredReason = "open close above upper"
+				ignoredReason = "open close above upper or head upper more than body"
 				return true
 			}
 		}
