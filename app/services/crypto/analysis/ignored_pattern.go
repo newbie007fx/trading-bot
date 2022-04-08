@@ -755,8 +755,7 @@ func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 		return true
 	}
 
-	changes := priceChanges(midInterval.Bands[len(midInterval.Bands)-8:])
-	if changes < 3 {
+	if midInterval.PriceChanges < 3 {
 		ignoredReason = "price changes below 5"
 		return true
 	}
@@ -775,7 +774,7 @@ func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 		}
 	}
 
-	if isContainHeadMoreThanBody(midInterval.Bands[len(midInterval.Bands)-2:len(midInterval.Bands)-1]) && countCrossUpper(midInterval.Bands[bandLen/2:]) > 1 {
+	if isContainHeadMoreThanBody(midInterval.Bands[len(midInterval.Bands)-2:len(midInterval.Bands)-1]) && countCrossUpper(midInterval.Bands[bandLen-4:]) > 1 {
 		if isBandHeadDoubleBody(midInterval.Bands[len(midInterval.Bands)-2 : len(midInterval.Bands)-1]) {
 			ignoredReason = "head double body"
 			return true
@@ -802,6 +801,21 @@ func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandResult) bool {
 	bandLen := len(longInterval.Bands)
 	longLastBand := longInterval.Bands[bandLen-1]
+
+	midCloseBandAverage := closeBandAverage(midInterval.Bands[bandLen/2:]) * 2
+	if midCloseBandAverage > 5 {
+		midCloseBandAverage = 5
+	} else if midCloseBandAverage < 4 {
+		midCloseBandAverage = 4
+	}
+
+	shortCloseBandAverage := closeBandAverage(shortInterval.Bands[bandLen/2:]) * 2
+	if shortCloseBandAverage > 5 {
+		shortCloseBandAverage = 5
+	} else if shortCloseBandAverage < 4 {
+		shortCloseBandAverage = 4
+	}
+
 	if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-2:]) {
 		ignoredReason = "contain open close above upper"
 		return true
@@ -937,9 +951,16 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
-		if longInterval.Position == models.ABOVE_SMA && isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-1:]) {
+		if isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-1:]) {
 			ignoredReason = "above sma and mid contain open close above upper"
 			return true
+		}
+
+		if midInterval.Position == models.ABOVE_SMA && shortInterval.Position == models.ABOVE_SMA {
+			if countBandPercentChangesMoreThan(midInterval.Bands[bandLen-5:], midCloseBandAverage) != 1 || countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-5:], shortCloseBandAverage) != 1 {
+				ignoredReason = "all interval above sma"
+				return true
+			}
 		}
 	}
 
@@ -971,20 +992,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 	}
 
 	if longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
-		midCloseBandAverage := closeBandAverage(midInterval.Bands[bandLen/2:]) * 2
-		if midCloseBandAverage > 5 {
-			midCloseBandAverage = 5
-		} else if midCloseBandAverage < 4 {
-			midCloseBandAverage = 4
-		}
-
-		shortCloseBandAverage := closeBandAverage(shortInterval.Bands[bandLen/2:]) * 2
-		if shortCloseBandAverage > 5 {
-			shortCloseBandAverage = 5
-		} else if shortCloseBandAverage < 4 {
-			shortCloseBandAverage = 4
-		}
-
 		if countBandPercentChangesMoreThan(midInterval.Bands[bandLen-5:], midCloseBandAverage) != 1 || countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-5:], shortCloseBandAverage) != 1 {
 			// possibly check if short/mid interval cross upper
 			ignoredReason = "second trend down"
@@ -1024,13 +1031,6 @@ func isHasUpperHeadMoreThanUpperBody(bands []models.Band) bool {
 	}
 
 	return false
-}
-
-func priceChanges(bands []models.Band) float32 {
-	firstBand := bands[len(bands)-8]
-	lastBand := bands[len(bands)-1]
-
-	return (lastBand.Candle.Close - firstBand.Candle.Close) / firstBand.Candle.Close * 100
 }
 
 func closeBandAverage(bands []models.Band) float32 {
