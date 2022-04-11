@@ -893,6 +893,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				ignoredReason = "cross upper and just one, mid has hammer"
 				return true
 			}
+
+			if countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 || midInterval.AllTrend.SecondTrend != models.TREND_UP || (midInterval.Position == models.ABOVE_SMA && isHasCrossUpper(midInterval.Bands[bandLen-4:], true)) {
+				if midInterval.PriceChanges > 10 && shortInterval.Position == models.ABOVE_UPPER && shortInterval.PriceChanges > 5 {
+					if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen/2:], 3) > 1 {
+						ignoredReason = "cross upper and just one, mid trend down"
+						return true
+					}
+				}
+			}
 		}
 	}
 
@@ -969,6 +978,27 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 		}
+
+		if isHasCrossSMA(longInterval.Bands[bandLen-1:], true) {
+			if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 {
+				if isHasCrossUpper(shortInterval.Bands[bandLen-1:], true) && countCrossUpper(shortInterval.Bands[bandLen-4:]) == 1 {
+					if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen/2:], 3) == 0 {
+						ignoredReason = "cross sma, mid and short cross upper"
+						return true
+					}
+				}
+			}
+		}
+
+		if countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 || midInterval.AllTrend.SecondTrend != models.TREND_UP || (midInterval.Position == models.ABOVE_SMA && isHasCrossUpper(midInterval.Bands[bandLen-4:], true)) {
+			if midInterval.PriceChanges > 10 && shortInterval.Position == models.ABOVE_UPPER && shortInterval.PriceChanges > 5 {
+				if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen/2:], 3) > 1 {
+					ignoredReason = "above sma, mid trend down"
+					return true
+				}
+			}
+		}
+
 	}
 
 	higestHightIndex := getHighestHightIndex(longInterval.Bands[len(longInterval.Bands)-5:])
