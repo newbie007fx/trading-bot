@@ -795,6 +795,15 @@ func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 		}
 	}
 
+	if midInterval.Position == models.ABOVE_SMA {
+		if midInterval.AllTrend.SecondTrend != models.TREND_UP && countCrossUpper(midInterval.Bands[bandLen-5:]) == 0 {
+			if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen/2:]) == 1 {
+				ignoredReason = "above sma, second trend up, short cross upper"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
@@ -821,11 +830,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		return true
 	}
 
-	// if countDownBand(longInterval.Bands[len(longInterval.Bands)-2:]) > 0 {
-	// 	ignoredReason = "previous band down"
-	// 	return true
-	// }
-
 	higestIndex := getHighestIndex(longInterval.Bands[len(longInterval.Bands)-10:])
 	if longInterval.AllTrend.SecondTrend != models.TREND_DOWN && higestIndex != len(longInterval.Bands[len(longInterval.Bands)-10:])-1 {
 		ignoredReason = "not in higest"
@@ -833,6 +837,24 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 	}
 
 	if longInterval.Position == models.ABOVE_UPPER {
+		if isUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1]) {
+			if isBandHeadDoubleBody(midInterval.Bands[bandLen-1:]) || isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) {
+				if isHasCrossUpper(shortInterval.Bands[bandLen-1:], true) && isBandHeadDoubleBody(shortInterval.Bands[bandLen-2:]) {
+					ignoredReason = "cross upper, mid head more than body upper, short head double body"
+					return true
+				}
+			}
+		}
+
+		if countHeadMoreThanBody(longInterval.Bands[bandLen-4:]) > 1 {
+			if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen/2:]) == 1 {
+				if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen/2:]) == 1 {
+					ignoredReason = "contain head more than body more than one, mid and short cross upper and just one"
+					return true
+				}
+			}
+		}
+
 		if midInterval.AllTrend.FirstTrend == models.TREND_UP && midInterval.AllTrend.SecondTrend == models.TREND_UP {
 			if countCrossUpper(longInterval.Bands[bandLen-4:]) == 1 || (countDownBand(longInterval.Bands[bandLen-4:]) > 0 && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1) {
 				if shortInterval.Position == models.ABOVE_UPPER {
@@ -855,11 +877,9 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 
-			if isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) {
-				if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-2:]) || isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
-					ignoredReason = "cross upper, mid head more than body upper"
-					return true
-				}
+			if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-2:]) || isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+				ignoredReason = "cross upper, mid head more than body upper"
+				return true
 			}
 		}
 
@@ -898,6 +918,22 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				if midInterval.PriceChanges > 10 && shortInterval.Position == models.ABOVE_UPPER && shortInterval.PriceChanges > 5 {
 					if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen/2:], 3) > 1 {
 						ignoredReason = "cross upper and just one, mid trend down"
+						return true
+					}
+				}
+			}
+
+			if isHasCrossUpper(midInterval.Bands[bandLen-1:], true) && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1 {
+				if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen/2:]) == 1 {
+					ignoredReason = "cross upper and just one, mid and short cross upper just one too"
+					return true
+				}
+			}
+
+			if longInterval.PriceChanges > 10 {
+				if midInterval.Position == models.ABOVE_UPPER && isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-4:]) {
+					if shortInterval.Position == models.ABOVE_SMA && !isHasCrossUpper(shortInterval.Bands[bandLen/2:], true) {
+						ignoredReason = "cross upper and just one, mid contain open close above opper and short not cross upper"
 						return true
 					}
 				}
@@ -1006,7 +1042,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				if isHasCrossUpper(shortInterval.Bands[bandLen-1:], true) && (countCrossUpper(shortInterval.Bands[bandLen-4:]) == 1 || isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:])) {
 					ignoredReason = "below sma, mid and short cross upper"
 					return true
+				}
+			}
+		}
 
+		if longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+			if midInterval.AllTrend.SecondTrend != models.TREND_UP && isHasCrossUpper(midInterval.Bands[bandLen-1:], true) && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1 {
+				if shortInterval.Position == models.ABOVE_UPPER && isHasCrossUpper(shortInterval.Bands[bandLen-1:], false) && countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) == 1 {
+					ignoredReason = "below sma, second trend down, mid and short cross upper"
+					return true
 				}
 			}
 		}
