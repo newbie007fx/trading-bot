@@ -937,6 +937,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 						return true
 					}
 				}
+
+				if countCrossUpper(midInterval.Bands[bandLen-4:]) > 1 {
+					if countCrossUpper(shortInterval.Bands[bandLen-4:]) > 1 {
+						if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-4:], 5) == 0 && countBandPercentChangesMoreThan(midInterval.Bands[bandLen-4:], 5) == 0 {
+							ignoredReason = "all band cross upper more than one but already reach higest"
+							return true
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1023,12 +1032,28 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 
 				}
 			}
+
+			if midInterval.Position == models.ABOVE_SMA && isHasCrossUpper(midInterval.Bands[bandLen-1:], true) && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1 {
+				if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-3:]) {
+					ignoredReason = "above sma and mid cross upper and short open close above upper"
+					return true
+				}
+			}
 		}
 
 		if countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 || midInterval.AllTrend.SecondTrend != models.TREND_UP || (midInterval.Position == models.ABOVE_SMA && isHasCrossUpper(midInterval.Bands[bandLen-4:], true)) {
 			if midInterval.PriceChanges > 10 && shortInterval.Position == models.ABOVE_UPPER && shortInterval.PriceChanges > 5 {
 				if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen/2:], 3) > 1 {
 					ignoredReason = "above sma, mid trend down"
+					return true
+				}
+			}
+		}
+
+		if countCrossUpper(midInterval.Bands[bandLen-4:]) > 1 {
+			if countCrossUpper(shortInterval.Bands[bandLen-4:]) > 1 {
+				if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-4:], 5) == 0 && countBandPercentChangesMoreThan(midInterval.Bands[bandLen-4:], 5) == 0 && countBandPercentChangesMoreThan(longInterval.Bands[bandLen-4:], 5) == 0 {
+					ignoredReason = "cross sma, mid and short cross upper more than one but have no significan up band"
 					return true
 				}
 			}
