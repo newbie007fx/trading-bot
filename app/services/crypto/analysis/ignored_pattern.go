@@ -227,7 +227,7 @@ func countCrossLower(bands []models.Band) int {
 func countCrossUpper(bands []models.Band) int {
 	count := 0
 	for _, data := range bands {
-		if data.Candle.Open < float32(data.Upper) && data.Candle.Hight > float32(data.Upper) {
+		if data.Candle.Open <= float32(data.Upper) && data.Candle.Hight > float32(data.Upper) {
 			count++
 		}
 	}
@@ -954,6 +954,16 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				}
 			}
 		}
+
+		if midInterval.AllTrend.SecondTrend != models.TREND_UP && midInterval.Position == models.ABOVE_SMA {
+			if !isHasCrossUpper(midInterval.Bands[bandLen-5:], true) {
+				if shortInterval.Position == models.ABOVE_UPPER && (countCrossUpper(shortInterval.Bands[bandLen-4:]) > 1 || isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-2:])) {
+					ignoredReason = "cross upper, mid second trend sideway, short cross upper more than one "
+					return true
+				}
+			}
+		}
+
 	}
 
 	if longInterval.Position == models.ABOVE_SMA {
