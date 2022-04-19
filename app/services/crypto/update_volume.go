@@ -69,8 +69,15 @@ func countVolume(candles []models.CandleData) float32 {
 }
 
 func priceChanges(candles []models.CandleData) float32 {
-	firstCandle := candles[len(candles)-8]
+	firstCandle := candles[len(candles)-6]
 	lastCandle := candles[len(candles)-1]
 
-	return (lastCandle.Close - firstCandle.Close) / firstCandle.Close * 100
+	var firstOpen float32 = 0
+	if firstCandle.Open < firstCandle.Close {
+		firstOpen = firstCandle.Open
+	} else {
+		firstOpen = firstCandle.Close
+	}
+
+	return (lastCandle.Close - firstOpen) / firstOpen * 100
 }
