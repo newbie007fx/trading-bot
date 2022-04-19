@@ -1166,8 +1166,10 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 	}
 
+	midLastBand := midInterval.Bands[bandLen-1]
+	midLastBandPriceChange := (midLastBand.Candle.Close - midLastBand.Candle.Open) / midLastBand.Candle.Open * 100
 	if isUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1]) {
-		if isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) {
+		if isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) && !(countBandPercentChangesMoreThan(midInterval.Bands[bandLen-5:], 5) == 1 && midLastBandPriceChange > 5) {
 			if getBodyPercentage(shortInterval.Bands[bandLen-1]) < 95 || !isLastBandPercentMoreThan10AndJustOnce(shortInterval.Bands) {
 				if shortInterval.PriceChanges < 10 || isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-4:]) || isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-4:]) || isHasOpenCloseAboveUpper(longInterval.Bands[bandLen-4:]) {
 					ignoredReason = "long and mid head more than body upper"
