@@ -844,12 +844,14 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
-		if midInterval.AllTrend.FirstTrend == models.TREND_UP && midInterval.AllTrend.SecondTrend == models.TREND_UP {
-			if countCrossUpper(longInterval.Bands[bandLen-4:]) == 1 || (countDownBand(longInterval.Bands[bandLen-4:]) > 0 && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1) {
-				if shortInterval.Position == models.ABOVE_UPPER {
-					if isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
-						ignoredReason = "cross upper and just one, short inter val head more than body upper"
-						return true
+		if countCrossUpper(longInterval.Bands[bandLen-2:]) == 1 {
+			if midInterval.AllTrend.FirstTrend == models.TREND_UP && midInterval.AllTrend.SecondTrend == models.TREND_UP {
+				if countCrossUpper(longInterval.Bands[bandLen-4:]) == 1 || (countDownBand(longInterval.Bands[bandLen-4:]) > 0 && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1) {
+					if shortInterval.Position == models.ABOVE_UPPER {
+						if isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+							ignoredReason = "cross upper and just one, short inter val head more than body upper"
+							return true
+						}
 					}
 				}
 			}
@@ -965,6 +967,17 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-5:]) == 1 {
 					ignoredReason = "cross upper, price change alredy more than 15"
 					return true
+				}
+			}
+		}
+
+		if countCrossUpper(longInterval.Bands[bandLen-3:]) > 1 {
+			if countCrossUpper(midInterval.Bands[bandLen-4:]) > 0 {
+				if countCrossUpper(shortInterval.Bands[bandLen-4:]) > 0 {
+					if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-4:], 3) != 1 && countBandPercentChangesMoreThan(midInterval.Bands[bandLen-4:], 5) != 1 && countBandPercentChangesMoreThan(longInterval.Bands[bandLen-4:], 5) != 1 && !longSignificanUpAndJustOne(longInterval.Bands) {
+						ignoredReason = "all band cross upper more than one but percent change is minor"
+						return true
+					}
 				}
 			}
 		}
