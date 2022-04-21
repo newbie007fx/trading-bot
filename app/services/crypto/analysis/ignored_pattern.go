@@ -994,6 +994,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 					ignoredReason = "short above upper but just one"
 					return true
 				}
+
+				if shortInterval.Position == models.ABOVE_UPPER && countCrossUpper(shortInterval.Bands[bandLen-8:]) > 5 && countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-4:], 3) != 1 && countBandPercentChangesMoreThan(midInterval.Bands[bandLen-4:], 5) != 1 {
+					ignoredReason = "short above upper many, no percent above threshold"
+					return true
+				}
 			}
 		}
 
@@ -1233,7 +1238,9 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 		if countCrossUpperOnBody(short.Bands[len(short.Bands)-1:]) == 1 && countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 && countCrossUpperOnBody(long.Bands[len(long.Bands)-4:]) == 1 {
 			if longSignificanUpAndJustOne(long.Bands) {
 				if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) == 1 && countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 {
-					return true
+					if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) {
+						return true
+					}
 				}
 			}
 		}
