@@ -812,6 +812,10 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		shortCloseBandAverage = 4
 	}
 
+	if approvedPattern(shortInterval, midInterval, longInterval) {
+		return false
+	}
+
 	if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-2:]) && countBandPercentChangesMoreThan(longInterval.Bands[bandLen-4:], 6) != 1 {
 		ignoredReason = "contain open close above upper"
 		return true
@@ -1217,8 +1221,30 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 func longSignificanUpAndJustOne(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	lastPercent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
-	log.Println(lastPercent)
 	if isHasCrossUpper(bands[len(bands)-1:], false) && lastPercent > 5 && lastPercent < 17 && countBandPercentChangesMoreThan(bands[len(bands)-4:], 5) == 1 {
+		return true
+	}
+
+	return false
+}
+
+func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long models.BandResult) bool {
+	if short.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
+		if countCrossUpperOnBody(short.Bands[len(short.Bands)-1:]) == 1 && countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 && countCrossUpperOnBody(long.Bands[len(long.Bands)-4:]) == 1 {
+			if longSignificanUpAndJustOne(long.Bands) {
+				if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) == 1 && countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+func approvedPattern(short, mid, long models.BandResult) bool {
+	if allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long) {
+		log.Println("skipped1")
 		return true
 	}
 
