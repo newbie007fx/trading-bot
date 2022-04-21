@@ -982,9 +982,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 						ignoredReason = "all band cross upper more than one but percent change is minor"
 						return true
 					}
+
+					if isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) && countBandPercentChangesMoreThan(shortInterval.Bands[len(shortInterval.Bands)-1:], 6) == 1 && isHasUpperHeadMoreThanUpperBody(midInterval.Bands[len(midInterval.Bands)-1:]) && countBandPercentChangesMoreThan(midInterval.Bands[len(midInterval.Bands)-1:], 10) == 1 {
+						ignoredReason = "all band cross upper more than one but percent double threshold"
+						return true
+					}
 				}
 			}
 		}
+
 	}
 
 	if longInterval.Position == models.ABOVE_SMA {
