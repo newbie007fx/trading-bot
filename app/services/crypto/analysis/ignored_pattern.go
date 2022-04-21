@@ -1235,12 +1235,10 @@ func longSignificanUpAndJustOne(bands []models.Band) bool {
 
 func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long models.BandResult) bool {
 	if short.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
-		if countCrossUpperOnBody(short.Bands[len(short.Bands)-1:]) == 1 && countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 && countCrossUpperOnBody(long.Bands[len(long.Bands)-4:]) == 1 {
-			if longSignificanUpAndJustOne(long.Bands) {
-				if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) == 1 && countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 {
-					if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) {
-						return true
-					}
+		if longSignificanUpAndJustOne(long.Bands) {
+			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) == 1 || countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 {
+				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) && long.Bands[len(long.Bands)-2].Candle.Open < long.Bands[len(long.Bands)-2].Candle.Close && !isBandHeadDoubleBody(long.Bands[len(long.Bands)-2:len(long.Bands)-1]) {
+					return true
 				}
 			}
 		}
