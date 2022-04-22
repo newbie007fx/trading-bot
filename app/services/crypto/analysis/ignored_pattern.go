@@ -979,7 +979,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
-		if countCrossUpper(longInterval.Bands[bandLen-3:]) > 1 {
+		if countCrossUpper(longInterval.Bands[bandLen-3:]) > 0 {
 			if countCrossUpper(midInterval.Bands[bandLen-4:]) > 0 {
 				if countCrossUpper(shortInterval.Bands[bandLen-4:]) > 0 {
 					if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-4:], 3) != 1 && countBandPercentChangesMoreThan(midInterval.Bands[bandLen-4:], 5) != 1 && countBandPercentChangesMoreThan(longInterval.Bands[bandLen-4:], 5) != 1 && !longSignificanUpAndJustOne(longInterval.Bands) {
