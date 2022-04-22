@@ -697,6 +697,10 @@ func countHeadMoreThanBody(bands []models.Band) int {
 	for _, band := range bands {
 		head := band.Candle.Hight - band.Candle.Close
 		body := band.Candle.Close - band.Candle.Open
+		if band.Candle.Open > band.Candle.Close {
+			head = band.Candle.Hight - band.Candle.Open
+			body = band.Candle.Open - band.Candle.Close
+		}
 
 		if head > body {
 			count++
@@ -987,6 +991,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 						ignoredReason = "all band cross upper more than one but percent double threshold"
 						return true
 					}
+
+					if !(countBandPercentChangesMoreThan(shortInterval.Bands[len(shortInterval.Bands)-4:], 3) >= 1 && countBandPercentChangesMoreThan(shortInterval.Bands[len(shortInterval.Bands)-4:], 2) > 1) && countBandPercentChangesMoreThan(midInterval.Bands[len(midInterval.Bands)-4:], 5) != 1 {
+						ignoredReason = "all band cross upper and threshold literally just one"
+						return true
+					}
 				}
 			}
 		}
@@ -1243,8 +1252,8 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 	if short.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
 		if longSignificanUpAndJustOne(long.Bands) {
 			if !isHasUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1:]) || countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-1:], 6) != 1 || !isHasUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-1:]) || countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-1:], 10) != 1 {
-				if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) == 1 || countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 {
-					if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) && long.Bands[len(long.Bands)-2].Candle.Open < long.Bands[len(long.Bands)-2].Candle.Close && !isBandHeadDoubleBody(long.Bands[len(long.Bands)-2:len(long.Bands)-1]) {
+				if (countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) > 1) || countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 {
+					if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) && !isBandHeadDoubleBody(long.Bands[len(long.Bands)-2:len(long.Bands)-1]) {
 						return true
 					}
 				}
