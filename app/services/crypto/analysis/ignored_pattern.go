@@ -1090,19 +1090,30 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
-		if isHasCrossSMA(longInterval.Bands[bandLen-1:], true) && longPercentFromUpper < 9 {
-			if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 {
-				if isHasCrossUpper(shortInterval.Bands[bandLen-1:], true) && countCrossUpper(shortInterval.Bands[bandLen-4:]) == 1 {
-					ignoredReason = "cross sma, mid and short cross upper"
-					return true
+		if isHasCrossSMA(longInterval.Bands[bandLen-1:], true) {
+			if longPercentFromUpper < 9 {
+				if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 {
+					if isHasCrossUpper(shortInterval.Bands[bandLen-1:], true) && countCrossUpper(shortInterval.Bands[bandLen-4:]) == 1 {
+						ignoredReason = "cross sma, mid and short cross upper"
+						return true
 
+					}
+				}
+
+				if midInterval.Position == models.ABOVE_SMA && isHasCrossUpper(midInterval.Bands[bandLen-1:], true) && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1 {
+					if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-3:]) {
+						ignoredReason = "above sma and mid cross upper and short open close above upper"
+						return true
+					}
 				}
 			}
 
-			if midInterval.Position == models.ABOVE_SMA && isHasCrossUpper(midInterval.Bands[bandLen-1:], true) && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1 {
-				if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-3:]) {
-					ignoredReason = "above sma and mid cross upper and short open close above upper"
-					return true
+			if longInterval.AllTrend.SecondTrend != models.TREND_UP || (longInterval.AllTrend.FirstTrend == models.TREND_DOWN && longInterval.AllTrend.SecondTrend == models.TREND_UP && longInterval.AllTrend.FirstTrendPercent < longInterval.AllTrend.SecondTrendPercent) {
+				if countBandPercentChangesMoreThan(longInterval.Bands[bandLen-4:], 5) == 0 || countBandPercentChangesMoreThan(midInterval.Bands[bandLen-4:], 5) == 0 {
+					if shortInterval.Position == models.ABOVE_UPPER {
+						ignoredReason = "trend not up, or up but just minor"
+						return true
+					}
 				}
 			}
 		}
@@ -1156,6 +1167,22 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 					ignoredReason = "previous band head double body, mid cross upper, and short upper head more than upper body"
 					return true
 				}
+			}
+		}
+
+		if isHasCrossUpper(longInterval.Bands[bandLen-4:bandLen-2], true) && !isHasCrossUpper(longInterval.Bands[bandLen-2:], true) {
+			if longInterval.PriceChanges > 10 && midInterval.PriceChanges > 10 && longPercentFromUpper < 7 {
+				if shortInterval.Position == models.ABOVE_UPPER && shortInterval.Bands[bandLen-2].Candle.Open > shortInterval.Bands[bandLen-2].Candle.Close {
+					ignoredReason = "after up down, and then start up again but seems just minor up"
+					return true
+				}
+			}
+		}
+
+		if !isHasCrossUpper(longInterval.Bands[bandLen-4:], true) {
+			if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-1:], 3) == 0 && countDownBand(shortInterval.Bands[bandLen-3:]) > 0 && isContainHeadMoreThanBody(shortInterval.Bands[bandLen-3:]) {
+				ignoredReason = "above sma and short percent below 3"
+				return true
 			}
 		}
 	}
@@ -1250,9 +1277,9 @@ func longSignificanUpAndJustOne(bands []models.Band) bool {
 
 func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long models.BandResult) bool {
 	if short.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
-		if longSignificanUpAndJustOne(long.Bands) {
+		if longSignificanUpAndJustOne(long.Bands) && countBandPercentChangesMoreThan(long.Bands[len(long.Bands)-5:], 3) > 1 {
 			if !isHasUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1:]) || countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-1:], 6) != 1 || !isHasUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-1:]) || countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-1:], 10) != 1 {
-				if ((countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) > 1) || countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1) && countBandPercentChangesMoreThan(short.Bands[len(mid.Bands)-4:], 5) < 2 {
+				if ((countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) > 1) || (countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 && !isBandHeadDoubleBody(mid.Bands[len(mid.Bands)-2:]))) && countBandPercentChangesMoreThan(short.Bands[len(mid.Bands)-4:], 5) < 2 {
 					if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) && !isBandHeadDoubleBody(long.Bands[len(long.Bands)-2:len(long.Bands)-1]) {
 						return true
 					}
