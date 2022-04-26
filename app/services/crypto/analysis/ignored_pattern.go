@@ -947,6 +947,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 							ignoredReason = "all band cross upper more than one but already reach higest"
 							return true
 						}
+
+						if countBandPercentChangesMoreThan(shortInterval.Bands[len(shortInterval.Bands)-4:], 3) == 1 && getHigestPercentChangesIndex(shortInterval.Bands[len(shortInterval.Bands)-4:]) == 0 && countDownBand(shortInterval.Bands[len(shortInterval.Bands)-4:]) > 1 {
+							ignoredReason = "all band cross upper more than one short starting down"
+							return true
+						}
 					}
 				}
 			}
@@ -1205,6 +1210,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				}
 			}
 		}
+
+		if (longInterval.AllTrend.FirstTrend != models.TREND_UP && longInterval.AllTrend.SecondTrend != models.TREND_UP) && (longInterval.AllTrend.FirstTrend == models.TREND_DOWN || longInterval.AllTrend.SecondTrend == models.TREND_DOWN) {
+			if countCrossSMA(longInterval.Bands[bandLen-4:]) == 1 && countAboveSMA(longInterval.Bands[bandLen-4:]) == 0 {
+				if midInterval.Bands[bandLen-2].Candle.Open > midInterval.Bands[bandLen-2].Candle.Close && countBandPercentChangesMoreThan(midInterval.Bands[bandLen-1:], 5) == 0 {
+					ignoredReason = "above sma and mid previous band down and minor up"
+					return true
+				}
+			}
+		}
 	}
 
 	higestHightIndex := getHighestHightIndex(longInterval.Bands[len(longInterval.Bands)-5:])
@@ -1279,6 +1293,14 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 	if short.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
 		if longSignificanUpAndJustOne(long.Bands) && countBandPercentChangesMoreThan(long.Bands[len(long.Bands)-5:], 3) > 1 {
 			if !isHasUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1:]) || countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-1:], 6) != 1 || !isHasUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-1:]) || countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-1:], 10) != 1 {
+				if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) == 1 && getHigestPercentChangesIndex(short.Bands[len(short.Bands)-4:]) == 0 && countDownBand(short.Bands[len(short.Bands)-4:]) > 1 {
+					return false
+				}
+
+				if long.Bands[len(long.Bands)-1].Candle.Low < float32(long.Bands[len(long.Bands)-1].Lower) && long.Bands[len(long.Bands)-1].Candle.Close > float32(long.Bands[len(long.Bands)-1].Upper) {
+					return false
+				}
+
 				if ((countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) > 1) || (countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 && !isBandHeadDoubleBody(mid.Bands[len(mid.Bands)-2:]))) && countBandPercentChangesMoreThan(short.Bands[len(mid.Bands)-4:], 5) < 2 {
 					if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) && !isBandHeadDoubleBody(long.Bands[len(long.Bands)-2:len(long.Bands)-1]) {
 						return true
@@ -1286,10 +1308,6 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 		}
-	}
-
-	if short.Position == models.ABOVE_SMA && mid.Position == models.ABOVE_SMA && long.Position == models.ABOVE_SMA {
-		//please adjust this
 	}
 
 	return false
@@ -1356,4 +1374,17 @@ func isLastBandPercentMoreThan10AndJustOnce(bands []models.Band) bool {
 	percent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Close * 100
 
 	return percent > 10 && countBandPercentChangesMoreThan(bands[len(bands)-4:], 5) == 1
+}
+
+func getHigestPercentChangesIndex(bands []models.Band) int {
+	highestIndex := 0
+	for i, band := range bands {
+		percentHigest := (bands[highestIndex].Candle.Close - bands[highestIndex].Candle.Open) / bands[highestIndex].Candle.Open * 100
+		percent := (band.Candle.Close - band.Candle.Open) / band.Candle.Open * 100
+		if percentHigest < percent {
+			highestIndex = i
+		}
+	}
+
+	return highestIndex
 }
