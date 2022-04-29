@@ -1017,6 +1017,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 					}
 				}
 			}
+
+			if midInterval.PriceChanges > 15 && countAboveUpper(midInterval.Bands[bandLen-4:]) > 0 && countAboveUpper(shortInterval.Bands[bandLen-4:]) > 0 {
+				ignoredReason = "mid and short Open close above upper"
+				return true
+			}
 		}
 
 	}
