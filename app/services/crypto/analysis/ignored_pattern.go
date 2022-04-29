@@ -841,6 +841,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 					}
 				}
 			}
+
+			if CalculateTrendShort(shortInterval.Bands[bandLen-5:bandLen-1]) == models.TREND_DOWN && isHasCrossUpper(shortInterval.Bands[bandLen-5:bandLen-1], false) {
+				ignoredReason = "upper head more than upper body"
+				return true
+			}
 		}
 
 		if countHeadMoreThanBody(longInterval.Bands[bandLen-4:]) > 1 {
@@ -1199,6 +1204,13 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 		}
+
+		if countCrossUpper(longInterval.Bands[bandLen-4:]) > 0 && countCrossUpperOnBody(longInterval.Bands[bandLen-4:]) == 0 {
+			if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-1:], 3) == 0 && countCrossUpper(shortInterval.Bands[bandLen-3:]) > 1 && shortInterval.Position == models.ABOVE_UPPER {
+				ignoredReason = "above sma and short percent below 3 2nd"
+				return true
+			}
+		}
 	}
 
 	if longInterval.Position == models.BELOW_SMA {
@@ -1321,6 +1333,10 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 					return false
 				}
 
+				if isTailMoreThan(short.Bands[len(short.Bands)-1], 40) {
+					return false
+				}
+
 				if ((countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) > 1) || (countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 && !isBandHeadDoubleBody(mid.Bands[len(mid.Bands)-2:]))) && countBandPercentChangesMoreThan(short.Bands[len(mid.Bands)-4:], 5) < 2 {
 					if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) && !isBandHeadDoubleBody(long.Bands[len(long.Bands)-2:len(long.Bands)-1]) {
 						return true
@@ -1361,6 +1377,14 @@ func countBandPercentChangesMoreThan(bands []models.Band, percent float32) int {
 	}
 
 	return count
+}
+
+func isTailMoreThan(band models.Band, percent float32) bool {
+	bodyTail := band.Candle.Close - band.Candle.Low
+	tail := band.Candle.Open - band.Candle.Low
+	tailPercent := tail / bodyTail * 100
+
+	return tailPercent > percent
 }
 
 func isHasUpperHeadMoreThanUpperBody(bands []models.Band) bool {
