@@ -1317,6 +1317,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		return true
 	}
 
+	if countAboveUpper(longInterval.Bands[bandLen-1:]) > 0 && countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-1:], 3) == 0 {
+		ignoredReason = "above upper"
+		return true
+	}
+
 	return false
 }
 
