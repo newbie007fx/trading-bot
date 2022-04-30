@@ -1023,7 +1023,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 		}
-
 	}
 
 	if longInterval.Position == models.ABOVE_SMA {
@@ -1311,6 +1310,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 		}
+	}
+
+	if countAboveUpper(longInterval.Bands[bandLen-2:]) > 0 && countAboveUpper(shortInterval.Bands[bandLen-4:]) > 0 {
+		ignoredReason = "contain open close above upper"
+		return true
 	}
 
 	return false
