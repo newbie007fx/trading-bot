@@ -1224,8 +1224,8 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 	}
 
 	if longInterval.Position == models.BELOW_SMA {
-		if countCrossSMA(longInterval.Bands[bandLen-7:]) == 0 || (countCrossSMA(longInterval.Bands[bandLen-7:]) == 1 && isHasCrossSMA(longInterval.Bands[bandLen-1:], false)) && longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
-			if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 {
+		if (countCrossSMA(longInterval.Bands[bandLen-7:]) == 0 || (countCrossSMA(longInterval.Bands[bandLen-7:]) == 1 && isHasCrossSMA(longInterval.Bands[bandLen-1:], false))) && longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+			if isHasCrossUpper(midInterval.Bands[bandLen-3:], true) && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1 {
 				if isHasCrossUpper(shortInterval.Bands[bandLen-1:], true) && (countCrossUpper(shortInterval.Bands[bandLen-4:]) == 1 || isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:])) {
 					ignoredReason = "below sma, mid and short cross upper"
 					return true
