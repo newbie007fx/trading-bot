@@ -1240,6 +1240,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 					return true
 				}
 			}
+
+			if isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) || isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+				ignoredReason = "below sma, second trend down, mid and short has upper head more than body"
+				return true
+			}
 		}
 
 		if (longInterval.AllTrend.FirstTrend != models.TREND_UP && longInterval.AllTrend.SecondTrend != models.TREND_UP) && (longInterval.AllTrend.FirstTrend == models.TREND_DOWN || longInterval.AllTrend.SecondTrend == models.TREND_DOWN) {
