@@ -1356,6 +1356,17 @@ func isHasBadBand(bands []models.Band) bool {
 	return false
 }
 
+func countBadBands(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		if isHasBadBand([]models.Band{band}) {
+			count++
+		}
+	}
+
+	return count
+}
+
 func longSignificanUpAndJustOne(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	lastPercent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
@@ -1383,6 +1394,10 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 
 				if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) > 1 && short.Bands[len(short.Bands)-2].Candle.Open > short.Bands[len(short.Bands)-2].Candle.Close {
+					return false
+				}
+
+				if countBadBands(short.Bands[len(short.Bands)-4:len(short.Bands)-1]) == 3 {
 					return false
 				}
 
