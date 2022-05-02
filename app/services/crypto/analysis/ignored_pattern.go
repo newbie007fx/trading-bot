@@ -1250,9 +1250,16 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		if (longInterval.AllTrend.FirstTrend != models.TREND_UP && longInterval.AllTrend.SecondTrend != models.TREND_UP) && (longInterval.AllTrend.FirstTrend == models.TREND_DOWN || longInterval.AllTrend.SecondTrend == models.TREND_DOWN) {
 			if countCrossSMA(longInterval.Bands[bandLen-4:]) == 1 && countAboveSMA(longInterval.Bands[bandLen-4:]) == 0 {
 				if midInterval.Bands[bandLen-2].Candle.Open > midInterval.Bands[bandLen-2].Candle.Close && countBandPercentChangesMoreThan(midInterval.Bands[bandLen-1:], 5) == 0 {
-					ignoredReason = "above sma and mid previous band down and minor up"
+					ignoredReason = "below sma and mid previous band down and minor up"
 					return true
 				}
+			}
+		}
+
+		if isTailMoreThan(longInterval.Bands[bandLen-2], 40) {
+			if countCrossUpper(midInterval.Bands[bandLen-4:]) > 1 && countBandPercentChangesMoreThan(midInterval.Bands[bandLen-4:], 3) == 0 {
+				ignoredReason = "below sma, tail more than body and mid cross upper more than one but minor up"
+				return true
 			}
 		}
 	}
