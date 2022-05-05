@@ -1033,6 +1033,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 					ignoredReason = "above upper and mid has open close above upper and badbands"
 					return true
 				}
+
+				if isUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1]) && isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) {
+					ignoredReason = "above upper and upper head more than body, mid too"
+					return true
+				}
 			}
 		}
 	}
@@ -1071,7 +1076,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) || isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) || isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) || (isHasUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1:]) && checkTime.Minute() > 18 && checkTime.Minute() < 3) {
 				if shortInterval.Position == models.ABOVE_UPPER {
 					ignoredReason = "open close above upper or head upper more than body"
-					//return true
+					return true
 				}
 			}
 		}
@@ -1117,7 +1122,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
-		if isHasCrossSMA(longInterval.Bands[bandLen-1:], false) || longPercentFromUpper < 3 {
+		if isHasCrossSMA(longInterval.Bands[bandLen-2:], false) || longPercentFromUpper < 3 {
 			if isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-1:]) {
 				ignoredReason = "above sma and mid contain open close above upper"
 				return true
@@ -1244,6 +1249,13 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 					ignoredReason = "above sma and short percent below 3 2nd"
 					return true
 				}
+			}
+		}
+
+		if isHasBadBand(longInterval.Bands[bandLen-2:]) {
+			if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) || isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) || isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) || (isHasUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1:]) && checkTime.Minute() > 18 && checkTime.Minute() < 3) {
+				ignoredReason = "above sma, contain bad band and mid or short above upper or uppper head more than body"
+				return true
 			}
 		}
 	}
