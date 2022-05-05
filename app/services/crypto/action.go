@@ -139,7 +139,7 @@ func GetWeightLog(symbol string, datetime time.Time) string {
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())
 	}
 
-	longIgnored := analysis.IgnoredOnUpTrendLong(*resultLong, *resultMid, *result)
+	longIgnored := analysis.IgnoredOnUpTrendLong(*resultLong, *resultMid, *result, datetime)
 	msg += fmt.Sprintf("ignord long interval: %t\n", longIgnored)
 	if longIgnored {
 		msg += fmt.Sprintf("ignord reason: %s\n", analysis.GetIgnoredReason())

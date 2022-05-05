@@ -210,7 +210,7 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*model
 			continue
 		}
 
-		if analysis.IgnoredOnUpTrendLong(*resultLong, *resultMid, coin) {
+		if analysis.IgnoredOnUpTrendLong(*resultLong, *resultMid, coin, altCheckingTime) {
 			continue
 		}
 		coin.Long = resultLong
