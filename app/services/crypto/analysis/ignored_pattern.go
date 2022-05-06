@@ -1382,6 +1382,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		return true
 	}
 
+	if longInterval.AllTrend.SecondTrend == models.TREND_UP && longInterval.AllTrend.ShortTrend == models.TREND_DOWN {
+		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+			if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-2:], 2) == 0 {
+				ignoredReason = "on down, no significan up"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
