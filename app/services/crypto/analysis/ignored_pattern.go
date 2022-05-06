@@ -784,9 +784,11 @@ func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 
 	if midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 5 {
 		if midInterval.AllTrend.SecondTrend != models.TREND_UP && countCrossUpper(midInterval.Bands[bandLen-5:]) == 0 {
-			if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen/2:]) == 1 {
-				ignoredReason = "above sma, second trend up, short cross upper"
-				return true
+			if isHasBadBand(shortInterval.Bands[bandLen-2:]) || isHasBadBand(midInterval.Bands[bandLen-2:]) {
+				if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen/2:]) == 1 {
+					ignoredReason = "above sma, second trend up, short cross upper"
+					return true
+				}
 			}
 		}
 	}
@@ -1303,9 +1305,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 
 	if isHasCrossUpper(longInterval.Bands[bandLen-4:], true) && countCrossUpper(midInterval.Bands[bandLen-4:]) <= 1 {
 		if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-5:]) == 1 {
-			if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-4:], 2) == 1 && countBandPercentChangesMoreThan(midInterval.Bands[bandLen-2:], 5) == 0 {
-				ignoredReason = "minor up"
-				return true
+			if isHasBadBand(shortInterval.Bands[bandLen-2:]) || isHasBadBand(midInterval.Bands[bandLen-2:]) {
+				if countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-4:], 2) == 1 && countBandPercentChangesMoreThan(midInterval.Bands[bandLen-2:], 5) == 0 {
+					ignoredReason = "minor up"
+					return true
+				}
 			}
 		}
 	}
