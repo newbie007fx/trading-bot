@@ -962,10 +962,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
-		if countAboveUpper(longInterval.Bands[bandLen-4:]) > 0 && countDownBand(longInterval.Bands[bandLen-4:]) > 1 {
+		if countAboveUpper(longInterval.Bands[bandLen-4:]) > 0 && countDownBand(longInterval.Bands[bandLen-3:]) >= 1 {
 			if midInterval.Position == models.ABOVE_SMA && !isHasCrossUpper(midInterval.Bands[bandLen-4:], true) {
 				if isBandHeadDoubleBody(shortInterval.Bands[bandLen-2 : bandLen-1]) {
 					ignoredReason = "above upper, mid not cross upper, short head double body"
+					return true
+				}
+
+				if isTailMoreThan(midInterval.Bands[bandLen-1], 40) {
+					ignoredReason = "above upper, mid not cross upper tail more than threshold"
 					return true
 				}
 			}
@@ -1078,15 +1083,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) || isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) || isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) || (isHasUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1:]) && checkTime.Minute() > 18 && checkTime.Minute() < 3) {
 				if shortInterval.Position == models.ABOVE_UPPER {
 					ignoredReason = "open close above upper or head upper more than body"
-					return true
-				}
-			}
-		}
-
-		if isHasCrossSMA(longInterval.Bands[bandLen-5:], false) && isHasCrossUpper(longInterval.Bands[bandLen/2:bandLen-5], true) {
-			if CountUpBand(longInterval.Bands[bandLen-3:]) == 1 || isHasCrossUpper(longInterval.Bands[bandLen-3:], false) || !isHasCrossUpper(longInterval.Bands[bandLen-6:], false) || longInterval.PriceChanges < 10 {
-				if longPercentFromUpper < 5 && !(isHasCrossSMA(longInterval.Bands[bandLen-2:bandLen-1], false) && countCrossSMA(longInterval.Bands[bandLen-4:]) == 1) {
-					ignoredReason = "up down and below upper"
 					return true
 				}
 			}
