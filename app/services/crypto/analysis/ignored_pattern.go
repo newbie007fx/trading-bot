@@ -1297,6 +1297,13 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 		}
+
+		if midInterval.Position == models.BELOW_SMA || isHasBadBand(midInterval.Bands[bandLen-2:]) {
+			if isHasCrossUpper(shortInterval.Bands[bandLen-4:], true) || isHasBadBand(shortInterval.Bands[bandLen-4:]) || countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-4:], 3) == 0 {
+				ignoredReason = "long bellow sma, short bad band"
+				return true
+			}
+		}
 	}
 
 	if isHasCrossUpper(longInterval.Bands[bandLen-4:], true) && countCrossUpper(midInterval.Bands[bandLen-4:]) <= 1 {
