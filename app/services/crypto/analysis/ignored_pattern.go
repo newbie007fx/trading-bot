@@ -800,6 +800,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 
 	bandLen := len(longInterval.Bands)
 	longLastBand := longInterval.Bands[bandLen-1]
+	midLastBand := midInterval.Bands[bandLen-1]
+
+	midPercentFromUpper := (midLastBand.Upper - float64(midLastBand.Candle.Close)) / float64(midLastBand.Candle.Close) * 100
+
+	longPercentFromSMA := (float32(longLastBand.SMA) - longLastBand.Candle.Close) / longLastBand.Candle.Close * 100
 
 	midCloseBandAverage := closeBandAverage(midInterval.Bands[bandLen/2:]) * 2
 	if midCloseBandAverage > 5 {
@@ -966,6 +971,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 					return true
 				}
 			}
+
+			if midInterval.Position == models.ABOVE_SMA && shortInterval.Position == models.ABOVE_UPPER && midPercentFromUpper < 5 {
+				ignoredReason = "cross upper and just one and mid above sma"
+				return true
+			}
 		}
 
 		if countAboveUpper(longInterval.Bands[bandLen-4:]) > 0 && countDownBand(longInterval.Bands[bandLen-3:]) >= 1 {
@@ -1064,7 +1074,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 	}
 
-	midLastBand := midInterval.Bands[bandLen-1]
 	if longInterval.Position == models.ABOVE_SMA {
 		if !isHasCrossUpper(longInterval.Bands[bandLen-2:], true) {
 			if !isHasCrossUpper(midInterval.Bands[bandLen-4:], true) {
@@ -1256,7 +1265,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 
-			midPercentFromUpper := (midLastBand.Upper - float64(midLastBand.Candle.Close)) / float64(midLastBand.Candle.Close) * 100
 			if countBadBands(longInterval.Bands[bandLen-4:]) > 2 {
 				if midInterval.Position == models.ABOVE_SMA && !isHasCrossUpper(midInterval.Bands[bandLen-4:], true) {
 					if (midInterval.AllTrend.FirstTrend != models.TREND_UP || midInterval.AllTrend.SecondTrend != models.TREND_UP) && midPercentFromUpper < 5 {
@@ -1282,11 +1290,19 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 		}
+
+		if isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) && longPercentFromUpper < 5 {
+			if countBadBands(midInterval.Bands[bandLen-4:]) > 1 {
+				ignoredReason = "above sma, mid contain bad band"
+				return true
+			}
+		}
 	}
 
 	if longInterval.Position == models.BELOW_SMA {
-		if (countCrossSMA(longInterval.Bands[bandLen-7:]) == 0 || (countCrossSMA(longInterval.Bands[bandLen-7:]) == 1 && isHasCrossSMA(longInterval.Bands[bandLen-1:], false))) && longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
-			if isHasCrossUpper(midInterval.Bands[bandLen-3:], true) && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1 {
+		if (!isHasCrossSMA(longInterval.Bands[bandLen-4:], false) && longPercentFromSMA < 5) || (countCrossSMA(longInterval.Bands[bandLen-7:]) == 0 || (countCrossSMA(longInterval.Bands[bandLen-7:]) == 1 && isHasCrossSMA(longInterval.Bands[bandLen-1:], false))) && longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+			if (isHasCrossUpper(midInterval.Bands[bandLen-3:], true) && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1) || (midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 5) {
+				log.Println("coba")
 				if isHasCrossUpper(shortInterval.Bands[bandLen-1:], true) && (countCrossUpper(shortInterval.Bands[bandLen-4:]) == 1 || isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:])) {
 					ignoredReason = "below sma, mid and short cross upper"
 					return true
@@ -1485,6 +1501,12 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 
 				if isHasOpenCloseAboveUpper(mid.Bands[len(mid.Bands)-2:]) && getHigestPercentChangesIndex(short.Bands[len(short.Bands)-4:]) == 3 {
 					if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 5) == 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) == 1 {
+						return false
+					}
+				}
+
+				if countCrossUpperOnBody(long.Bands[len(long.Bands)-4:]) == 1 && countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
+					if short.PriceChanges > 6 {
 						return false
 					}
 				}
