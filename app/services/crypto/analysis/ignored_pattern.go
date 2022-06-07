@@ -922,6 +922,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 						ignoredReason = "long and mid cros upper and just one, short contain open close above upper"
 						return true
 					}
+
+					if isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+						ignoredReason = "long and mid cros upper and just one, upper head more than upper bodyr"
+						return true
+					}
 				}
 
 			}
@@ -1339,6 +1344,18 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 		}
+
+		shortLastBand := shortInterval.Bands[bandLen-1]
+		shortPercentFromUpper := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * 100
+
+		if countCrossUpperOnBody(longInterval.Bands[bandLen:]) == 0 && longPercentFromUpper < 5 {
+			if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) < 2 {
+				if shortInterval.Position == models.ABOVE_SMA && countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) == 0 && shortPercentFromUpper < 3 {
+					ignoredReason = "above sma, mid cross upper just one, short above sma"
+					return true
+				}
+			}
+		}
 	}
 
 	if longInterval.Position == models.BELOW_SMA {
@@ -1551,6 +1568,10 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 					if short.PriceChanges > 6 {
 						return false
 					}
+				}
+
+				if (isHasUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-2:]) || isHasOpenCloseAboveUpper(mid.Bands[len(mid.Bands)-2:])) && (isHasUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-2:]) || isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-2:])) {
+					return false
 				}
 
 				if ((countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) > 1) || (countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 && !isBandHeadDoubleBody(mid.Bands[len(mid.Bands)-2:]))) && countBandPercentChangesMoreThan(short.Bands[len(mid.Bands)-4:], 5) < 2 {

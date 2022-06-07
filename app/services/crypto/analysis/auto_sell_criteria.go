@@ -691,6 +691,13 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 			}
 		}
 
+		if !isHasCrossUpper(longInterval.Bands[bandLen-4:], true) && !isHasCrossUpper(shortInterval.Bands[bandLen-4:], true) {
+			if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 && changesInPercent > 5 {
+				reason = "mid cross upper and just one and percent more than 5"
+				return true
+			}
+		}
+
 		if longInterval.Position == models.ABOVE_UPPER {
 			if countCrossUpperOnBody(longInterval.Bands[bandLen-4:]) == 1 {
 				if isHasUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1:]) && changesInPercent > 7 {
