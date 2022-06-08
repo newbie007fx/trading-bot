@@ -172,6 +172,16 @@ func isHasCrossUpper(bands []models.Band, withHead bool) bool {
 	return false
 }
 
+func isHasBandDownFromUpper(bands []models.Band) bool {
+	for _, band := range bands {
+		if band.Candle.Open > float32(band.Upper) && band.Candle.Close < float32(band.Upper) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func isHasCrossSMA(bands []models.Band, bodyOnly bool) bool {
 	for _, band := range bands {
 		if bodyOnly {
@@ -1102,6 +1112,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			if isHasOpenCloseAboveUpper(midInterval.Bands[len(midInterval.Bands)-2:]) && getHigestPercentChangesIndex(shortInterval.Bands[len(shortInterval.Bands)-4:]) == 3 {
 				if countBandPercentChangesMoreThan(shortInterval.Bands[len(shortInterval.Bands)-4:], 5) == 1 && countBandPercentChangesMoreThan(shortInterval.Bands[len(shortInterval.Bands)-4:], 2) == 1 {
 					ignoredReason = "mid contain above upper, short significan up and just one"
+					return true
+				}
+			}
+		}
+
+		if countBadBands(longInterval.Bands[bandLen-2:]) > 0 {
+			if isHasBandDownFromUpper(midInterval.Bands[bandLen-4:]) {
+				if !isHasCrossUpper(shortInterval.Bands[bandLen-4:], true) {
+					ignoredReason = "above upper, mid has down from upper, short not cross upper"
 					return true
 				}
 			}

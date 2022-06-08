@@ -723,8 +723,32 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 					}
 				}
 			}
+
+			if midInterval.Position == models.ABOVE_UPPER && currentTime.Minute()%15 == 0 {
+				if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) && countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-2:], 4) == 1 {
+					if bodyPercent(shortInterval.Bands[bandLen-1]) <= 2 {
+						reason = "not significan up, short open close above upper"
+						return true
+					}
+				}
+			}
+
+			if isUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1]) && changesInPercent > 10 {
+				if isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) {
+					if isHasCrossUpper(shortInterval.Bands[bandLen-4:], true) {
+						reason = "min contain open close above upper and percent more than 10"
+						return true
+					}
+				}
+			}
 		}
 	}
 
 	return false
+}
+
+func bodyPercent(band models.Band) float32 {
+	body := band.Candle.Close - band.Candle.Open
+
+	return body / band.Candle.Open * 100
 }
