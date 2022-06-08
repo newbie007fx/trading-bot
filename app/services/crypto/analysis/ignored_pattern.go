@@ -816,6 +816,9 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 
 	longPercentFromSMA := (float32(longLastBand.SMA) - longLastBand.Candle.Close) / longLastBand.Candle.Close * 100
 
+	shortLastBand := shortInterval.Bands[bandLen-1]
+	shortPercentFromUpper := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * 100
+
 	midCloseBandAverage := closeBandAverage(midInterval.Bands[bandLen/2:]) * 2
 	if midCloseBandAverage > 5 {
 		midCloseBandAverage = 5
@@ -1125,6 +1128,17 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				}
 			}
 		}
+
+		if isHasBandDownFromUpper(longInterval.Bands[bandLen-2:]) {
+
+			if !isHasCrossUpper(midInterval.Bands[bandLen-4:], false) && !isHasCrossUpper(shortInterval.Bands[bandLen-4:], false) {
+				log.Println("masuk")
+				if midPercentFromUpper < 5 && shortPercentFromUpper < 5 {
+					ignoredReason = "above upper, mid and short not cross upper"
+					return true
+				}
+			}
+		}
 	}
 
 	if longInterval.Position == models.ABOVE_SMA {
@@ -1363,9 +1377,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 		}
-
-		shortLastBand := shortInterval.Bands[bandLen-1]
-		shortPercentFromUpper := (float32(shortLastBand.Upper) - shortLastBand.Candle.Close) / shortLastBand.Candle.Close * 100
 
 		if countCrossUpperOnBody(longInterval.Bands[bandLen:]) == 0 && longPercentFromUpper < 5 {
 			if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) < 2 {
