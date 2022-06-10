@@ -1014,6 +1014,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				ignoredReason = "cross upper and just one and mid above sma"
 				return true
 			}
+
+			if isHasBandDownFromUpper(midInterval.Bands[bandLen-2:]) && !isHasCrossUpper(shortInterval.Bands[bandLen-4:], true) {
+				ignoredReason = "cross upper just one. and mid has down from upper"
+				return true
+			}
 		}
 
 		if countAboveUpper(longInterval.Bands[bandLen-4:]) > 0 {
@@ -1130,9 +1135,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 
 		if isHasBandDownFromUpper(longInterval.Bands[bandLen-2:]) {
-
 			if !isHasCrossUpper(midInterval.Bands[bandLen-4:], false) && !isHasCrossUpper(shortInterval.Bands[bandLen-4:], false) {
-				log.Println("masuk")
 				if midPercentFromUpper < 5 && shortPercentFromUpper < 5 {
 					ignoredReason = "above upper, mid and short not cross upper"
 					return true
