@@ -1141,6 +1141,27 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 					return true
 				}
 			}
+
+			if countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 && countBadBands(midInterval.Bands[bandLen-4:]) > 2 {
+				ignoredReason = "contain down from upper, mid cross upper just one"
+				return true
+			}
+		}
+
+		if isHasBandDownFromUpper(longInterval.Bands[bandLen-3:]) && countBadBands(longInterval.Bands[bandLen-3:]) > 1 {
+			if !isHasCrossUpper(midInterval.Bands[bandLen-4:], true) && midPercentFromUpper < 5 {
+				if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) == 1 {
+					ignoredReason = "above upper but contain down from upper, mid not cross upper and short cross upper just one"
+					return true
+				}
+			}
+		}
+
+		if countCrossUpper(midInterval.Bands[bandLen-4:]) <= 1 {
+			if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) > 1 && isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+				ignoredReason = "upper head more thant upper body"
+				return true
+			}
 		}
 	}
 
@@ -1389,6 +1410,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				}
 			}
 		}
+
+		if longInterval.AllTrend.ShortTrend == models.TREND_DOWN && countDownBand(longInterval.Bands[bandLen-4:]) > 2 {
+			ignoredReason = "above sma, short trend down"
+			return true
+		}
 	}
 
 	if longInterval.Position == models.BELOW_SMA {
@@ -1604,6 +1630,18 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 
 				if (isHasUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-2:]) || isHasOpenCloseAboveUpper(mid.Bands[len(mid.Bands)-2:])) && (isHasUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-2:]) || isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-2:])) {
+					return false
+				}
+
+				if isHasBandDownFromUpper(long.Bands[len(long.Bands)-2:]) {
+					if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
+						if isUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1]) {
+							return false
+						}
+					}
+				}
+
+				if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 && countBadBands(mid.Bands[len(mid.Bands)-4:]) > 2 {
 					return false
 				}
 
