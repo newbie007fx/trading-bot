@@ -940,6 +940,13 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 						ignoredReason = "long and mid cros upper and just one, upper head more than upper bodyr"
 						return true
 					}
+
+					if (isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) && midInterval.Position == models.ABOVE_UPPER) || (isHasBandDownFromUpper(midInterval.Bands[bandLen-2:]) && midInterval.Position != models.ABOVE_UPPER) {
+						if countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) == 1 {
+							ignoredReason = "long and short cros upper and just one, mid head more than upper bodyr"
+							return true
+						}
+					}
 				}
 
 			}
@@ -1062,11 +1069,22 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
-		if countCrossUpperOnBody(longInterval.Bands[bandLen-4:]) > 2 && longInterval.PriceChanges > 15 {
-			if midInterval.Position == models.ABOVE_UPPER && countDownBand(midInterval.Bands[bandLen-4:]) > 0 {
-				if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-5:]) == 1 {
-					ignoredReason = "cross upper, price change alredy more than 15"
-					return true
+		if countCrossUpperOnBody(longInterval.Bands[bandLen-4:]) > 2 {
+			if longInterval.PriceChanges > 15 {
+				if midInterval.Position == models.ABOVE_UPPER && countDownBand(midInterval.Bands[bandLen-4:]) > 0 {
+					if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-5:]) == 1 {
+						ignoredReason = "cross upper, price change alredy more than 15"
+						return true
+					}
+				}
+			}
+
+			if midInterval.Position == models.ABOVE_SMA && countCrossUpper(midInterval.Bands[bandLen-4:]) == 0 {
+				if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) > 2 {
+					if midPercentFromUpper < 5 {
+						ignoredReason = "long and short above upper, mid above sma"
+						return true
+					}
 				}
 			}
 		}
@@ -1638,6 +1656,12 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 						if isUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1]) {
 							return false
 						}
+					}
+				}
+
+				if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
+					if isUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1]) {
+						return false
 					}
 				}
 
