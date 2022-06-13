@@ -741,6 +741,15 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 					}
 				}
 			}
+
+			if countCrossUpperOnBody(longInterval.Bands[bandLen-4:]) == 1 || isUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1]) {
+				if countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) > 2 {
+					if countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) == 1 && changesInPercent > 3 {
+						reason = "long and short cross upper on body just one"
+						return true
+					}
+				}
+			}
 		}
 
 		if midInterval.Position == models.ABOVE_UPPER && (countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 || isHasBandDownFromUpper(midInterval.Bands[bandLen-2:])) {

@@ -1336,6 +1336,13 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 					return true
 				}
 			}
+
+			if isHasBandDownFromUpper(midInterval.Bands[bandLen-2:]) || countAboveUpper(midInterval.Bands[bandLen-2:]) > 0 {
+				if countCrossUpper(shortInterval.Bands[bandLen-4:]) == 1 && isHasCrossUpper(shortInterval.Bands[bandLen-1:], true) {
+					ignoredReason = "long & short cross upper but just one, mid contain open close above upper"
+					return true
+				}
+			}
 		}
 
 		if countCrossUpper(longInterval.Bands[bandLen-3:]) == 0 {
