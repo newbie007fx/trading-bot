@@ -1030,6 +1030,13 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				ignoredReason = "cross upper just one. and mid has down from upper"
 				return true
 			}
+
+			if countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) > 2 {
+				if countBadBands(shortInterval.Bands[bandLen-3:]) >= 2 {
+					ignoredReason = "long cross upper just one, mid cross upper on body more than 2"
+					return true
+				}
+			}
 		}
 
 		if countAboveUpper(longInterval.Bands[bandLen-4:]) > 0 {
@@ -1607,7 +1614,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 }
 
 func isHasBadBand(bands []models.Band) bool {
-	if countDownBand(bands) > 0 || countAboveUpper(bands) > 0 || isTailMoreThan(bands[0], 40) || countHeadDoubleBody(bands) > 0 {
+	if countDownBand(bands) > 0 || countAboveUpper(bands) > 0 || isTailMoreThan(bands[0], 40) || countHeadMoreThanBody(bands) > 0 {
 		return true
 	}
 

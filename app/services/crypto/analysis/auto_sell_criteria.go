@@ -713,6 +713,13 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 						return true
 					}
 				}
+
+				if isHasBadBand(longInterval.Bands[bandLen-2:bandLen-1]) && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) > 1 {
+					if countCrossUpperOnBody(shortInterval.Bands[bandLen-1:]) == 1 && changesInPercent > 3 {
+						reason = "cross upper on body and just one, previous band bad. percent more than 3"
+						return true
+					}
+				}
 			}
 
 			if isHasUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1:]) && countCrossUpperOnBody(longInterval.Bands[bandLen-2:]) == 2 {
@@ -756,6 +763,15 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 			if (isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) || isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1])) && changesInPercent > 2 {
 				reason = "contain open close above upper"
 				return true
+			}
+		}
+
+		if countDownBand(longInterval.Bands[bandLen-4:]) > 2 {
+			if midInterval.AllTrend.Trend == models.TREND_DOWN {
+				if countCrossUpperOnBody(shortInterval.Bands[bandLen-1:]) > 0 && changesInPercent > 3 {
+					reason = "on down trend percent changes more than 3"
+					return true
+				}
 			}
 		}
 	}
