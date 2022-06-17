@@ -1610,6 +1610,48 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 	}
 
+	if countBadBands(longInterval.Bands[bandLen-4:]) > 2 {
+		if longInterval.Position == models.ABOVE_UPPER {
+			if midInterval.Position == models.ABOVE_UPPER && isHasBadBand(midInterval.Bands[bandLen-2:bandLen-1]) {
+				if shortInterval.Position == models.ABOVE_UPPER || shortPercentFromUpper < 4 {
+					ignoredReason = "above upper, bad bands more than 2, mid has bad band"
+					return true
+				}
+			}
+		}
+
+		if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) > 1 {
+			if isHasBandDownFromUpper(midInterval.Bands[bandLen-3:]) {
+				if shortInterval.Position == models.ABOVE_UPPER || shortPercentFromUpper < 4 {
+					ignoredReason = " bad bands more than 2, mid has down from upper"
+					return true
+				}
+			}
+		}
+
+		if longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+			if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) > 1 {
+				if countDownBand(shortInterval.Bands[bandLen-2:]) > 0 {
+					if shortInterval.Position == models.ABOVE_UPPER || shortPercentFromUpper < 4 {
+						ignoredReason = "trend down, bad bands more than 2"
+						return true
+					}
+				}
+			}
+		}
+	}
+
+	if longInterval.AllTrend.ShortTrend != models.TREND_UP {
+		if countDownBand(longInterval.Bands[bandLen-3:]) > 1 {
+			if midInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+				if shortInterval.Position == models.ABOVE_UPPER && countBadBands(shortInterval.Bands[bandLen-2:]) == 1 {
+					ignoredReason = "short trend not up, mid second trend down"
+					return true
+				}
+			}
+		}
+	}
+
 	return false
 }
 
