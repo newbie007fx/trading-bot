@@ -1646,6 +1646,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				}
 			}
 		}
+
+		if isHasOpenCloseAboveUpper(longInterval.Bands[bandLen-2:]) {
+			if midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 5 {
+				if shortInterval.Position == models.ABOVE_UPPER && isHasBandDownFromUpper(shortInterval.Bands[bandLen-3:]) {
+					ignoredReason = "has open close above upper and  short has ban down from upper"
+					return true
+				}
+			}
+		}
 	}
 
 	if longInterval.AllTrend.ShortTrend != models.TREND_UP {
