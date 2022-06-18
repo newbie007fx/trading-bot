@@ -254,7 +254,7 @@ func countCrossUpper(bands []models.Band) int {
 func countCrossUpperOnBody(bands []models.Band) int {
 	count := 0
 	for _, data := range bands {
-		if data.Candle.Open < float32(data.Upper) && data.Candle.Close > float32(data.Upper) && (data.Candle.Close > data.Candle.Open) {
+		if data.Candle.Open <= float32(data.Upper) && data.Candle.Close >= float32(data.Upper) && (data.Candle.Close > data.Candle.Open) {
 			count++
 		}
 	}
@@ -804,6 +804,13 @@ func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 					return true
 				}
 			}
+		}
+	}
+
+	if countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) > 2 || isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) {
+		if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-3:]) {
+			ignoredReason = "short contain open close above upper"
+			return true
 		}
 	}
 
@@ -1621,7 +1628,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 
 		if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) > 1 {
-			if isHasBandDownFromUpper(midInterval.Bands[bandLen-3:]) {
+			if isHasBandDownFromUpper(midInterval.Bands[bandLen-3:]) || countBadBands(shortInterval.Bands[bandLen-4:]) > 2 {
 				if shortInterval.Position == models.ABOVE_UPPER || shortPercentFromUpper < 4 {
 					ignoredReason = " bad bands more than 2, mid has down from upper"
 					return true
