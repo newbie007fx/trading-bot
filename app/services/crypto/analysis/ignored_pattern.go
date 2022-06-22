@@ -726,6 +726,11 @@ func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
 		return true
 	}
 
+	if isHasBadBand(shortInterval.Bands[len(shortInterval.Bands)-1:]) {
+		ignoredReason = "bad bands"
+		return true
+	}
+
 	return false
 }
 
