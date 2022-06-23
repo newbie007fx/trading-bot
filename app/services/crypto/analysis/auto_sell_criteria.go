@@ -783,6 +783,20 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 				}
 			}
 		}
+
+		if countCrossUpper(longInterval.Bands[bandLen-4:]) == 1 {
+			if midInterval.Position == models.ABOVE_UPPER && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1 {
+				if shortInterval.Position == models.ABOVE_UPPER && countCrossUpper(shortInterval.Bands[bandLen-4:]) > 2 && changesInPercent > 5 {
+					reason = "long and mid cros upper just one, price change more than 5"
+					return true
+				}
+			}
+		}
+
+		if shortInterval.Direction == BAND_DOWN && changesInPercent > 5 {
+			reason = "band down, price change more than 5"
+			return true
+		}
 	}
 
 	return false

@@ -193,7 +193,7 @@ func isHasCrossSMA(bands []models.Band, bodyOnly bool) bool {
 				return true
 			}
 		} else {
-			if band.Candle.Low < float32(band.SMA) && band.Candle.Hight > float32(band.SMA) {
+			if (band.Candle.Open < float32(band.SMA) || band.Candle.Close < float32(band.SMA)) && band.Candle.Hight > float32(band.SMA) {
 				return true
 			}
 		}
@@ -711,7 +711,7 @@ func countHeadMoreThanBody(bands []models.Band) int {
 }
 
 func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
-	if isHasOpenCloseAboveUpper(shortInterval.Bands[len(shortInterval.Bands)-1:]) {
+	if isHasOpenCloseAboveUpper(shortInterval.Bands[len(shortInterval.Bands)-2:]) {
 		ignoredReason = "contain open close above upper"
 		return true
 	}
@@ -1693,6 +1693,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 
 			if !isHasCrossUpper(shortInterval.Bands[bandLen-4:], true) && shortPercentFromUpper < 3 {
 				ignoredReason = "short trend not up, contain open close above upper, short interval percent from upper below 3"
+				return true
+			}
+		}
+	}
+
+	if longInterval.AllTrend.FirstTrend == models.TREND_UP && longInterval.AllTrend.SecondTrend == models.TREND_UP {
+		if !isHasCrossUpper(longInterval.Bands[bandLen-4:], true) && longPercentFromUpper < 6 && longInterval.PriceChanges > 10 {
+			if midInterval.Position == models.ABOVE_UPPER && shortInterval.Position == models.ABOVE_UPPER {
+				ignoredReason = "trend up up, not cross upper and percent from upper below 6"
 				return true
 			}
 		}
