@@ -650,7 +650,7 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 		}
 	} else {
 		bandLen := len(longInterval.Bands)
-		if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-1:]) && (shortInterval.Direction == BAND_DOWN || (changesInPercent > 5 && changesInPercent < 10)) {
+		if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-1:]) && ((shortInterval.Direction == BAND_DOWN && changesInPercent > 3 && changesInPercent <= 5) || (changesInPercent > 5 && changesInPercent < 10)) {
 			reason = "has Open close above upper"
 			return true
 		}
@@ -796,6 +796,15 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 		if shortInterval.Direction == BAND_DOWN && changesInPercent > 5 {
 			reason = "band down, price change more than 5"
 			return true
+		}
+
+		if changesInPercent > 5 && changesInPercent < 8 && isUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1]) {
+			if midInterval.Position == models.ABOVE_UPPER && shortInterval.Position == models.ABOVE_UPPER {
+				if currentTime.Minute()%15 == 0 {
+					reason = "open head more than upper body, price change more than 5"
+					return true
+				}
+			}
 		}
 	}
 

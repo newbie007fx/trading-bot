@@ -1485,7 +1485,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 	if longInterval.Position == models.BELOW_SMA {
 		if (!isHasCrossSMA(longInterval.Bands[bandLen-4:], false) && longPercentFromSMA < 5) || (countCrossSMA(longInterval.Bands[bandLen-7:]) == 0 || (countCrossSMA(longInterval.Bands[bandLen-7:]) == 1 && isHasCrossSMA(longInterval.Bands[bandLen-1:], false))) && longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
 			if (isHasCrossUpper(midInterval.Bands[bandLen-3:], true) && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1) || (midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 5) {
-				log.Println("coba")
 				if isHasCrossUpper(shortInterval.Bands[bandLen-1:], true) && (countCrossUpper(shortInterval.Bands[bandLen-4:]) == 1 || isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:])) {
 					ignoredReason = "below sma, mid and short cross upper"
 					return true
@@ -1707,11 +1706,27 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 	}
 
+	if (isHasCrossSMA(longInterval.Bands[bandLen-1:], false) || (longInterval.Position == models.BELOW_SMA && longPercentFromSMA < 5)) && countBadBands(longInterval.Bands[bandLen-4:]) > 2 {
+		if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 {
+			if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) == 1 {
+				ignoredReason = "trend down, cross sma, mid and short cross upper just one"
+				return true
+			}
+		}
+
+		if midInterval.Position == models.ABOVE_SMA && midPercentFromUpper < 5 {
+			if isHasCrossUpper(shortInterval.Bands[bandLen-4:], false) || shortPercentFromUpper < 4 {
+				ignoredReason = "trend down, below sma, mid and short percent below 5"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
 func isHasBadBand(bands []models.Band) bool {
-	if countDownBand(bands) > 0 || countAboveUpper(bands) > 0 || isTailMoreThan(bands[0], 40) || countHeadMoreThanBody(bands) > 0 {
+	if countDownBand(bands) > 0 || countAboveUpper(bands) > 0 || isTailMoreThan(bands[len(bands)-1], 50) || countHeadMoreThanBody(bands) > 0 {
 		return true
 	}
 
