@@ -1243,15 +1243,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
-		if isHasCrossSMA(longInterval.Bands[bandLen-1:], false) || longPercentFromUpper < 3 {
-			if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) || isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) || isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) || (isHasUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1:]) && checkTime.Minute() > 18 && checkTime.Minute() < 3) {
-				if shortInterval.Position == models.ABOVE_UPPER {
-					ignoredReason = "open close above upper or head upper more than body"
-					return true
-				}
-			}
-		}
-
 		if !isHasCrossUpper(longInterval.Bands[bandLen-5:], true) {
 			if longPercentFromUpper < 5 {
 				if countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) > 0 || countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) > 0 {
@@ -1450,13 +1441,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 					ignoredReason = "above sma and short percent below 3 2nd"
 					return true
 				}
-			}
-		}
-
-		if isHasBadBand(longInterval.Bands[bandLen-2:]) {
-			if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) || isHasUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1:]) || isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) || (isHasUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1:]) && checkTime.Minute() > 18 && checkTime.Minute() < 3) {
-				ignoredReason = "above sma, contain bad band and mid or short above upper or uppper head more than body"
-				return true
 			}
 		}
 
@@ -1720,6 +1704,11 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 		}
+	}
+
+	if isHasOpenCloseAboveUpper(longInterval.Bands[bandLen-1:]) && isHasBadBand(longInterval.Bands[bandLen-2:]) {
+		ignoredReason = "open close above upper and bad bands"
+		return true
 	}
 
 	return false
