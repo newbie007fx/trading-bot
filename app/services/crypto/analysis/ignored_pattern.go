@@ -1141,11 +1141,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 
 		if countCrossUpper(longInterval.Bands[bandLen-4:]) > 1 {
 			if midInterval.Position == models.ABOVE_UPPER && shortInterval.Position == models.ABOVE_UPPER {
-				if isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
-					ignoredReason = "above upper and short upper head more than body"
-					return true
-				}
-
 				if isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-4:]) && isHasBadBand(midInterval.Bands[bandLen-4:]) {
 					ignoredReason = "above upper and mid has open close above upper and badbands"
 					return true
@@ -1199,7 +1194,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 			}
 		}
 
-		if countCrossUpper(midInterval.Bands[bandLen-4:]) <= 1 {
+		if countCrossUpper(midInterval.Bands[bandLen-4:]) <= 1 && countCrossUpper(longInterval.Bands[bandLen-4:]) == 1 {
 			if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) > 1 && isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
 				ignoredReason = "upper head more thant upper body"
 				return true
@@ -1559,7 +1554,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 
 	if longInterval.AllTrend.SecondTrend == models.TREND_DOWN {
 		if countBandPercentChangesMoreThan(midInterval.Bands[bandLen-5:], midCloseBandAverage) != 1 || countBandPercentChangesMoreThan(shortInterval.Bands[bandLen-5:], shortCloseBandAverage) != 1 {
-			// possibly check if short/mid interval cross upper
 			if longInterval.Position != models.ABOVE_UPPER || midInterval.Position != models.ABOVE_UPPER || shortInterval.Position != models.ABOVE_UPPER {
 				ignoredReason = "second trend down"
 				return true
@@ -1754,7 +1748,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 	bandLen := len(long.Bands)
 	if short.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
 		if longSignificanUpAndJustOne(long.Bands) && countBandPercentChangesMoreThan(long.Bands[len(long.Bands)-5:], 3) > 1 {
-			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && countCrossUpper(mid.Bands[bandLen-4:]) == 1 && countCrossUpper(long.Bands[bandLen-4:]) == 1 {
 				return false
 			}
 
