@@ -1711,6 +1711,13 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		return true
 	}
 
+	if isUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-1]) && countBadBands(longInterval.Bands[bandLen-4:]) > 1 {
+		if midInterval.Position == models.ABOVE_UPPER && countBadBands(midInterval.Bands[bandLen-3:]) > 1 {
+			ignoredReason = "upper head more than upper body, contain band bands"
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -1744,73 +1751,93 @@ func longSignificanUpAndJustOne(bands []models.Band) bool {
 }
 
 func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long models.BandResult) bool {
+	bandLen := len(long.Bands)
 	if short.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
 		if longSignificanUpAndJustOne(long.Bands) && countBandPercentChangesMoreThan(long.Bands[len(long.Bands)-5:], 3) > 1 {
-			if !isHasUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1:]) || countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-1:], 6) != 1 || !isHasUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-1:]) || countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-1:], 10) != 1 {
-				if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) == 1 && getHigestPercentChangesIndex(short.Bands[len(short.Bands)-4:]) == 0 && countDownBand(short.Bands[len(short.Bands)-4:]) > 1 {
+			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+				return false
+			}
+
+			if isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) {
+				return false
+			}
+
+			if isHasOpenCloseAboveUpper(short.Bands[bandLen-4:]) {
+				return false
+			}
+
+			if isHasOpenCloseAboveUpper(mid.Bands[bandLen-4:]) {
+				return false
+			}
+
+			if isHasOpenCloseAboveUpper(long.Bands[bandLen-2:]) {
+				return false
+			}
+
+			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) == 1 && getHigestPercentChangesIndex(short.Bands[len(short.Bands)-4:]) == 0 && countDownBand(short.Bands[len(short.Bands)-4:]) > 1 {
+				return false
+			}
+
+			if long.Bands[len(long.Bands)-1].Candle.Low < float32(long.Bands[len(long.Bands)-1].Lower) && long.Bands[len(long.Bands)-1].Candle.Close > float32(long.Bands[len(long.Bands)-1].Upper) {
+				return false
+			}
+
+			if isTailMoreThan(short.Bands[len(short.Bands)-1], 40) {
+				return false
+			}
+
+			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) > 1 && short.Bands[len(short.Bands)-2].Candle.Open > short.Bands[len(short.Bands)-2].Candle.Close {
+				return false
+			}
+
+			if countBadBands(short.Bands[len(short.Bands)-4:len(short.Bands)-1]) == 3 {
+				return false
+			}
+
+			if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) > 1 && countCrossUpperOnBody(short.Bands[len(short.Bands)-4:]) > 1 && isUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-1]) {
+				return false
+			}
+
+			if isHasOpenCloseAboveUpper(mid.Bands[len(mid.Bands)-2:]) && getHigestPercentChangesIndex(short.Bands[len(short.Bands)-4:]) == 3 {
+				if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 5) == 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) == 1 {
 					return false
 				}
+			}
 
-				if long.Bands[len(long.Bands)-1].Candle.Low < float32(long.Bands[len(long.Bands)-1].Lower) && long.Bands[len(long.Bands)-1].Candle.Close > float32(long.Bands[len(long.Bands)-1].Upper) {
+			if countCrossUpperOnBody(long.Bands[len(long.Bands)-4:]) == 1 && countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
+				if short.PriceChanges > 6 {
 					return false
 				}
+			}
 
-				if isTailMoreThan(short.Bands[len(short.Bands)-1], 40) {
-					return false
-				}
+			if (isHasUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-2:]) || isHasOpenCloseAboveUpper(mid.Bands[len(mid.Bands)-2:])) && (isHasUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-2:]) || isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-2:])) {
+				return false
+			}
 
-				if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) > 1 && short.Bands[len(short.Bands)-2].Candle.Open > short.Bands[len(short.Bands)-2].Candle.Close {
-					return false
-				}
-
-				if countBadBands(short.Bands[len(short.Bands)-4:len(short.Bands)-1]) == 3 {
-					return false
-				}
-
-				if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) > 1 && countCrossUpperOnBody(short.Bands[len(short.Bands)-4:]) > 1 && isUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-1]) {
-					return false
-				}
-
-				if isHasOpenCloseAboveUpper(mid.Bands[len(mid.Bands)-2:]) && getHigestPercentChangesIndex(short.Bands[len(short.Bands)-4:]) == 3 {
-					if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 5) == 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) == 1 {
-						return false
-					}
-				}
-
-				if countCrossUpperOnBody(long.Bands[len(long.Bands)-4:]) == 1 && countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
-					if short.PriceChanges > 6 {
-						return false
-					}
-				}
-
-				if (isHasUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-2:]) || isHasOpenCloseAboveUpper(mid.Bands[len(mid.Bands)-2:])) && (isHasUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-2:]) || isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-2:])) {
-					return false
-				}
-
-				if isHasBandDownFromUpper(long.Bands[len(long.Bands)-2:]) {
-					if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
-						if isUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1]) {
-							return false
-						}
-					}
-				}
-
-				if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
+			if isHasBandDownFromUpper(long.Bands[len(long.Bands)-2:]) {
+				if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
 					if isUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1]) {
 						return false
 					}
 				}
+			}
 
-				if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 && countBadBands(mid.Bands[len(mid.Bands)-4:]) > 2 {
+			if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
+				if isUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1]) {
 					return false
 				}
+			}
 
-				if ((countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) > 1) || (countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 && !isBandHeadDoubleBody(mid.Bands[len(mid.Bands)-2:]))) && countBandPercentChangesMoreThan(short.Bands[len(mid.Bands)-4:], 5) < 2 {
-					if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) && !isBandHeadDoubleBody(long.Bands[len(long.Bands)-2:len(long.Bands)-1]) {
-						return true
-					}
+			if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 && countBadBands(mid.Bands[len(mid.Bands)-4:]) > 2 {
+				return false
+			}
+
+			if ((countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) > 1) || (countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 && !isBandHeadDoubleBody(mid.Bands[len(mid.Bands)-2:]))) && countBandPercentChangesMoreThan(short.Bands[len(mid.Bands)-4:], 5) < 2 {
+				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) && !isBandHeadDoubleBody(long.Bands[len(long.Bands)-2:len(long.Bands)-1]) {
+					return true
 				}
 			}
+
 		}
 	}
 
