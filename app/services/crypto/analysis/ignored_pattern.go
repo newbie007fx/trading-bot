@@ -1712,6 +1712,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 	}
 
+	if isHasCrossUpper(longInterval.Bands[bandLen-4:], true) || countBadBands(longInterval.Bands[bandLen-4:]) > 2 {
+		if midInterval.Position == models.ABOVE_UPPER && countCrossUpper(midInterval.Bands[bandLen-4:]) == 1 {
+			if isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+				ignoredReason = "mid cross upper just one and short upper head more than upper body"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
