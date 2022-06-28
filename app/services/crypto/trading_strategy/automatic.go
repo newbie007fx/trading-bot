@@ -127,21 +127,13 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 			if holdCount < maxHold {
 				if ok, resMsg := holdAndGenerateMessage(coin); ok {
 					msg += resMsg
-					msg += "status check on trend up\n\n"
+					if analysis.GetSkipped() {
+						msg += "skipped \n\n"
+					}
 					holdCount++
 				}
 			}
 		}
-
-		// if coin := ats.getPotentialCoin(altCoins); coin != nil {
-		// 	if holdCount < maxHold {
-		// 		if ok, resMsg := holdAndGenerateMessage(coin); ok {
-		// 			msg += resMsg
-		// 			msg += "status check regular\n\n"
-		// 			holdCount++
-		// 		}
-		// 	}
-		// }
 
 		crypto.SendNotif(msg)
 	}

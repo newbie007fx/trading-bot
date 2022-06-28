@@ -7,6 +7,7 @@ import (
 )
 
 var ignoredReason string = ""
+var skipped bool = false
 
 func upperLowerReversal(result models.BandResult) bool {
 	hightIndex := getHighestIndex(result.Bands)
@@ -836,7 +837,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		shortCloseBandAverage = 4
 	}
 
-	if approvedPattern(shortInterval, midInterval, longInterval) {
+	if approvedPattern(shortInterval, midInterval, longInterval, checkTime) {
 		return false
 	}
 
@@ -1746,96 +1747,99 @@ func countBadBands(bands []models.Band) int {
 func longSignificanUpAndJustOne(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	lastPercent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
-	if isHasCrossUpper(bands[len(bands)-1:], false) && lastPercent > 5 && lastPercent < 17 && countBandPercentChangesMoreThan(bands[len(bands)-4:], 5) == 1 {
+	if isHasCrossUpper(bands[len(bands)-1:], false) && lastPercent > 4.5 && countBandPercentChangesMoreThan(bands[len(bands)-4:], 4.5) == 1 {
 		return true
 	}
 
 	return false
 }
 
-func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long models.BandResult) bool {
+func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long models.BandResult, currentTime time.Time) bool {
 	bandLen := len(long.Bands)
-	if short.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
-		if longSignificanUpAndJustOne(long.Bands) && countBandPercentChangesMoreThan(long.Bands[len(long.Bands)-5:], 3) > 1 {
+	if short.Position == models.ABOVE_UPPER && (mid.Position == models.ABOVE_UPPER || long.Position == models.ABOVE_UPPER) {
+		if longSignificanUpAndJustOne(long.Bands) {
 			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && countCrossUpper(mid.Bands[bandLen-4:]) == 1 && countCrossUpper(long.Bands[bandLen-4:]) == 1 {
+				log.Println("1")
 				return false
 			}
 
-			if isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) {
+			if isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) && currentTime.Minute() < 3 {
+				log.Println("2")
 				return false
 			}
 
 			if isHasOpenCloseAboveUpper(short.Bands[bandLen-4:]) {
+				log.Println("3")
 				return false
 			}
 
 			if isHasOpenCloseAboveUpper(mid.Bands[bandLen-4:]) {
+				log.Println("4")
 				return false
 			}
 
 			if isHasOpenCloseAboveUpper(long.Bands[bandLen-2:]) {
+				log.Println("5")
 				return false
 			}
 
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) == 1 && getHigestPercentChangesIndex(short.Bands[len(short.Bands)-4:]) == 0 && countDownBand(short.Bands[len(short.Bands)-4:]) > 1 {
+				log.Println("6")
 				return false
 			}
 
 			if long.Bands[len(long.Bands)-1].Candle.Low < float32(long.Bands[len(long.Bands)-1].Lower) && long.Bands[len(long.Bands)-1].Candle.Close > float32(long.Bands[len(long.Bands)-1].Upper) {
+				log.Println("7")
 				return false
 			}
 
 			if isTailMoreThan(short.Bands[len(short.Bands)-1], 40) {
+				log.Println("8")
 				return false
 			}
 
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) > 1 && short.Bands[len(short.Bands)-2].Candle.Open > short.Bands[len(short.Bands)-2].Candle.Close {
+				log.Println("9")
 				return false
 			}
 
 			if countBadBands(short.Bands[len(short.Bands)-4:len(short.Bands)-1]) == 3 {
+				log.Println("10")
 				return false
 			}
 
 			if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) > 1 && countCrossUpperOnBody(short.Bands[len(short.Bands)-4:]) > 1 && isUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-1]) {
+				log.Println("11")
 				return false
 			}
 
 			if isHasOpenCloseAboveUpper(mid.Bands[len(mid.Bands)-2:]) && getHigestPercentChangesIndex(short.Bands[len(short.Bands)-4:]) == 3 {
 				if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 5) == 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) == 1 {
+					log.Println("12")
 					return false
 				}
 			}
 
-			if countCrossUpperOnBody(long.Bands[len(long.Bands)-4:]) == 1 && countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
-				if short.PriceChanges > 6 {
-					return false
-				}
-			}
-
-			if (isHasUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-2:]) || isHasOpenCloseAboveUpper(mid.Bands[len(mid.Bands)-2:])) && (isHasUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-2:]) || isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-2:])) {
+			if isHasOpenCloseAboveUpper(mid.Bands[len(mid.Bands)-2:]) && (isHasUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-2:]) || isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-2:])) {
+				log.Println("14")
 				return false
 			}
 
 			if isHasBandDownFromUpper(long.Bands[len(long.Bands)-2:]) {
 				if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
 					if isUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1]) {
+						log.Println("15")
 						return false
 					}
 				}
 			}
 
-			if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 {
-				if isUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-1]) {
-					return false
-				}
-			}
-
 			if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 && countBadBands(mid.Bands[len(mid.Bands)-4:]) > 2 {
+				log.Println("17")
 				return false
 			}
 
-			if ((countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 && countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 2) > 1) || (countBandPercentChangesMoreThan(mid.Bands[len(mid.Bands)-4:], 5) == 1 && !isBandHeadDoubleBody(mid.Bands[len(mid.Bands)-2:]))) && countBandPercentChangesMoreThan(short.Bands[len(mid.Bands)-4:], 5) < 2 {
+			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
 				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) && !isBandHeadDoubleBody(long.Bands[len(long.Bands)-2:len(long.Bands)-1]) {
 					return true
 				}
@@ -1847,8 +1851,9 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 	return false
 }
 
-func approvedPattern(short, mid, long models.BandResult) bool {
-	if allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long) {
+func approvedPattern(short, mid, long models.BandResult, currentTime time.Time) bool {
+	if allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long, currentTime) {
+		skipped = true
 		log.Println("skipped1")
 		return true
 	}
@@ -1929,4 +1934,14 @@ func getHigestPercentChangesIndex(bands []models.Band) int {
 	}
 
 	return highestIndex
+}
+
+func GetSkipped() bool {
+	if skipped {
+		skipped = false
+
+		return true
+	}
+
+	return false
 }
