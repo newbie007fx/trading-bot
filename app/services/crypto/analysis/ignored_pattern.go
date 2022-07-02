@@ -1208,6 +1208,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 				return true
 			}
 		}
+
+		if isHasBandDownFromUpper(longInterval.Bands[bandLen-4:]) || isHasOpenCloseAboveUpper(longInterval.Bands[bandLen-4:]) || isHasUpperHeadMoreThanUpperBody(longInterval.Bands[bandLen-4:]) {
+			if countBadBands(midInterval.Bands[bandLen-4:]) > 2 {
+				if isHasBandDownFromUpper(shortInterval.Bands[bandLen-4:]) {
+					ignoredReason = "updown, contain band down from upper"
+					return true
+				}
+			}
+		}
 	}
 
 	if longInterval.Position == models.ABOVE_SMA {
