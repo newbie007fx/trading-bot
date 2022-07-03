@@ -751,7 +751,7 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 		}
 
 		if midInterval.Position == models.ABOVE_UPPER && (countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 || isHasBandDownFromUpper(midInterval.Bands[bandLen-2:])) {
-			if (isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) || isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1])) && changesInPercent > 2 {
+			if (isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) || isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1])) && changesInPercent > 3 {
 				reason = "contain open close above upper"
 				return true
 			}
