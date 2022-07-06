@@ -1731,6 +1731,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 	}
 
+	if isHasCrossUpper(longInterval.Bands[bandLen-2:], true) || isHasCrossSMA(longInterval.Bands[bandLen-2:], false) {
+		if countBadBands(midInterval.Bands[bandLen-4:]) > 2 {
+			if shortInterval.Position == models.ABOVE_UPPER || shortPercentFromUpper < 3.5 {
+				ignoredReason = "mid interval contain 3 bad bands"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
@@ -1767,7 +1776,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 	bandLen := len(long.Bands)
 	if short.Position == models.ABOVE_UPPER && (mid.Position == models.ABOVE_UPPER || long.Position == models.ABOVE_UPPER) {
 		if longSignificanUpAndJustOne(long.Bands) {
-			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && countCrossUpper(mid.Bands[bandLen-4:]) == 1 && countCrossUpper(long.Bands[bandLen-4:]) == 1 {
+			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && countCrossUpperOnBody(mid.Bands[bandLen-3:]) == 1 && countCrossUpperOnBody(long.Bands[bandLen-2:]) == 1 {
 				log.Println("1")
 				return false
 			}
