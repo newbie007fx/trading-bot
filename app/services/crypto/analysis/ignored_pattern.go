@@ -1758,6 +1758,15 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 	}
 
+	if isHasCrossSMA(longInterval.Bands[bandLen-1:], false) {
+		if isHasCrossSMA(midInterval.Bands[bandLen-1:], false) {
+			if isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+				ignoredReason = "cross sma and upper head more than upper body"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
