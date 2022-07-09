@@ -27,7 +27,7 @@ func updateVolume() {
 
 		request := CandleRequest{
 			Symbol:       data.Symbol,
-			Limit:        6,
+			Limit:        2,
 			Resolution:   "1h",
 			ResponseChan: responseChan,
 		}
