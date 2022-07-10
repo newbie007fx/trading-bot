@@ -69,7 +69,7 @@ func countVolume(candles []models.CandleData) float32 {
 }
 
 func priceChanges(candles []models.CandleData) float32 {
-	firstCandle := candles[len(candles)-6]
+	firstCandle := candles[0]
 	lastCandle := candles[len(candles)-1]
 
 	var firstOpen float32 = 0
