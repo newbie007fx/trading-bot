@@ -712,6 +712,10 @@ func countHeadMoreThanBody(bands []models.Band) int {
 }
 
 func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
+	if skipped {
+		return false
+	}
+
 	if isHasOpenCloseAboveUpper(shortInterval.Bands[len(shortInterval.Bands)-2:]) {
 		ignoredReason = "contain open close above upper"
 		return true
@@ -736,6 +740,10 @@ func IgnoredOnUpTrendShort(shortInterval models.BandResult) bool {
 }
 
 func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
+	if skipped {
+		return false
+	}
+
 	bandLen := len(midInterval.Bands)
 	lastBand := midInterval.Bands[bandLen-1]
 	midPercentFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
@@ -805,10 +813,20 @@ func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 		}
 	}
 
+	if midInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 {
+		if isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+			ignoredReason = "above upper and just one and short upper head more than upper body"
+			return true
+		}
+	}
+
 	return false
 }
 
 func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandResult, checkTime time.Time) bool {
+	if skipped {
+		return false
+	}
 
 	bandLen := len(longInterval.Bands)
 	longLastBand := longInterval.Bands[bandLen-1]
@@ -835,10 +853,6 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		shortCloseBandAverage = 5
 	} else if shortCloseBandAverage < 4 {
 		shortCloseBandAverage = 4
-	}
-
-	if approvedPattern(shortInterval, midInterval, longInterval, checkTime) {
-		return false
 	}
 
 	if isHasOpenCloseAboveUpper(longInterval.Bands[len(longInterval.Bands)-2:]) && countBandPercentChangesMoreThan(longInterval.Bands[bandLen-4:], 6) != 1 {
@@ -1792,7 +1806,7 @@ func countBadBands(bands []models.Band) int {
 func longSignificanUpAndJustOne(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	lastPercent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
-	if isHasCrossUpper(bands[len(bands)-1:], false) && lastPercent > 4.5 && countBandPercentChangesMoreThan(bands[len(bands)-4:], 4.5) == 1 {
+	if lastPercent > 4.5 && countBandPercentChangesMoreThan(bands[len(bands)-4:], 4.5) == 1 {
 		return true
 	}
 
@@ -1848,11 +1862,6 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				return false
 			}
 
-			if countBadBands(short.Bands[len(short.Bands)-4:len(short.Bands)-1]) == 3 {
-				log.Println("10")
-				return false
-			}
-
 			if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) > 1 && countCrossUpperOnBody(short.Bands[len(short.Bands)-4:]) > 1 && isUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-1]) {
 				log.Println("11")
 				return false
@@ -1890,7 +1899,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 			}
 
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
-				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) && !isBandHeadDoubleBody(long.Bands[len(long.Bands)-2:len(long.Bands)-1]) {
+				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) {
 					return true
 				}
 			}
@@ -1901,12 +1910,14 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 	return false
 }
 
-func approvedPattern(short, mid, long models.BandResult, currentTime time.Time) bool {
+func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) bool {
 	if allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long, currentTime) {
 		skipped = true
 		log.Println("skipped1")
 		return true
 	}
+
+	skipped = false
 
 	return false
 }

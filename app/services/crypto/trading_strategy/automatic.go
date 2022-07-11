@@ -177,9 +177,6 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*model
 	timeInMilli := GetEndDate(altCheckingTime, OPERATION_BUY)
 	altCoins := checkCoinOnTrendUp(altCheckingTime, allResults)
 	for _, coin := range altCoins {
-		if analysis.IgnoredOnUpTrendShort(coin) {
-			continue
-		}
 
 		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
 		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
@@ -189,9 +186,6 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*model
 			continue
 		}
 
-		if analysis.IgnoredOnUpTrendMid(*resultMid, coin) {
-			continue
-		}
 		coin.Mid = resultMid
 
 		higest = analysis.GetHighestHightPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
@@ -202,9 +196,22 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*model
 			continue
 		}
 
+		if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime) {
+			continue
+		}
+
+		if analysis.IgnoredOnUpTrendShort(coin) {
+			continue
+		}
+
+		if analysis.IgnoredOnUpTrendMid(*resultMid, coin) {
+			continue
+		}
+
 		if analysis.IgnoredOnUpTrendLong(*resultLong, *resultMid, coin, altCheckingTime) {
 			continue
 		}
+
 		coin.Long = resultLong
 
 		return &coin

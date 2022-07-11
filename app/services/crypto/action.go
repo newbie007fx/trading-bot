@@ -127,6 +127,8 @@ func GetWeightLog(symbol string, datetime time.Time) string {
 
 	msg += "\n" + GenerateMsg(*resultLong)
 
+	analysis.ApprovedPattern(*result, *resultMid, *resultLong, datetime)
+
 	shortIgnored := analysis.IgnoredOnUpTrendShort(*result)
 	msg += fmt.Sprintf("\nignord short interval: %t\n", shortIgnored)
 	if shortIgnored {
