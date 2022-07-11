@@ -1913,7 +1913,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) bool {
 	if allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long, currentTime) {
 		skipped = true
-		log.Println("skipped1")
+		log.Println("skipped1: ", short.Symbol)
 		return true
 	}
 

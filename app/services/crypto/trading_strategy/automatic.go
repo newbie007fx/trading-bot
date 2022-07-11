@@ -196,8 +196,10 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*model
 			continue
 		}
 
+		coin.Long = resultLong
+
 		if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime) {
-			continue
+			return &coin
 		}
 
 		if analysis.IgnoredOnUpTrendShort(coin) {
@@ -211,8 +213,6 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*model
 		if analysis.IgnoredOnUpTrendLong(*resultLong, *resultMid, coin, altCheckingTime) {
 			continue
 		}
-
-		coin.Long = resultLong
 
 		return &coin
 	}
