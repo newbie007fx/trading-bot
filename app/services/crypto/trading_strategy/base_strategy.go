@@ -12,7 +12,7 @@ import (
 const LIMIT_COIN_CHECK int = 80
 
 var countTrendUp int = 0
-var checkOnTrendUpLimit int = 10
+var checkOnTrendUpLimit int = 12
 
 type TradingStrategy interface {
 	Execute(currentTime time.Time)

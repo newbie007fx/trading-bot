@@ -1862,6 +1862,11 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				return false
 			}
 
+			if isHasBadBand(short.Bands[bandLen-1:]) {
+				log.Println("10")
+				return false
+			}
+
 			if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) > 1 && countCrossUpperOnBody(short.Bands[len(short.Bands)-4:]) > 1 && isUpperHeadMoreThanUpperBody(mid.Bands[len(mid.Bands)-1]) {
 				log.Println("11")
 				return false
@@ -1872,6 +1877,11 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 					log.Println("12")
 					return false
 				}
+			}
+
+			if isPreviousBandTripleHeigh(short.Bands) && isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && countCrossUpper(short.Bands[bandLen-2:]) > 1 {
+				log.Println("13")
+				return false
 			}
 
 			if isHasOpenCloseAboveUpper(mid.Bands[len(mid.Bands)-2:]) && (isHasUpperHeadMoreThanUpperBody(short.Bands[len(short.Bands)-2:]) || isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-2:])) {
@@ -1888,6 +1898,13 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
+			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && countCrossUpper(short.Bands[bandLen-2:]) > 1 {
+				if !isHasCrossUpper(mid.Bands[bandLen-2:], false) && long.Position != models.ABOVE_UPPER {
+					log.Println("16")
+					return false
+				}
+			}
+
 			if countCrossUpperOnBody(mid.Bands[len(mid.Bands)-4:]) == 1 && countBadBands(mid.Bands[len(mid.Bands)-4:]) > 2 {
 				log.Println("17")
 				return false
@@ -1895,6 +1912,19 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 
 			if isHasCrossUpper(mid.Bands[bandLen-4:bandLen-1], true) && countBadBands(mid.Bands[bandLen-4:bandLen-1]) > 2 {
 				log.Println("18")
+				return false
+			}
+
+			minute := currentTime.Minute()
+			if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 || countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+				if minute > 55 || minute < 5 {
+					log.Println("18")
+					return false
+				}
+			}
+
+			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && (countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 || countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1) {
+				log.Println("19")
 				return false
 			}
 
@@ -1920,6 +1950,24 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 	skipped = false
 
 	return false
+}
+
+func isPreviousBandTripleHeigh(bands []models.Band) bool {
+	lastBand := bands[len(bands)-2]
+	lastBandHeight := lastBand.Candle.Close - lastBand.Candle.Open
+	if lastBandHeight < 0 {
+		return false
+	}
+
+	var higestHeigh float32 = 0
+	for _, band := range bands[len(bands)-6 : len(bands)-2] {
+		high := band.Candle.Close - band.Candle.Open
+		if high > higestHeigh {
+			higestHeigh = high
+		}
+	}
+
+	return higestHeigh*3 < lastBandHeight
 }
 
 func isUpperHeadMoreThanUpperBody(band models.Band) bool {
