@@ -1781,6 +1781,22 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 		}
 	}
 
+	if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) > 1 && isHasBandDownFromUpper(shortInterval.Bands[bandLen-4:]) {
+		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && isHasCrossSMA(midInterval.Bands[bandLen-1:], true) && longInterval.AllTrend.ShortTrend != models.TREND_UP {
+			ignoredReason = "short trend not up, mid second trend down"
+			return true
+		}
+	}
+
+	if shortInterval.AllTrend.Trend == models.TREND_DOWN && midInterval.AllTrend.SecondTrend == models.TREND_DOWN {
+		if longInterval.AllTrend.ShortTrend == models.TREND_DOWN {
+			if getHigestPercentChangesIndex(shortInterval.Bands[bandLen-4:]) != 3 {
+				ignoredReason = "trend down and last band not higest"
+				return true
+			}
+		}
+	}
+
 	return false
 }
 
@@ -1926,6 +1942,22 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && (countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 || countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1) {
 				log.Println("19")
 				return false
+			}
+
+			if countCrossUpperOnBody(short.Bands[bandLen-4:]) > 1 && isHasBandDownFromUpper(short.Bands[bandLen-4:]) {
+				if mid.AllTrend.SecondTrend == models.TREND_DOWN && long.AllTrend.ShortTrend != models.TREND_UP {
+					log.Println("20")
+					return false
+				}
+			}
+
+			if mid.AllTrend.Trend == models.TREND_DOWN {
+				if long.AllTrend.SecondTrend == models.TREND_DOWN && long.Position == models.BELOW_SMA {
+					if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 && isHasCrossSMA(mid.Bands[bandLen-1:], true) {
+						log.Println("21")
+						return false
+					}
+				}
 			}
 
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
