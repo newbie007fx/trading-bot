@@ -1822,7 +1822,12 @@ func countBadBands(bands []models.Band) int {
 func longSignificanUpAndJustOne(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	lastPercent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
-	if lastPercent > 4.5 && countBandPercentChangesMoreThan(bands[len(bands)-4:], 4.5) == 1 {
+	var threshold float32 = 4.5
+	if lastPercent > threshold {
+		threshold = lastPercent / 2
+	}
+
+	if lastPercent > 4.5 && countBandPercentChangesMoreThan(bands[len(bands)-4:], threshold) == 1 {
 		return true
 	}
 
@@ -1832,10 +1837,12 @@ func longSignificanUpAndJustOne(bands []models.Band) bool {
 func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long models.BandResult, currentTime time.Time) bool {
 	bandLen := len(long.Bands)
 	if short.Position == models.ABOVE_UPPER && mid.AllTrend.ShortTrend == models.TREND_UP {
-		if longSignificanUpAndJustOne(long.Bands) {
-			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && countCrossUpperOnBody(mid.Bands[bandLen-3:]) == 1 && countCrossUpperOnBody(long.Bands[bandLen-2:]) == 1 {
-				log.Println("1")
-				return false
+		if longSignificanUpAndJustOne(mid.Bands) {
+			if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+				if countCrossUpperOnBody(mid.Bands[bandLen-4:]) > 1 && isHasBadBand(mid.Bands[bandLen-2:]) {
+					log.Println("1")
+					return false
+				}
 			}
 
 			if isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) && currentTime.Minute() < 3 {
@@ -1940,8 +1947,10 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 			}
 
 			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && (countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 || countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1) {
-				log.Println("19")
-				return false
+				if (minute > 55 || minute < 5) && (isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) || isHasOpenCloseAboveUpper(mid.Bands[bandLen-1:])) {
+					log.Println("19")
+					return false
+				}
 			}
 
 			if countCrossUpperOnBody(short.Bands[bandLen-4:]) > 1 && isHasBandDownFromUpper(short.Bands[bandLen-4:]) {
