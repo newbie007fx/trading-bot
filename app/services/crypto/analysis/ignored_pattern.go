@@ -1984,6 +1984,13 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
+			if countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 && countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1 {
+				if countCrossUpperOnBody(short.Bands[bandLen-4:]) > 1 && isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+					log.Println("23")
+					return false
+				}
+			}
+
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
 				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) {
 					return true
