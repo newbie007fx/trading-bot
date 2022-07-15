@@ -179,7 +179,7 @@ func isHasCrossUpper(bands []models.Band, withHead bool) bool {
 
 func isHasBandDownFromUpper(bands []models.Band) bool {
 	for _, band := range bands {
-		if band.Candle.Open > float32(band.Upper) && band.Candle.Close <= float32(band.Upper) {
+		if band.Candle.Open > float32(band.Upper) && band.Candle.Close < band.Candle.Open {
 			return true
 		}
 	}
