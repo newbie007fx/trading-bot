@@ -110,6 +110,8 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 }
 
 func GetWeightLog(symbol string, datetime time.Time) string {
+	var utcZone, _ = time.LoadLocation("UTC")
+	datetime = datetime.In(utcZone)
 	timeInMili := datetime.Unix() * 1000
 
 	result := CheckCoin(symbol, "15m", 0, timeInMili, 0, 0, 0)

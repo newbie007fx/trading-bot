@@ -826,6 +826,9 @@ func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandResult, checkTime time.Time) bool {
 	if skipped {
 		return false
+	} else {
+		ignoredReason = "skipped from upper"
+		return true
 	}
 
 	bandLen := len(longInterval.Bands)
@@ -1939,15 +1942,18 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 			}
 
 			minute := currentTime.Minute()
+			hour := currentTime.Hour()
 			if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 || countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
-				if minute > 55 || minute < 5 {
-					log.Println("18")
-					return false
+				if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+					if isHourInChangesLong(hour) && (minute > 55 || minute < 5) {
+						log.Println("18")
+						return false
+					}
 				}
 			}
 
 			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && (countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 || countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1) {
-				if (minute > 55 || minute < 5) && (isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) || isHasOpenCloseAboveUpper(mid.Bands[bandLen-1:])) {
+				if (isHourInChangesLong(hour) && (minute > 55 || minute < 5)) && (isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) || isHasOpenCloseAboveUpper(mid.Bands[bandLen-1:])) {
 					log.Println("19")
 					return false
 				}
@@ -1969,12 +1975,32 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
+			if long.Position == models.ABOVE_UPPER && isHasBandDownFromUpper(long.Bands[bandLen-4:]) {
+				if (mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1) || !isHasCrossUpper(mid.Bands[bandLen-4:], false) {
+					if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+						log.Println("22")
+						return false
+					}
+				}
+			}
+
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
 				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) {
 					return true
 				}
 			}
 
+		}
+	}
+
+	return false
+}
+
+func isHourInChangesLong(currentHour int) bool {
+	hours := []int{23, 0, 3, 4, 7, 8, 11, 12, 15, 16, 19, 20}
+	for _, hour := range hours {
+		if currentHour == hour {
+			return true
 		}
 	}
 
@@ -2015,7 +2041,7 @@ func isUpperHeadMoreThanUpperBody(band models.Band) bool {
 	allBody := band.Candle.Close - band.Candle.Open
 	head := band.Candle.Close - float32(band.Upper)
 	percent := head / allBody * 100
-	return percent > 55
+	return percent > 52
 }
 
 func countBandPercentChangesMoreThan(bands []models.Band, percent float32) int {
