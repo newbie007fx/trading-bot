@@ -1991,6 +1991,17 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
+			if long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
+				if isHasCrossUpper(long.Bands[bandLen-4:], true) && countBadBands(long.Bands[bandLen-4:]) > 2 {
+					if mid.AllTrend.SecondTrend == models.TREND_DOWN && countBadBands(mid.Bands[bandLen-4:]) > 2 {
+						if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 && countBadBands(short.Bands[bandLen-4:]) > 2 {
+							log.Println("24")
+							return false
+						}
+					}
+				}
+			}
+
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
 				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) {
 					return true
