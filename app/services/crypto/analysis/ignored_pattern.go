@@ -826,9 +826,6 @@ func IgnoredOnUpTrendMid(midInterval, shortInterval models.BandResult) bool {
 func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandResult, checkTime time.Time) bool {
 	if skipped {
 		return false
-	} else {
-		ignoredReason = "skipped from upper"
-		return true
 	}
 
 	bandLen := len(longInterval.Bands)
@@ -1786,7 +1783,7 @@ func IgnoredOnUpTrendLong(longInterval, midInterval, shortInterval models.BandRe
 
 	if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) > 1 && isHasBandDownFromUpper(shortInterval.Bands[bandLen-4:]) {
 		if midInterval.AllTrend.SecondTrend == models.TREND_DOWN && isHasCrossSMA(midInterval.Bands[bandLen-1:], true) && longInterval.AllTrend.ShortTrend != models.TREND_UP {
-			ignoredReason = "short trend not up, mid second trend down"
+			ignoredReason = "short trend not up, mid second trend down2"
 			return true
 		}
 	}
