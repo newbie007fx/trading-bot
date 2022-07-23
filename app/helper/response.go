@@ -32,5 +32,6 @@ func SuccessResponse(code int, data interface{}, message string) *Response {
 		Status:  "success",
 		Code:    code,
 		Message: message,
+		Data:    data,
 	}
 }

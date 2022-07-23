@@ -1905,7 +1905,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
-			if isPreviousBandTripleHeigh(short.Bands) && isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && countCrossUpper(short.Bands[bandLen-2:]) > 1 {
+			if isPreviousBandTripleHeigh(short.Bands) && ((isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && countCrossUpper(short.Bands[bandLen-2:]) > 1) || (short.Position == models.ABOVE_UPPER && countCrossUpper(short.Bands[bandLen-2:]) == 1)) {
 				log.Println("13")
 				return false
 			}
@@ -1946,7 +1946,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 			if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 || countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
 				if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
 					if isHourInChangesLong(hour) && (minute > 55 || minute < 5) {
-						log.Println("18")
+						log.Println("19")
 						return false
 					}
 				}
@@ -1954,14 +1954,14 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 
 			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && (countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 || countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1) {
 				if (isHourInChangesLong(hour) && (minute > 55 || minute < 5)) && (isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) || isHasOpenCloseAboveUpper(mid.Bands[bandLen-1:])) {
-					log.Println("19")
+					log.Println("20")
 					return false
 				}
 			}
 
 			if countCrossUpperOnBody(short.Bands[bandLen-4:]) > 1 && isHasBandDownFromUpper(short.Bands[bandLen-4:]) {
 				if mid.AllTrend.SecondTrend == models.TREND_DOWN && long.AllTrend.ShortTrend != models.TREND_UP {
-					log.Println("20")
+					log.Println("21")
 					return false
 				}
 			}
@@ -1969,7 +1969,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 			if mid.AllTrend.Trend == models.TREND_DOWN {
 				if long.AllTrend.SecondTrend == models.TREND_DOWN && long.Position == models.BELOW_SMA {
 					if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 && isHasCrossSMA(mid.Bands[bandLen-1:], true) {
-						log.Println("21")
+						log.Println("22")
 						return false
 					}
 				}
@@ -1978,7 +1978,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 			if long.Position == models.ABOVE_UPPER && isHasBandDownFromUpper(long.Bands[bandLen-4:]) {
 				if (mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1) || !isHasCrossUpper(mid.Bands[bandLen-4:], false) {
 					if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
-						log.Println("22")
+						log.Println("23")
 						return false
 					}
 				}
@@ -1986,7 +1986,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 
 			if countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 && countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1 {
 				if countCrossUpperOnBody(short.Bands[bandLen-4:]) > 1 && isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
-					log.Println("23")
+					log.Println("24")
 					return false
 				}
 			}
@@ -1995,10 +1995,22 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				if isHasCrossUpper(long.Bands[bandLen-4:], true) && countBadBands(long.Bands[bandLen-4:]) > 2 {
 					if mid.AllTrend.SecondTrend == models.TREND_DOWN && countBadBands(mid.Bands[bandLen-4:]) > 2 {
 						if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 && countBadBands(short.Bands[bandLen-4:]) > 2 {
-							log.Println("24")
+							log.Println("25")
 							return false
 						}
 					}
+				}
+			}
+
+			if isPreviousBandTripleHeigh(mid.Bands) && isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) && countCrossUpper(short.Bands[bandLen-2:]) > 1 {
+				log.Println("26")
+				return false
+			}
+
+			if CountUpBand(mid.Bands[bandLen-4:]) == 4 && countBadBands(mid.Bands[bandLen-3:]) > 1 {
+				if short.Position == models.ABOVE_UPPER && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+					log.Println("27")
+					return false
 				}
 			}
 
