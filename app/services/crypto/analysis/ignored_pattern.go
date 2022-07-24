@@ -2047,6 +2047,15 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
+			if long.Position == models.ABOVE_UPPER && countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1 {
+				if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+					if isHasBandDownFromUpper(short.Bands[bandLen-2:]) {
+						log.Println("31")
+						return false
+					}
+				}
+			}
+
 			// need to consider: case long down from upper, known case 1.
 
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
