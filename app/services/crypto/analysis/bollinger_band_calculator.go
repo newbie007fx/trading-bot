@@ -104,7 +104,7 @@ func updatePrecision(data *models.CandleData, value float64) float64 {
 	basePrecision := getMaxNumPrec(data)
 	multiplier := math.Pow(10, float64(basePrecision))
 
-	return math.Floor(value*multiplier) / multiplier
+	return math.Round(value*multiplier) / multiplier
 }
 
 func getMaxNumPrec(data *models.CandleData) float64 {

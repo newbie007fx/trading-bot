@@ -797,6 +797,15 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 				}
 			}
 		}
+
+		if isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) && changesInPercent > 4 && minute%15 == 0 {
+			if midInterval.Bands[bandLen-1].Candle.Close < float32(midInterval.Bands[bandLen-1].Upper) {
+				if isHasBandDownFromUpper(longInterval.Bands[bandLen-4:]) {
+					reason = "long contain band down from upper, short upper head more than body"
+					return true
+				}
+			}
+		}
 	}
 
 	return false
