@@ -22,8 +22,10 @@ func updateVolume() {
 	var order string = "price_changes desc"
 
 	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil, &order)
-	for _, data := range *currency_configs {
-		time.Sleep(2 * time.Second)
+	for i, data := range *currency_configs {
+		if i%10 == 0 {
+			time.Sleep(1 * time.Second)
+		}
 
 		request := CandleRequest{
 			Symbol:       data.Symbol,
