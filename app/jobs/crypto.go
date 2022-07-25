@@ -32,7 +32,7 @@ func StartCryptoWorker() {
 		}
 
 		second := time.Now().Second()
-		if second > 30 {
+		if second >= 30 {
 			second -= 30
 		}
 
