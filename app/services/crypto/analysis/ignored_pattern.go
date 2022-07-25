@@ -1837,9 +1837,27 @@ func longSignificanUpAndJustOne(bands []models.Band) bool {
 	return false
 }
 
+func bandDoublePreviousHigh(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+	lastBandHeight := lastBand.Candle.Close - lastBand.Candle.Open
+	if lastBandHeight < 0 {
+		return false
+	}
+
+	var higestHeigh float32 = 0
+	for _, band := range bands[len(bands)-5 : len(bands)-1] {
+		high := band.Candle.Close - band.Candle.Open
+		if high > higestHeigh {
+			higestHeigh = high
+		}
+	}
+
+	return higestHeigh*2 < lastBandHeight
+}
+
 func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long models.BandResult, currentTime time.Time) bool {
 	bandLen := len(long.Bands)
-	if short.Position == models.ABOVE_UPPER && mid.AllTrend.ShortTrend == models.TREND_UP {
+	if bandDoublePreviousHigh(short.Bands) && mid.AllTrend.ShortTrend == models.TREND_UP {
 		if longSignificanUpAndJustOne(mid.Bands) {
 			if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
 				if countCrossUpperOnBody(mid.Bands[bandLen-4:]) > 1 && isHasBadBand(mid.Bands[bandLen-2:]) {
@@ -2056,6 +2074,22 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
+			if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+				if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-2]) && isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+					log.Println("32")
+					return false
+				}
+			}
+
+			if long.AllTrend.SecondTrend == models.TREND_DOWN && long.AllTrend.ShortTrend != models.TREND_UP {
+				if long.Position == models.BELOW_SMA && long.PriceChanges > 20 {
+					if mid.Position == models.BELOW_SMA {
+						log.Println("33")
+						return false
+					}
+				}
+			}
+
 			// need to consider: case long down from upper, known case 1.
 
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
@@ -2094,14 +2128,15 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 }
 
 func isPreviousBandTripleHeigh(bands []models.Band) bool {
-	lastBand := bands[len(bands)-2]
+	index := getIndexPreviousBand(bands)
+	lastBand := bands[len(bands)-index]
 	lastBandHeight := lastBand.Candle.Close - lastBand.Candle.Open
 	if lastBandHeight < 0 {
 		return false
 	}
 
 	var higestHeigh float32 = 0
-	for _, band := range bands[len(bands)-6 : len(bands)-2] {
+	for _, band := range bands[len(bands)-(4+index) : len(bands)-index] {
 		high := band.Candle.Close - band.Candle.Open
 		if high > higestHeigh {
 			higestHeigh = high
@@ -2109,6 +2144,19 @@ func isPreviousBandTripleHeigh(bands []models.Band) bool {
 	}
 
 	return higestHeigh*2.5 < lastBandHeight
+}
+
+func getIndexPreviousBand(bands []models.Band) int {
+	lastBand := bands[len(bands)-2]
+	lastBandHeight := lastBand.Candle.Close - lastBand.Candle.Open
+	if lastBandHeight < 0 {
+		lastBand := bands[len(bands)-2]
+		lastBandHeight := lastBand.Candle.Close - lastBand.Candle.Open
+		if lastBandHeight > 0 {
+			return 3
+		}
+	}
+	return 2
 }
 
 func isUpperHeadMoreThanUpperBody(band models.Band) bool {
