@@ -22,16 +22,17 @@ func StartCryptoWorker() {
 
 	for {
 		currentTime := time.Now()
+		second := time.Now().Second()
+
 		if !isMuted() {
 			log.Println("executing")
 			strategy.Execute(currentTime)
 		}
 
-		if isTimeToUpdateVolume(currentTime) {
+		if isTimeToUpdateVolume(currentTime) && second < 20 {
 			updateVolumeChan <- true
 		}
 
-		second := time.Now().Second()
 		if second >= 30 {
 			second -= 30
 		}
