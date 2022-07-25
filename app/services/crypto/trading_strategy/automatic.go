@@ -53,6 +53,10 @@ func (ats *AutomaticTradingStrategy) Shutdown() {
 
 func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time) bool {
 	minute := currentTime.Minute()
+	if currentTime.Second() > 25 {
+		return false
+	}
+
 	var listMinutes []int = []int{15, 30, 45, 0}
 	for _, a := range listMinutes {
 		if a == minute {
@@ -141,7 +145,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	//percent := float64(countTrendUp) / float64(LIMIT_COIN_CHECK) * float64(100)
-	result := float64(20 * 30 / 100)
+	result := float64(20 * 75 / 100)
 	checkOnTrendUpLimit = int(math.Ceil(float64(result)))
 }
 
@@ -213,8 +217,6 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*model
 		if analysis.IgnoredOnUpTrendLong(*resultLong, *resultMid, coin, altCheckingTime) {
 			continue
 		}
-
-		return &coin
 	}
 
 	return nil
