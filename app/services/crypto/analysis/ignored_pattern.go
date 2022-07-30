@@ -2093,10 +2093,8 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 			if long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
 				if countCrossUpper(long.Bands[bandLen-4:]) > 1 && countBadBands(long.Bands[bandLen-4:]) > 2 {
 					if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
-						if short.Position == models.ABOVE_UPPER && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
-							log.Println("34")
-							return false
-						}
+						log.Println("34")
+						return false
 					}
 				}
 			}
@@ -2116,6 +2114,40 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 						}
 					}
 				}
+
+				if countCrossUpper(long.Bands[bandLen-4:]) > 1 && long.Position != models.ABOVE_UPPER {
+					if mid.AllTrend.SecondTrend == models.TREND_DOWN && mid.Position != models.ABOVE_UPPER {
+						if short.Position != models.ABOVE_UPPER {
+							log.Println("37")
+							return false
+						}
+					}
+				}
+			}
+
+			if isHasOpenCloseAboveUpper(long.Bands[bandLen-3:]) && isHasBadBand(long.Bands[bandLen-3:]) {
+				if countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 0 && countBadBands(mid.Bands[bandLen-4:]) > 2 {
+					if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 0 && countBadBands(short.Bands[bandLen-4:]) > 2 {
+						log.Println("38")
+						return false
+					}
+				}
+			}
+
+			if byTurns(long.Bands[bandLen-4:]) && isHasBandDownFromUpper(long.Bands[bandLen-4:]) {
+				if countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+					log.Println("39")
+					return false
+				}
+			}
+
+			if long.AllTrend.FirstTrend == models.TREND_UP && long.AllTrend.SecondTrend == models.TREND_UP {
+				if long.AllTrend.ShortTrend == models.TREND_UP && countCrossUpper(long.Bands[bandLen-4:]) == 0 {
+					if countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+						log.Println("40")
+						return false
+					}
+				}
 			}
 
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
@@ -2128,6 +2160,29 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 	}
 
 	return false
+}
+
+func byTurns(bands []models.Band) bool {
+	swithcer := false
+	if bands[0].Candle.Open < bands[0].Candle.Close {
+		swithcer = true
+	}
+
+	for _, band := range bands {
+		if swithcer {
+			if band.Candle.Open > band.Candle.Close {
+				return false
+			}
+			swithcer = false
+		} else {
+			if band.Candle.Open < band.Candle.Close {
+				return false
+			}
+			swithcer = true
+		}
+	}
+
+	return true
 }
 
 func isHourInChangesLong(currentHour int) bool {
