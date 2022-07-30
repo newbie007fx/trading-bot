@@ -2143,7 +2143,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 
 			if long.AllTrend.FirstTrend == models.TREND_UP && long.AllTrend.SecondTrend == models.TREND_UP {
 				if long.AllTrend.ShortTrend == models.TREND_UP && countCrossUpper(long.Bands[bandLen-4:]) == 0 {
-					if countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+					if countCrossUpperOnBody(mid.Bands[bandLen-4:]) <= 1 && countCrossUpperOnBody(short.Bands[bandLen-4:]) <= 1 {
 						log.Println("40")
 						return false
 					}
