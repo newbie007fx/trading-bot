@@ -2071,6 +2071,20 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 						log.Println("31")
 						return false
 					}
+
+					if short.Position == models.ABOVE_UPPER && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+						if long.AllTrend.FirstTrend == models.TREND_UP && long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
+							log.Println("31.1")
+							return false
+						}
+					}
+				}
+
+				if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) > 1 && isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) {
+					if short.Position == models.ABOVE_UPPER {
+						log.Println("31.2")
+						return false
+					}
 				}
 			}
 
@@ -2142,9 +2156,27 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 			}
 
 			if long.AllTrend.FirstTrend == models.TREND_UP && long.AllTrend.SecondTrend == models.TREND_UP {
-				if long.AllTrend.ShortTrend == models.TREND_UP && countCrossUpper(long.Bands[bandLen-4:]) == 0 {
-					if countCrossUpperOnBody(mid.Bands[bandLen-4:]) <= 1 && countCrossUpperOnBody(short.Bands[bandLen-4:]) <= 1 {
-						log.Println("40")
+				if long.AllTrend.ShortTrend == models.TREND_UP && countCrossUpperOnBody(long.Bands[bandLen-4:]) == 0 {
+					if countCrossUpperOnBody(mid.Bands[bandLen-4:]) <= 1 {
+						if countCrossUpperOnBody(short.Bands[bandLen-4:]) <= 1 || isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+							log.Println("40")
+							return false
+						}
+					}
+				}
+
+				if long.AllTrend.ShortTrend != models.TREND_UP && countBadBands(long.Bands[bandLen-4:]) > 2 {
+					if countBadBands(mid.Bands[bandLen-4:]) > 2 && countBadBands(short.Bands[bandLen-4:]) > 2 {
+						log.Println("41")
+						return false
+					}
+				}
+			}
+
+			if long.AllTrend.SecondTrend == models.TREND_DOWN {
+				if mid.AllTrend.SecondTrend == models.TREND_DOWN && mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+					if short.AllTrend.Trend != models.TREND_UP && short.Position == models.ABOVE_UPPER && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+						log.Println("42")
 						return false
 					}
 				}
