@@ -2165,11 +2165,9 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 
 			if isHasOpenCloseAboveUpper(long.Bands[bandLen-3:]) {
 				if isHasBadBand(long.Bands[bandLen-3:]) {
-					if countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 0 && countBadBands(mid.Bands[bandLen-4:]) > 2 {
-						if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 0 && countBadBands(short.Bands[bandLen-4:]) > 2 {
-							log.Println("38")
-							return false
-						}
+					if countCrossUpperOnBody(mid.Bands[bandLen-4:]) <= 1 && countBadBands(mid.Bands[bandLen-4:]) > 2 {
+						log.Println("38")
+						return false
 					}
 				}
 				if countAboveUpper(long.Bands[bandLen-3:]) > 1 {
@@ -2253,6 +2251,39 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 					if countBadBands(mid.Bands[bandLen-4:]) > 2 && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
 						log.Println("45")
 						return false
+					}
+				}
+
+				if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+					if long.Position == models.ABOVE_UPPER && countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1 {
+						if countBandPercentChangesMoreThan(short.Bands[bandLen-1:], 5) == 0 {
+							if countBandPercentChangesMoreThan(mid.Bands[bandLen-1:], 5) == 0 {
+								if countBandPercentChangesMoreThan(long.Bands[bandLen-1:], 5) == 0 {
+									log.Println("46")
+									return false
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+				if mid.AllTrend.FirstTrend == models.TREND_UP && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+					if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+						log.Println("47")
+						return false
+					}
+				}
+			}
+
+			if long.AllTrend.SecondTrend == models.TREND_DOWN && long.Position == models.ABOVE_SMA {
+				if isHasCrossSMA(long.Bands[bandLen-1:], true) {
+					if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+						if short.Position == models.ABOVE_UPPER && (countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 || isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1])) {
+							log.Println("48")
+							return false
+						}
 					}
 				}
 			}
