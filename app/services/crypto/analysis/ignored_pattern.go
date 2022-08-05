@@ -2190,10 +2190,19 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 			}
 
 			if long.AllTrend.FirstTrend == models.TREND_UP && long.AllTrend.SecondTrend == models.TREND_UP {
-				if long.AllTrend.ShortTrend == models.TREND_UP && countCrossUpperOnBody(long.Bands[bandLen-4:]) == 0 {
-					if countCrossUpperOnBody(mid.Bands[bandLen-4:]) <= 1 {
-						if countCrossUpperOnBody(short.Bands[bandLen-4:]) <= 1 || isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
-							log.Println("40")
+				if long.AllTrend.ShortTrend == models.TREND_UP {
+					if countCrossUpperOnBody(long.Bands[bandLen-4:]) == 0 {
+						if countCrossUpperOnBody(mid.Bands[bandLen-4:]) <= 1 {
+							if countCrossUpperOnBody(short.Bands[bandLen-4:]) <= 1 || isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+								log.Println("40")
+								return false
+							}
+						}
+					}
+
+					if short.Position == models.ABOVE_UPPER && isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+						if isHasBandDownFromUpper(short.Bands[bandLen-4:]) {
+							log.Println("40.1")
 							return false
 						}
 					}
@@ -2268,11 +2277,13 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
-			if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
-				if mid.AllTrend.FirstTrend == models.TREND_UP && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
-					if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
-						log.Println("47")
-						return false
+			if countCrossUpperOnBody(long.Bands[bandLen-4:]) <= 1 || (isHasBandDownFromUpper(long.Bands[bandLen-4:]) || isHasOpenCloseAboveUpper(long.Bands[bandLen-4:])) {
+				if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+					if mid.AllTrend.FirstTrend == models.TREND_UP && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+						if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+							log.Println("47")
+							return false
+						}
 					}
 				}
 			}

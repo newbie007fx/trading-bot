@@ -673,10 +673,15 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 			return true
 		}
 
+		// sell on time complete or percent more than 5 and short cross upper one or more than one but upper head more than upper body or open close above upper: 1
 		if countHeadMoreThanBody(longInterval.Bands[len(longInterval.Bands)-3:]) > 1 {
-			if shortInterval.Position == models.ABOVE_UPPER && midInterval.Position == models.ABOVE_UPPER && changesInPercent > 3 {
-				reason = "head more than body more than 1"
-				return true
+			if shortInterval.Position == models.ABOVE_UPPER && midInterval.Position == models.ABOVE_UPPER {
+				if countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) == 1 && (countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) > 1 && (isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) || isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-4:]))) {
+					if (changesInPercent > 3 && minute%15 == 0) || changesInPercent > 5 {
+						reason = "head more than body more than 1"
+						return true
+					}
+				}
 			}
 		}
 
@@ -750,10 +755,13 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 			}
 		}
 
+		//vote add limit on time complete 3 or percent lebih dari 5 = 2
 		if midInterval.Position == models.ABOVE_UPPER && (countCrossUpperOnBody(midInterval.Bands[bandLen-4:]) == 1 || isHasBandDownFromUpper(midInterval.Bands[bandLen-2:])) {
-			if (isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) || isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1])) && changesInPercent > 3 {
-				reason = "contain open close above upper"
-				return true
+			if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-1:]) || isUpperHeadMoreThanUpperBody(shortInterval.Bands[bandLen-1]) {
+				if (changesInPercent > 3 && minute%15 == 0) || changesInPercent > 5 {
+					reason = "contain open close above upper"
+					return true
+				}
 			}
 		}
 
