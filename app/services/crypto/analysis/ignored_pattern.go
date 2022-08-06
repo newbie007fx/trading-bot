@@ -2130,7 +2130,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 
 			if long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
 				if countCrossUpper(long.Bands[bandLen-4:]) > 1 && countBadBands(long.Bands[bandLen-4:]) > 2 {
-					if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+					if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 && countCrossUpper(mid.Bands[bandLen-5:bandLen-1]) >= 1 {
 						log.Println("34")
 						return false
 					}
@@ -2204,6 +2204,15 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 						if isHasBandDownFromUpper(short.Bands[bandLen-4:]) {
 							log.Println("40.1")
 							return false
+						}
+					}
+
+					if isHasOpenCloseAboveUpper(long.Bands[bandLen-4:]) || isHasBandDownFromUpper(long.Bands[bandLen-4:]) {
+						if countBadBands(mid.Bands[bandLen-4:]) > 2 {
+							if short.Position == models.ABOVE_UPPER && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 && shortLastBandPercent < 5 {
+								log.Println("40.2")
+								return false
+							}
 						}
 					}
 				}
