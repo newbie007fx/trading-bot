@@ -1825,7 +1825,7 @@ func countBadBands(bands []models.Band) int {
 func longSignificanUpAndJustOne(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	lastPercent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
-	var threshold float32 = 3.5
+	var threshold float32 = 3.25
 	if lastPercent >= 7 {
 		threshold = lastPercent / 2
 	}
@@ -1895,7 +1895,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				return false
 			}
 
-			if isHasOpenCloseAboveUpper(short.Bands[bandLen-4:]) {
+			if isHasOpenCloseAboveUpper(short.Bands[bandLen-1:]) {
 				log.Println("3")
 				return false
 			}
@@ -2272,8 +2272,10 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 					}
 				}
 
+				longPercentFromUpper := (long.Bands[bandLen-1].Upper - float64(long.Bands[bandLen-1].Candle.Close)) / float64(long.Bands[bandLen-1].Candle.Close) * 100
 				if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
-					if long.Position == models.ABOVE_UPPER && countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1 {
+					if (long.Position == models.ABOVE_UPPER && countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1) || (long.Position != models.ABOVE_UPPER && countCrossUpperOnBody(long.Bands[bandLen-4:]) == 0 && longPercentFromUpper < 2) {
+						log.Println("telo")
 						if countBandPercentChangesMoreThan(short.Bands[bandLen-1:], 5) == 0 {
 							if countBandPercentChangesMoreThan(mid.Bands[bandLen-1:], 5) == 0 {
 								if countBandPercentChangesMoreThan(long.Bands[bandLen-1:], 5) == 0 {
@@ -2304,6 +2306,15 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 							log.Println("48")
 							return false
 						}
+					}
+				}
+			}
+
+			if long.Position == models.ABOVE_UPPER && countCrossUpperOnBody(long.Bands[bandLen-4:]) > 1 && isUpperHeadMoreThanUpperBody(long.Bands[bandLen-1]) {
+				if mid.Position == models.ABOVE_UPPER {
+					if short.Position == models.ABOVE_UPPER && (countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 || isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1])) {
+						log.Println("49")
+						return false
 					}
 				}
 			}
