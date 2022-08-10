@@ -1992,7 +1992,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 
 			minute := currentTime.Minute()
 			hour := currentTime.Hour()
-			if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 || countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+			if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 || (countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 0) {
 				if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
 					if isHourInChangesLong(hour) && (minute > 55 || minute < 5) {
 						log.Println("19")
@@ -2075,15 +2075,6 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				if mid.Position == models.ABOVE_UPPER && countCrossUpper(mid.Bands[bandLen-4:]) == 1 {
 					if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
 						log.Println("29")
-						return false
-					}
-				}
-			}
-
-			if mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
-				if countCrossUpper(mid.Bands[bandLen-4:]) > 1 && countCrossUpper(long.Bands[bandLen-4:]) > 1 {
-					if CalculateTrendShort(mid.Bands[bandLen-5:bandLen-1]) == models.TREND_UP && CalculateTrendShort(long.Bands[bandLen-5:bandLen-1]) == models.TREND_UP {
-						log.Println("30")
 						return false
 					}
 				}
@@ -2325,6 +2316,10 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
+			if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+				log.Println("telo")
+			}
+
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
 				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) {
 					return true
@@ -2419,7 +2414,7 @@ func isUpperHeadMoreThanUpperBody(band models.Band) bool {
 	allBody := band.Candle.Close - band.Candle.Open
 	head := band.Candle.Close - float32(band.Upper)
 	percent := head / allBody * 100
-	return percent > 52
+	return percent > 51
 }
 
 func countBandPercentChangesMoreThan(bands []models.Band, percent float32) int {
