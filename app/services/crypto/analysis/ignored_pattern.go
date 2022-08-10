@@ -2130,9 +2130,16 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 
 			if long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
 				if countCrossUpper(long.Bands[bandLen-4:]) > 1 && countBadBands(long.Bands[bandLen-4:]) > 2 {
-					if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 && countCrossUpper(mid.Bands[bandLen-5:bandLen-1]) >= 1 {
+					if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
 						log.Println("34")
 						return false
+					}
+
+					if short.Position == models.ABOVE_UPPER && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+						if countCrossUpper(short.Bands[bandLen-4:]) > 1 && countBadBands(short.Bands[bandLen-4:]) > 1 {
+							log.Println("34.1")
+							return false
+						}
 					}
 				}
 			}
@@ -2275,7 +2282,6 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				longPercentFromUpper := (long.Bands[bandLen-1].Upper - float64(long.Bands[bandLen-1].Candle.Close)) / float64(long.Bands[bandLen-1].Candle.Close) * 100
 				if mid.Position == models.ABOVE_UPPER && countCrossUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
 					if (long.Position == models.ABOVE_UPPER && countCrossUpperOnBody(long.Bands[bandLen-4:]) == 1) || (long.Position != models.ABOVE_UPPER && countCrossUpperOnBody(long.Bands[bandLen-4:]) == 0 && longPercentFromUpper < 2) {
-						log.Println("telo")
 						if countBandPercentChangesMoreThan(short.Bands[bandLen-1:], 5) == 0 {
 							if countBandPercentChangesMoreThan(mid.Bands[bandLen-1:], 5) == 0 {
 								if countBandPercentChangesMoreThan(long.Bands[bandLen-1:], 5) == 0 {
