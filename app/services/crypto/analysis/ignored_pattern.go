@@ -1830,7 +1830,7 @@ func longSignificanUpAndJustOne(bands []models.Band) bool {
 		threshold = lastPercent / 2
 	}
 
-	if lastPercent > threshold && countBandPercentChangesMoreThan(bands[len(bands)-4:], threshold-(threshold/7)) == 1 {
+	if lastPercent > threshold && countBandPercentChangesMoreThan(bands[len(bands)-4:], threshold-(threshold/8)) == 1 {
 		return true
 	}
 
@@ -1883,6 +1883,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 	bandLen := len(long.Bands)
 	shortLastBandPercent := (short.Bands[bandLen-1].Candle.Close - short.Bands[bandLen-1].Candle.Open) / short.Bands[bandLen-1].Candle.Open * 100
 	if (bandDoublePreviousHigh(short.Bands, 2.3) || bandDoublePreviousHigh(mid.Bands, 2.5)) && mid.AllTrend.ShortTrend == models.TREND_UP {
+		log.Println("masok")
 		if longSignificanUpAndJustOne(mid.Bands) {
 			if !isHasBadBand(short.Bands[bandLen-1:]) && shortLastBandPercent > 5 && countBandPercentChangesMoreThan(short.Bands[:bandLen-1], 1) == 0 {
 				if !isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) && !isUpperHeadMoreThanUpperBody(long.Bands[bandLen-1]) {
@@ -2060,7 +2061,7 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 					}
 				}
 
-				if countBadBands(long.Bands[bandLen-4:]) > 2 && isHasCrossUpper(long.Bands[bandLen-7:], false) {
+				if countBadBands(long.Bands[bandLen-4:]) > 2 && isHasCrossUpper(long.Bands[bandLen-7:bandLen-4], false) {
 					if short.Position == models.ABOVE_UPPER {
 						if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
 							log.Println("25.1")
