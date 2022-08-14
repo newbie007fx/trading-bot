@@ -1883,12 +1883,15 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 	bandLen := len(long.Bands)
 	shortLastBandPercent := (short.Bands[bandLen-1].Candle.Close - short.Bands[bandLen-1].Candle.Open) / short.Bands[bandLen-1].Candle.Open * 100
 	if (bandDoublePreviousHigh(short.Bands, 2.3) || bandDoublePreviousHigh(mid.Bands, 2.5)) && mid.AllTrend.ShortTrend == models.TREND_UP {
-		log.Println("masok")
 		if longSignificanUpAndJustOne(mid.Bands) {
 			if !isHasBadBand(short.Bands[bandLen-1:]) && shortLastBandPercent > 5 && countBandPercentChangesMoreThan(short.Bands[:bandLen-1], 1) == 0 {
-				if !isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) && !isUpperHeadMoreThanUpperBody(long.Bands[bandLen-1]) {
-					log.Println("gas wae 1")
-					return true
+				if countCrossUpperOnBody(mid.Bands[:bandLen-1]) == 0 && countCrossUpperOnBody(short.Bands[:bandLen-1]) == 0 {
+					if mid.Position == models.ABOVE_UPPER || long.Position == models.ABOVE_UPPER {
+						if !isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) && !isUpperHeadMoreThanUpperBody(long.Bands[bandLen-1]) {
+							log.Println("gas wae 1")
+							return true
+						}
+					}
 				}
 			}
 
