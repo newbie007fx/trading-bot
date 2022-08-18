@@ -2369,6 +2369,20 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 						return false
 					}
 				}
+
+				if countBadBands(mid.Bands[bandLen-3:]) >= 2 {
+					if countBadBands(short.Bands[bandLen-4:]) > 2 && isHasBandDownFromUpper(short.Bands[bandLen-4:]) {
+						log.Println("51.2")
+						return false
+					}
+				}
+			}
+
+			if long.Bands[bandLen-1].Candle.Low < float32(long.Bands[bandLen-1].Lower) && long.Bands[bandLen-1].Candle.Close < float32(long.Bands[bandLen-1].Upper) {
+				if isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+					log.Println("52")
+					return false
+				}
 			}
 
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
