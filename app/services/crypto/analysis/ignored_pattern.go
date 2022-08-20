@@ -2385,6 +2385,15 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
+			if long.AllTrend.Trend == models.TREND_DOWN && long.Position == models.ABOVE_SMA && isHasCrossSMA(long.Bands[bandLen-1:], true) {
+				if countCrossSMA(long.Bands[bandLen-5:bandLen-1]) == 0 && countAboveSMA(long.Bands[bandLen-5:]) == 0 {
+					if isUpperHeadMoreThanUpperBody(midLastBand) && isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+						log.Println("53")
+						return false
+					}
+				}
+			}
+
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
 				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) {
 					return true
