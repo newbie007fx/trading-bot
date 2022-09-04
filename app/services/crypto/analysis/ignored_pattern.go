@@ -1897,6 +1897,18 @@ func isAllAboveUpperAndJustOne(short, mid, long models.BandResult) bool {
 	return true
 }
 
+func isAllIntervalHasUpTrend(short, mid, long models.BandResult) bool {
+	if short.AllTrend.FirstTrend == models.TREND_UP || short.AllTrend.SecondTrend == models.TREND_UP {
+		if mid.AllTrend.FirstTrend == models.TREND_UP || mid.AllTrend.SecondTrend == models.TREND_UP {
+			if long.AllTrend.FirstTrend == models.TREND_UP || long.AllTrend.SecondTrend == models.TREND_UP {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long models.BandResult, currentTime time.Time) bool {
 	bandLen := len(long.Bands)
 	shortLastBandPercent := (short.Bands[bandLen-1].Candle.Close - short.Bands[bandLen-1].Candle.Open) / short.Bands[bandLen-1].Candle.Open * 100
@@ -1904,17 +1916,19 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 		if longSignificanUpAndJustOne(mid.Bands) {
 
 			if !isHeadPercentMoreThan(short.Bands[bandLen-1], 60) {
-				if !(isHourInChangesLong(currentTime.Hour()) && isAllAboveUpperAndJustOne(short, mid, long)) {
-					if countBandPercentChangesMoreThan(mid.Bands[bandLen/2:bandLen-1], 1) > 0 || countBandPercentChangesMoreThan(long.Bands[bandLen-5:bandLen-1], 1) > 0 {
-						if !(long.AllTrend.SecondTrend == models.TREND_DOWN && isHasCrossLower(long.Bands[bandLen-2:bandLen-1], false) && long.Position != models.ABOVE_UPPER) {
-							if !isHasBadBand(short.Bands[bandLen-1:]) && shortLastBandPercent > 3.2 && countBandPercentChangesMoreThan(short.Bands[:bandLen-1], 1) == 0 {
-								if countCrossUpperOnBody(mid.Bands[:bandLen-1]) == 0 && countCrossUpperOnBody(short.Bands[:bandLen-1]) == 0 {
-									if mid.Position == models.ABOVE_UPPER || long.Position == models.ABOVE_UPPER {
-										if !(isHasCrossLower(short.Bands[bandLen-3:], false) && isHasCrossLower(mid.Bands[bandLen-2:], false) && long.Position == models.ABOVE_SMA && isHasCrossSMA(long.Bands[bandLen-1:], true) && countCrossSMA(long.Bands[bandLen-5:bandLen-1]) == 0 && countAboveSMA(long.Bands[bandLen-5:bandLen-1]) == 0) {
-											if !(countBadBands(long.Bands[bandLen-4:]) > 2 && countBadBands(short.Bands[bandLen-4:]) > 2) {
-												if !isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) && !isUpperHeadMoreThanUpperBody(long.Bands[bandLen-1]) {
-													log.Println("gas wae 1")
-													return true
+				if isAllIntervalHasUpTrend(short, mid, long) {
+					if !(isHourInChangesLong(currentTime.Hour()) && isAllAboveUpperAndJustOne(short, mid, long)) {
+						if countBandPercentChangesMoreThan(mid.Bands[bandLen/2:bandLen-1], 1) > 0 || countBandPercentChangesMoreThan(long.Bands[bandLen-5:bandLen-1], 1) > 0 {
+							if !(long.AllTrend.SecondTrend == models.TREND_DOWN && isHasCrossLower(long.Bands[bandLen-2:bandLen-1], false) && long.Position != models.ABOVE_UPPER) {
+								if !isHasBadBand(short.Bands[bandLen-1:]) && shortLastBandPercent > 3.2 && countBandPercentChangesMoreThan(short.Bands[:bandLen-1], 1) == 0 {
+									if countCrossUpperOnBody(mid.Bands[:bandLen-1]) == 0 && countCrossUpperOnBody(short.Bands[:bandLen-1]) == 0 {
+										if mid.Position == models.ABOVE_UPPER || long.Position == models.ABOVE_UPPER {
+											if !(isHasCrossLower(short.Bands[bandLen-3:], false) && isHasCrossLower(mid.Bands[bandLen-2:], false) && long.Position == models.ABOVE_SMA && isHasCrossSMA(long.Bands[bandLen-1:], true) && countCrossSMA(long.Bands[bandLen-5:bandLen-1]) == 0 && countAboveSMA(long.Bands[bandLen-5:bandLen-1]) == 0) {
+												if !(countBadBands(long.Bands[bandLen-4:]) > 2 && countBadBands(short.Bands[bandLen-4:]) > 2) {
+													if !isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) && !isUpperHeadMoreThanUpperBody(long.Bands[bandLen-1]) {
+														log.Println("gas wae 1")
+														return true
+													}
 												}
 											}
 										}
@@ -2482,6 +2496,28 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 					if short.Position == models.ABOVE_UPPER && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
 						log.Println("61")
 						return false
+					}
+				}
+			}
+
+			if mid.Position == models.ABOVE_UPPER || long.Position == models.ABOVE_UPPER || mid.AllTrend.ShortTrend != models.TREND_UP || long.AllTrend.ShortTrend != models.TREND_UP {
+				if short.AllTrend.FirstTrend == models.TREND_DOWN || short.AllTrend.SecondTrend == models.TREND_DOWN {
+					if mid.AllTrend.FirstTrend == models.TREND_DOWN || mid.AllTrend.SecondTrend == models.TREND_DOWN {
+						if long.AllTrend.FirstTrend == models.TREND_DOWN || long.AllTrend.SecondTrend == models.TREND_DOWN {
+							log.Println("62")
+							return false
+						}
+					}
+				}
+			}
+
+			if long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
+				if countBadBands(long.Bands[bandLen-4:]) > 2 {
+					if countBadBands(mid.Bands[bandLen-4:]) > 2 || mid.AllTrend.SecondTrend != models.TREND_UP {
+						if short.Position == models.ABOVE_UPPER && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+							log.Println("63")
+							return false
+						}
 					}
 				}
 			}

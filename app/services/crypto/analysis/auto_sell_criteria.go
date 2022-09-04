@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -821,7 +822,23 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 				return true
 			}
 		}
+
+		if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-2:bandLen-1]) && isHasBadBand(shortInterval.Bands[bandLen-2:bandLen-1]) {
+			if changesInPercent > 3 {
+				reason = "mid upper head more than body, short contain open close above upper and bad band"
+				return true
+			}
+		}
+
+		if isHasOpenCloseAboveUpper(shortInterval.Bands[bandLen-3:bandLen-2]) && isHasBadBand(shortInterval.Bands[bandLen-3:bandLen-2]) {
+			if changesInPercent > 3 {
+				reason = "mid upper head more than body, short contain open close above upper and bad band2"
+				return true
+			}
+		}
 	}
+
+	log.Println(changesInPercent)
 
 	return false
 }
