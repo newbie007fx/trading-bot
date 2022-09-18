@@ -252,6 +252,17 @@ func countCrossUpper(bands []models.Band) int {
 	return count
 }
 
+func countHighAboveUpper(bands []models.Band) int {
+	count := 0
+	for _, data := range bands {
+		if data.Candle.Hight > float32(data.Upper) && (data.Candle.Open < float32(data.Upper) || data.Candle.Close < float32(data.Upper)) {
+			count++
+		}
+	}
+
+	return count
+}
+
 func countCrossUpperOnBody(bands []models.Band) int {
 	count := 0
 	for _, data := range bands {
@@ -2528,6 +2539,31 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 						log.Println("64")
 						return false
 					}
+				}
+			}
+
+			if long.Position == models.ABOVE_UPPER && isHasBadBand(long.Bands[bandLen-2:bandLen-1]) {
+				if mid.Position == models.ABOVE_UPPER && isHasBandDownFromUpper(mid.Bands[bandLen-4:]) {
+					if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+						log.Println("65")
+						return false
+					}
+				}
+			}
+
+			if isHasCrossSMA(long.Bands[bandLen-1:], true) {
+				if isUpperHeadMoreThanUpperBody(mid.Bands[bandLen-1]) {
+					if countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 || (isHasCrossUpper(short.Bands[bandLen-2:bandLen-1], true) && isHasBadBand(short.Bands[bandLen-2:bandLen-1])) {
+						log.Println("66")
+						return false
+					}
+				}
+			}
+
+			if mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+				if countHighAboveUpper(mid.Bands[bandLen-4:]) > 1 && countBadBands(mid.Bands[bandLen-4:]) > 2 {
+					log.Println("67")
+					return false
 				}
 			}
 
