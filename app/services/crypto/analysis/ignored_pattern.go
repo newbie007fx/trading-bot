@@ -2605,6 +2605,33 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
+			if long.Position == models.ABOVE_SMA && long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
+				if mid.Position == models.ABOVE_SMA && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+					if short.Position == models.ABOVE_SMA && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+						if countBadBands(long.Bands[bandLen-4:]) > 2 {
+							log.Println("71")
+							return false
+						}
+					}
+				}
+			}
+
+			if isHasBandDownFromUpper(long.Bands[bandLen-2:]) {
+				if mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+					if short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+						if short.Position == models.ABOVE_SMA || countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+							log.Println("72")
+							return false
+						}
+					}
+				}
+			}
+
+			if isHasOpenCloseAboveUpper(long.Bands[bandLen-1:]) && isHasBadBand(long.Bands[bandLen-2:]) {
+				log.Println("73")
+				return false
+			}
+
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
 				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) {
 					return true
