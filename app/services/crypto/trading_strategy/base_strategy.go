@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const LIMIT_COIN_CHECK int = 80
+const LIMIT_COIN_CHECK int = 60
 
 var countTrendUp int = 0
 var checkOnTrendUpLimit int = 25

@@ -836,6 +836,15 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 				return true
 			}
 		}
+
+		if isHasOpenCloseAboveUpper(midInterval.Bands[bandLen-1:]) || isUpperHeadMoreThanUpperBody(midInterval.Bands[bandLen-1]) {
+			if shortInterval.Position == models.ABOVE_UPPER && countCrossUpperOnBody(shortInterval.Bands[bandLen-4:]) == 1 {
+				if changesInPercent > 5 {
+					reason = "mid has open close above upper and percent changes more than 5"
+					return true
+				}
+			}
+		}
 	}
 
 	log.Println(changesInPercent)

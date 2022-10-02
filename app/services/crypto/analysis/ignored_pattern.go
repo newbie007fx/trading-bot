@@ -2632,6 +2632,22 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				return false
 			}
 
+			if long.Position == models.ABOVE_SMA && !isHasCrossUpper(long.Bands[bandLen-4:], false) && percentFromUpper(longLastBand) < 4 {
+				if isHasBandDownFromUpper(mid.Bands[bandLen-4:]) {
+					if short.Position == models.ABOVE_UPPER && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+						log.Println("74")
+						return false
+					}
+				}
+			}
+
+			if long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_DOWN {
+				if !isHasCrossUpper(mid.Bands[bandLen-4:], true) && !isHasCrossUpper(short.Bands[bandLen-4:], true) {
+					log.Println("75")
+					return false
+				}
+			}
+
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
 				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) {
 					return true
@@ -2642,6 +2658,10 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 	}
 
 	return false
+}
+
+func percentFromUpper(band models.Band) float32 {
+	return (float32(band.Upper) - band.Candle.Close) / band.Candle.Close * 100
 }
 
 func byTurns(bands []models.Band) bool {
