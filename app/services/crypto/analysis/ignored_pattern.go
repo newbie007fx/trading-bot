@@ -1836,8 +1836,8 @@ func countBadBands(bands []models.Band) int {
 func longSignificanUpAndJustOne(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	lastPercent := (lastBand.Candle.Close - lastBand.Candle.Open) / lastBand.Candle.Open * 100
-	var threshold float32 = 3.2
-	if lastPercent >= 7 {
+	var threshold float32 = 2.5
+	if lastPercent >= 5.5 {
 		threshold = lastPercent / 2
 	}
 
