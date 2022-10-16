@@ -8,7 +8,6 @@ import (
 func IsIgnored(result *models.BandResult, requestTime time.Time) bool {
 	lastBand := result.Bands[len(result.Bands)-1]
 	percentFromUpper := (lastBand.Upper - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
-	//percentFromSMA := (lastBand.SMA - float64(lastBand.Candle.Close)) / float64(lastBand.Candle.Close) * 100
 
 	if lastBandHeadDoubleBody(result) {
 		if lastBand.Candle.Close > float32(lastBand.SMA) || (result.AllTrend.ShortTrend == models.TREND_DOWN && lastBand.Candle.Close < float32(lastBand.SMA)) {

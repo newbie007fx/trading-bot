@@ -71,7 +71,6 @@ func ProcessTeleWebhook(c echo.Context) error {
 				} else {
 					crypto.SetBalance(100)
 					responseMsg = "mode berhasil diset lur"
-					//jobs.ChangeStrategy()
 				}
 			}
 		}

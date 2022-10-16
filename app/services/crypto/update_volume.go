@@ -18,7 +18,6 @@ func updateVolume() {
 
 	responseChan := make(chan CandleResponse)
 
-	//var limit *int = getLimit()
 	var order string = "price_changes desc"
 
 	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil, &order)

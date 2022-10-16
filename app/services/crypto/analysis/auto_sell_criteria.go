@@ -851,9 +851,3 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 
 	return false
 }
-
-func bodyPercent(band models.Band) float32 {
-	body := band.Candle.Close - band.Candle.Open
-
-	return body / band.Candle.Open * 100
-}
