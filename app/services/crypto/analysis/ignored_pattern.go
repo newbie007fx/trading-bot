@@ -952,7 +952,7 @@ func isAllIntervalHasUpTrend(short, mid, long models.BandResult) bool {
 func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long models.BandResult, currentTime time.Time) bool {
 	bandLen := len(long.Bands)
 	shortLastBandPercent := (short.Bands[bandLen-1].Candle.Close - short.Bands[bandLen-1].Candle.Open) / short.Bands[bandLen-1].Candle.Open * 100
-	if (bandDoublePreviousHigh(short.Bands, 2.3) || bandDoublePreviousHigh(mid.Bands, 2.5)) && mid.AllTrend.ShortTrend == models.TREND_UP {
+	if (bandDoublePreviousHigh(short.Bands, 2) || bandDoublePreviousHigh(mid.Bands, 2.2)) && mid.AllTrend.ShortTrend == models.TREND_UP {
 		if longSignificanUpAndJustOne(mid.Bands) {
 
 			longLastBand := long.Bands[bandLen-1]
