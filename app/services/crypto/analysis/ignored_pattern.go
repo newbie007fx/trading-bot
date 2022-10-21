@@ -245,7 +245,9 @@ func countCrossUpper(bands []models.Band) int {
 	count := 0
 	for _, data := range bands {
 		if data.Candle.Open <= float32(data.Upper) && data.Candle.Hight > float32(data.Upper) && (data.Candle.Close > data.Candle.Open) {
-			count++
+			if !isHasBadBand([]models.Band{data}) {
+				count++
+			}
 		}
 	}
 
@@ -267,7 +269,9 @@ func countCrossUpperOnBody(bands []models.Band) int {
 	count := 0
 	for _, data := range bands {
 		if data.Candle.Open <= float32(data.Upper) && data.Candle.Close >= float32(data.Upper) && (data.Candle.Close > data.Candle.Open) {
-			count++
+			if !isHasBadBand([]models.Band{data}) {
+				count++
+			}
 		}
 	}
 
@@ -1674,6 +1678,35 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				if !isHasCrossUpper(mid.Bands[bandLen-4:], true) && !isHasCrossUpper(short.Bands[bandLen-4:], true) {
 					log.Println("75")
 					return false
+				}
+			}
+
+			if mid.AllTrend.FirstTrend == models.TREND_DOWN && short.AllTrend.FirstTrend == models.TREND_DOWN {
+				if long.AllTrend.FirstTrend == models.TREND_DOWN {
+					if countCrossUpperOnBody(short.Bands[bandLen-5:]) == 1 && short.Position == models.ABOVE_UPPER {
+						if countCrossUpper(mid.Bands[bandLen-5:]) == 0 && countCrossUpper(long.Bands[bandLen-5:]) == 0 {
+							log.Println("76")
+							return false
+						}
+					}
+				}
+
+				if isUpperHeadMoreThanUpperBody(shortLastBand) && countCrossUpper(long.Bands[bandLen-5:]) == 0 {
+					if countCrossUpperOnBody(short.Bands[bandLen-5:]) == 1 && short.Position == models.ABOVE_UPPER {
+						if countCrossUpperOnBody(mid.Bands[bandLen-5:]) == 1 {
+							log.Println("77")
+							return false
+						}
+					}
+				}
+			}
+
+			if long.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && short.Position == models.ABOVE_UPPER {
+				if countCrossUpper(long.Bands[bandLen-4:]) == 1 && countBelowSMA(long.Bands[bandLen-4:], false) > 0 {
+					if countCrossUpper(mid.Bands[bandLen-4:]) == 1 {
+						log.Println("78")
+						return false
+					}
 				}
 			}
 
