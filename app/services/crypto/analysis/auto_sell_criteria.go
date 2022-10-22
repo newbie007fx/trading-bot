@@ -311,6 +311,16 @@ func countAboveSMA(bands []models.Band) int {
 	return count
 }
 
+func countAboveSMAStrict(bands []models.Band) int {
+	var count int = 0
+	for _, band := range bands {
+		if band.Candle.Low > float32(band.SMA) && band.Candle.Hight > float32(band.SMA) {
+			count++
+		}
+	}
+	return count
+}
+
 func countAboveUpper(bands []models.Band) int {
 	var count int = 0
 	for _, band := range bands {

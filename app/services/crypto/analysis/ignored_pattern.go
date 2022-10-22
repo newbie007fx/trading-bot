@@ -1710,6 +1710,16 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
+			midPercentFromUpper := (midLastBand.Upper - float64(midLastBand.Candle.Close)) / float64(midLastBand.Candle.Close) * 100
+			if isHasCrossSMA(long.Bands[bandLen-1:], true) && countAboveSMAStrict(long.Bands[bandLen-4:]) == 0 {
+				if midLastBand.Candle.Close < float32(midLastBand.Upper) && midPercentFromUpper < 3 {
+					if short.Position == models.ABOVE_UPPER && countCrossUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+						log.Println("79")
+						return false
+					}
+				}
+			}
+
 			if countBandPercentChangesMoreThan(short.Bands[len(short.Bands)-4:], 3) >= 1 {
 				if !isHasOpenCloseAboveUpper(short.Bands[len(short.Bands)-4:]) {
 					return true
