@@ -971,6 +971,15 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				}
 			}
 
+			if long.AllTrend.SecondTrend == models.TREND_DOWN && long.Position == models.BELOW_SMA {
+				if countCrossUpperOnBody(mid.Bands[bandLen-4:]) <= 1 {
+					if countCrossUpperOnBody(short.Bands[bandLen-4:]) <= 1 || isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
+						log.Println("before gas 2")
+						return false
+					}
+				}
+			}
+
 			if !isHeadPercentMoreThan(short.Bands[bandLen-1], 60) {
 				if isAllIntervalHasUpTrend(short, mid, long) {
 					if !(isHourInChangesLong(currentTime.Hour(), currentTime.Minute()) && isAllAboveUpperAndJustOne(short, mid, long)) {
@@ -1125,15 +1134,6 @@ func allIntervalCrossUpperOnBodyMoreThanThresholdAndJustOne(short, mid, long mod
 				if mid.AllTrend.SecondTrend == models.TREND_DOWN && long.AllTrend.ShortTrend != models.TREND_UP {
 					log.Println("21")
 					return false
-				}
-			}
-
-			if long.AllTrend.SecondTrend == models.TREND_DOWN && long.Position == models.BELOW_SMA {
-				if countCrossUpperOnBody(mid.Bands[bandLen-4:]) <= 1 {
-					if countCrossUpperOnBody(short.Bands[bandLen-4:]) <= 1 || isUpperHeadMoreThanUpperBody(short.Bands[bandLen-1]) {
-						log.Println("22")
-						return false
-					}
 				}
 			}
 
