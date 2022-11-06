@@ -334,7 +334,22 @@ func isHasUpperHeadMoreThanUpperBody(bands []models.Band) bool {
 	return false
 }
 
-func lastBandDoublePreviousHeigest(bands []models.Band) bool {
+func isLastBandHeighNotMoreThanTenTimesPreviousBands(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+	lastBandBodyHeight := lastBand.Candle.Close - lastBand.Candle.Open
+
+	var higestBody float32 = 0
+	for _, band := range bands[len(bands)-5 : len(bands)-1] {
+		bodyHeight := band.Candle.Close - band.Candle.Open
+		if bodyHeight > higestBody {
+			higestBody = bodyHeight
+		}
+	}
+
+	return higestBody*10 > lastBandBodyHeight
+}
+
+func isLastBandDoublePreviousHeigest(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	lastBandBodyHeight := lastBand.Candle.Close - lastBand.Candle.Open
 
@@ -399,13 +414,15 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 	shortLastBand := short.Bands[bandLen-1]
 	midLastBand := mid.Bands[bandLen-1]
 
-	if lastBandDoublePreviousHeigest(short.Bands) || lastBandDoublePreviousHeigest(mid.Bands) {
+	if isLastBandDoublePreviousHeigest(short.Bands) || isLastBandDoublePreviousHeigest(mid.Bands) {
 		if bandPercent(shortLastBand) > 3 || bandPercent(midLastBand) > 3 {
 
 			if short.AllTrend.ShortTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
 				if isCrossUpperNotBadBand(mid.Bands) && isCrossUpperNotBadBand(long.Bands) {
-					ignoredReason = "pattern 1"
-					return true
+					if isLastBandHeighNotMoreThanTenTimesPreviousBands(short.Bands) {
+						ignoredReason = "pattern 1"
+						return true
+					}
 				}
 
 				if mid.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.SecondTrend == models.TREND_UP {
