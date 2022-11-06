@@ -52,54 +52,6 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 	return holdCoin
 }
 
-func checkCryptoAltCoinPrice(baseTime time.Time) (map[string]*models.BandResult, []models.BandResult) {
-	log.Println("starting crypto check price for alt coin worker")
-
-	altCoin := []models.BandResult{}
-	allResults := map[string]*models.BandResult{}
-
-	endDate := GetEndDate(baseTime, OPERATION_BUY)
-
-	responseChan := make(chan crypto.CandleResponse)
-
-	countTrendUp = 0
-
-	limit := LIMIT_COIN_CHECK
-	condition := map[string]interface{}{"is_on_hold": false}
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, nil)
-
-	for _, data := range *currency_configs {
-		request := crypto.CandleRequest{
-			Symbol:       data.Symbol,
-			EndDate:      endDate,
-			Limit:        40,
-			Resolution:   "15m",
-			ResponseChan: responseChan,
-		}
-
-		result := crypto.MakeCryptoRequest(request)
-		if result == nil {
-			continue
-		}
-
-		allResults[result.Symbol] = result
-		if result.Direction == analysis.BAND_DOWN {
-			continue
-		}
-
-		if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP {
-			countTrendUp++
-		}
-
-		if !analysis.IsIgnored(result, baseTime) {
-			altCoin = append(altCoin, *result)
-		}
-
-	}
-
-	return allResults, altCoin
-}
-
 func checkCoinOnTrendUp(baseTime time.Time, previousResult map[string]*models.BandResult) []models.BandResult {
 	altCoin := []models.BandResult{}
 

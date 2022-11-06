@@ -301,26 +301,6 @@ func aboveSMAAndMidCrossUpper(resultShort, resultMid models.BandResult) bool {
 	return false
 }
 
-func countAboveSMA(bands []models.Band) int {
-	var count int = 0
-	for _, band := range bands {
-		if band.Candle.Open > float32(band.SMA) && band.Candle.Close > float32(band.SMA) {
-			count++
-		}
-	}
-	return count
-}
-
-func countAboveSMAStrict(bands []models.Band) int {
-	var count int = 0
-	for _, band := range bands {
-		if band.Candle.Low > float32(band.SMA) && band.Candle.Hight > float32(band.SMA) {
-			count++
-		}
-	}
-	return count
-}
-
 func countAboveUpper(bands []models.Band) int {
 	var count int = 0
 	for _, band := range bands {
@@ -354,17 +334,6 @@ func GetHigestHightPrice(bands []models.Band) float32 {
 	}
 
 	return highest
-}
-
-func getLowestPrice(bands []models.Band) float32 {
-	var lowest float32 = bands[0].Candle.Close
-	for _, band := range bands {
-		if lowest > band.Candle.Close {
-			lowest = band.Candle.Close
-		}
-	}
-
-	return lowest
 }
 
 func GetLowestLowPrice(bands []models.Band) float32 {

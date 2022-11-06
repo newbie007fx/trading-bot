@@ -131,9 +131,8 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 			if holdCount < maxHold {
 				if ok, resMsg := holdAndGenerateMessage(coin); ok {
 					msg += resMsg
-					if analysis.GetSkipped() {
-						msg += "skipped \n\n"
-					}
+					msg += "pattern: " + analysis.GetIgnoredReason() + " \n\n"
+
 					holdCount++
 				}
 			}
@@ -185,7 +184,7 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*model
 		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
 		resultMid := crypto.CheckCoin(coin.Symbol, "1h", 0, timeInMilli, coin.CurrentPrice, higest, lowest)
 
-		if resultMid.AllTrend.ShortTrend != models.TREND_UP || resultMid.Direction == analysis.BAND_DOWN {
+		if resultMid.Direction == analysis.BAND_DOWN {
 			continue
 		}
 
@@ -203,18 +202,6 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*model
 
 		if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime) {
 			return &coin
-		}
-
-		if analysis.IgnoredOnUpTrendShort(coin) {
-			continue
-		}
-
-		if analysis.IgnoredOnUpTrendMid(*resultMid, coin) {
-			continue
-		}
-
-		if analysis.IgnoredOnUpTrendLong(*resultLong, *resultMid, coin, altCheckingTime) {
-			continue
 		}
 	}
 

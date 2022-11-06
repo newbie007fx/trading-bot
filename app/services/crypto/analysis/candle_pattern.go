@@ -176,21 +176,6 @@ func IsDoji(band models.Band, isUp bool) bool {
 	return false
 }
 
-func secondAlgDoji(band models.Band) bool {
-	head := band.Candle.Hight - band.Candle.Close
-	body := (band.Candle.Close - band.Candle.Open)
-	percent := body / band.Candle.Open * 100
-	tail := band.Candle.Open - band.Candle.Low
-	if band.Candle.Close < band.Candle.Open {
-		head = band.Candle.Hight - band.Candle.Open
-		body = (band.Candle.Open - band.Candle.Close)
-		percent = body / band.Candle.Close * 100
-		tail = band.Candle.Close - band.Candle.Low
-	}
-
-	return percent < 0.31 && body*2 < head && body*2 < tail
-}
-
 func turnPattern(bands []models.Band) bool {
 	numberOfData := len(bands) / 3
 	countDown := 0
