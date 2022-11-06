@@ -368,6 +368,30 @@ func isCrossUpperNotBadBand(bands []models.Band) bool {
 	return isCrossUpper
 }
 
+func isLastBandHeigestBand(bands []models.Band) bool {
+	lastBand := bands[len(bands)-1]
+	lastBandClose := lastBand.Candle.Close
+
+	for _, band := range bands[len(bands)-10 : len(bands)-1] {
+		if band.Candle.Close > lastBandClose {
+			return false
+		}
+	}
+
+	return true
+}
+
+func countHeighAboveUpper(bands []models.Band) int {
+	var count int = 0
+	for _, band := range bands {
+		if band.Candle.Hight > float32(band.Upper) {
+			count++
+		}
+	}
+
+	return count
+}
+
 func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) bool {
 	ignoredReason = ""
 
@@ -382,6 +406,15 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 				if isCrossUpperNotBadBand(mid.Bands) && isCrossUpperNotBadBand(long.Bands) {
 					ignoredReason = "pattern 1"
 					return true
+				}
+
+				if mid.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.SecondTrend == models.TREND_UP {
+					if countHeighAboveUpper(mid.Bands[bandLen-5:]) > 1 && countHeighAboveUpper(long.Bands[bandLen-5:]) > 1 {
+						if isLastBandHeigestBand(mid.Bands) && isLastBandHeigestBand(long.Bands) {
+							ignoredReason = "pattern 2"
+							return true
+						}
+					}
 				}
 			}
 
