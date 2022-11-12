@@ -4,8 +4,11 @@ import (
 	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
+	"telebot-trading/app/services/crypto/analysis"
 	"time"
 )
+
+var countLimit int = 0
 
 func StartUpdateVolumeService(updateVolumeChan chan bool) {
 	for <-updateVolumeChan {
@@ -18,17 +21,20 @@ func updateVolume() {
 
 	responseChan := make(chan CandleResponse)
 
-	var order string = "price_changes desc"
-
-	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil, &order)
+	repositories.UpdateCurrencyNotifConfigAll(map[string]interface{}{
+		"price_changes": 0,
+		"volume":        0,
+	})
+	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil, nil)
+	countTrendUp := 0
 	for i, data := range *currency_configs {
-		if i%10 == 0 {
+		if i%15 == 0 {
 			time.Sleep(1 * time.Second)
 		}
 
 		request := CandleRequest{
 			Symbol:       data.Symbol,
-			Limit:        2,
+			Limit:        40,
 			Resolution:   "1h",
 			ResponseChan: responseChan,
 		}
@@ -40,20 +46,26 @@ func updateVolume() {
 			log.Println("error: ", response.Err.Error())
 			continue
 		}
-		vol := countVolume(response.CandleData)
-		pricePercent := priceChanges(response.CandleData)
+		vol := countVolume(response.CandleData[len(request.ResponseChan)-4:])
+		pricePercent := priceChanges(response.CandleData[len(request.ResponseChan)-4:])
 		priceToVolume := vol + (vol * pricePercent / 100)
 
-		err := repositories.UpdateCurrencyNotifConfig(data.ID, map[string]interface{}{
-			"volume":        vol + priceToVolume,
-			"price_changes": pricePercent,
-		})
+		bollinger := analysis.GenerateBollingerBands(response.CandleData)
+		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.ShortTrend == models.TREND_UP {
+			err := repositories.UpdateCurrencyNotifConfig(data.ID, map[string]interface{}{
+				"volume":        vol + priceToVolume,
+				"price_changes": pricePercent,
+			})
 
-		if err != nil {
-			log.Println("error: ", err.Error())
-			continue
+			if err != nil {
+				log.Println("error: ", err.Error())
+				continue
+			}
+			countTrendUp++
 		}
 	}
+
+	countLimit = countTrendUp
 
 	log.Println("update volume worker done")
 }
@@ -81,4 +93,8 @@ func priceChanges(candles []models.CandleData) float32 {
 	}
 
 	return (lastCandle.Close - firstOpen) / firstOpen * 100
+}
+
+func GetLimit() int {
+	return countLimit
 }

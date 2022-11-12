@@ -20,7 +20,9 @@ func GetCurrencyNotifConfigs(condition *map[string]interface{}, limit *int, orde
 	}
 
 	if condition != nil {
-		res.Where(*condition)
+		for key, value := range *condition {
+			res.Where(key, value)
+		}
 	}
 
 	res.Find(&notifConfigs)
@@ -75,6 +77,12 @@ func UpdateCurrencyNotifConfig(id uint, data map[string]interface{}) error {
 func UpdateCurrencyNotifConfigBySymbol(symbol string, data map[string]interface{}) error {
 	data["updated_at"] = time.Now()
 	result := db.GetDB().Table("currency_notif_configs").Where("symbol = ?", symbol).Updates(data)
+	return result.Error
+}
+
+func UpdateCurrencyNotifConfigAll(data map[string]interface{}) error {
+	data["updated_at"] = time.Now()
+	result := db.GetDB().Table("currency_notif_configs").Updates(data)
 	return result.Error
 }
 

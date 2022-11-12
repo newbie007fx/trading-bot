@@ -9,9 +9,6 @@ import (
 	"time"
 )
 
-const LIMIT_COIN_CHECK int = 60
-
-var countTrendUp int = 0
 var checkOnTrendUpLimit int = 25
 
 type TradingStrategy interface {
@@ -29,7 +26,7 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	condition := map[string]interface{}{"is_on_hold": true}
+	condition := map[string]interface{}{"is_on_hold = ?": true}
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil, nil)
 
 	for _, data := range *currency_configs {
@@ -52,7 +49,7 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 	return holdCoin
 }
 
-func checkCoinOnTrendUp(baseTime time.Time, previousResult map[string]*models.BandResult) []models.BandResult {
+func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 	altCoin := []models.BandResult{}
 
 	endDate := GetEndDate(baseTime, OPERATION_BUY)
@@ -66,7 +63,7 @@ func checkCoinOnTrendUp(baseTime time.Time, previousResult map[string]*models.Ba
 
 	limit := checkOnTrendUpLimit + 1
 
-	condition := map[string]interface{}{"is_master": false, "is_on_hold": false}
+	condition := map[string]interface{}{"is_master = ?": false, "is_on_hold = ?": false, "price_changes > ?": 0}
 	orderBy := "price_changes desc"
 	currencyConfigs := repositories.GetCurrencyNotifConfigs(&condition, &limit, &orderBy)
 
@@ -76,19 +73,15 @@ func checkCoinOnTrendUp(baseTime time.Time, previousResult map[string]*models.Ba
 		}
 
 		var result *models.BandResult
-		if resultLoc, ok := previousResult[data.Symbol]; ok {
-			result = resultLoc
-		} else {
-			request := crypto.CandleRequest{
-				Symbol:       data.Symbol,
-				EndDate:      endDate,
-				Limit:        40,
-				Resolution:   "15m",
-				ResponseChan: responseChan,
-			}
-
-			result = crypto.MakeCryptoRequest(request)
+		request := crypto.CandleRequest{
+			Symbol:       data.Symbol,
+			EndDate:      endDate,
+			Limit:        40,
+			Resolution:   "15m",
+			ResponseChan: responseChan,
 		}
+
+		result = crypto.MakeCryptoRequest(request)
 
 		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.AllTrend.SecondTrend != models.TREND_UP {
 			continue

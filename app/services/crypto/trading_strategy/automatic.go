@@ -3,7 +3,6 @@ package trading_strategy
 import (
 	"fmt"
 	"log"
-	"math"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto"
@@ -118,16 +117,11 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceChan chan bool) {
 	for <-checkPriceChan {
 		altCheckingTime = baseCheckingTime
-
-		allResults := map[string]*models.BandResult{}
-
 		setLimitCheckOnTrendUp()
-		log.Println("count trend up", countTrendUp)
-
 		msg := ""
 
 		maxHold := crypto.GetMaxHold()
-		if coin := ats.checkOnTrendUp(allResults); coin != nil {
+		if coin := ats.checkOnTrendUp(); coin != nil {
 			if holdCount < maxHold {
 				if ok, resMsg := holdAndGenerateMessage(coin); ok {
 					msg += resMsg
@@ -143,8 +137,15 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 }
 
 func setLimitCheckOnTrendUp() {
-	result := float64(20 * 75 / 100)
-	checkOnTrendUpLimit = int(math.Ceil(float64(result)))
+	var limit int = crypto.GetLimit()
+	if limit > 60 {
+		limit = limit / 2
+	}
+	if limit < 10 {
+		limit = 10
+	}
+
+	checkOnTrendUpLimit = limit / 2
 }
 
 func holdAndGenerateMessage(coin *models.BandResult) (bool, string) {
@@ -175,9 +176,9 @@ func holdAndGenerateMessage(coin *models.BandResult) (bool, string) {
 	return hold, msg
 }
 
-func (ats *AutomaticTradingStrategy) checkOnTrendUp(allResults map[string]*models.BandResult) *models.BandResult {
+func (ats *AutomaticTradingStrategy) checkOnTrendUp() *models.BandResult {
 	timeInMilli := GetEndDate(altCheckingTime, OPERATION_BUY)
-	altCoins := checkCoinOnTrendUp(altCheckingTime, allResults)
+	altCoins := checkCoinOnTrendUp(altCheckingTime)
 	for _, coin := range altCoins {
 
 		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
