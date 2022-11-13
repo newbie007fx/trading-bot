@@ -83,7 +83,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 		result = crypto.MakeCryptoRequest(request)
 
-		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.AllTrend.SecondTrend != models.TREND_UP {
+		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.PriceChanges < 1 {
 			continue
 		}
 

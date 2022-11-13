@@ -372,9 +372,9 @@ func isCrossUpperNotBadBand(bands []models.Band) bool {
 	var isCrossUpper bool = false
 
 	for _, band := range bands[len(bands)-4:] {
-		if band.Candle.Hight > float32(band.Upper) {
+		if band.Candle.Hight >= float32(band.Upper) {
 			isCrossUpper = true
-			if isBandDown(band) || isHeadMoreThanBody(band) {
+			if isHeadMoreThanBody(band) {
 				return false
 			}
 		}
@@ -383,11 +383,11 @@ func isCrossUpperNotBadBand(bands []models.Band) bool {
 	return isCrossUpper
 }
 
-func isLastBandHeigestBand(bands []models.Band) bool {
+func isLastBandHeigestBand(bands []models.Band, count int) bool {
 	lastBand := bands[len(bands)-1]
 	lastBandClose := lastBand.Candle.Close
 
-	for _, band := range bands[len(bands)-10 : len(bands)-1] {
+	for _, band := range bands[len(bands)-count : len(bands)-1] {
 		if band.Candle.Close > lastBandClose {
 			return false
 		}
@@ -414,28 +414,11 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 	shortLastBand := short.Bands[bandLen-1]
 	midLastBand := mid.Bands[bandLen-1]
 
-	if isLastBandDoublePreviousHeigest(short.Bands) || isLastBandDoublePreviousHeigest(mid.Bands) {
-		if bandPercent(shortLastBand) > 3 || bandPercent(midLastBand) > 3 {
-
-			if short.AllTrend.ShortTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
-				if isCrossUpperNotBadBand(mid.Bands) && isCrossUpperNotBadBand(long.Bands) {
-					if isLastBandHeighNotMoreThanTenTimesPreviousBands(short.Bands) {
-						ignoredReason = "pattern 1"
-						return true
-					}
-				}
-
-				if mid.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.SecondTrend == models.TREND_UP {
-					if countHeighAboveUpper(mid.Bands[bandLen-5:]) > 1 && countHeighAboveUpper(long.Bands[bandLen-5:]) > 1 {
-						if isLastBandHeigestBand(mid.Bands) && isLastBandHeigestBand(long.Bands) {
-							ignoredReason = "pattern 2"
-							return true
-						}
-					}
-				}
-			}
-
+	if (isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5) || (isLastBandDoublePreviousHeigest(mid.Bands) && bandPercent(midLastBand) > 3 && isLastBandHeigestBand(short.Bands, 4)) {
+		if mid.AllTrend.ShortTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
+			return false
 		}
+
 	}
 
 	return false
