@@ -21,10 +21,6 @@ func updateVolume() {
 
 	responseChan := make(chan CandleResponse)
 
-	repositories.UpdateCurrencyNotifConfigAll(map[string]interface{}{
-		"price_changes": 0,
-		"volume":        0,
-	})
 	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil, nil)
 	countTrendUp := 0
 	for i, data := range *currency_configs {
@@ -46,22 +42,24 @@ func updateVolume() {
 			log.Println("error: ", response.Err.Error())
 			continue
 		}
-		vol := countVolume(response.CandleData[len(request.ResponseChan)-4:])
-		pricePercent := priceChanges(response.CandleData[len(request.ResponseChan)-4:])
+
+		vol := countVolume(response.CandleData[len(response.CandleData)-4:])
+		pricePercent := priceChanges(response.CandleData[len(response.CandleData)-4:])
 		priceToVolume := vol + (vol * pricePercent / 100)
 
 		bollinger := analysis.GenerateBollingerBands(response.CandleData)
 		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.ShortTrend == models.TREND_UP {
-			err := repositories.UpdateCurrencyNotifConfig(data.ID, map[string]interface{}{
-				"volume":        vol + priceToVolume,
-				"price_changes": pricePercent,
-			})
-
-			if err != nil {
-				log.Println("error: ", err.Error())
-				continue
-			}
 			countTrendUp++
+		}
+
+		err := repositories.UpdateCurrencyNotifConfig(data.ID, map[string]interface{}{
+			"volume":        vol + priceToVolume,
+			"price_changes": pricePercent,
+		})
+
+		if err != nil {
+			log.Println("error: ", err.Error())
+			continue
 		}
 	}
 
