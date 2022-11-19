@@ -56,7 +56,7 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 		return false
 	}
 
-	var listMinutes []int = []int{15, 30, 45, 0}
+	var listMinutes []int = []int{5, 20, 35, 50}
 	for _, a := range listMinutes {
 		if a == minute {
 			return true
@@ -88,7 +88,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					continue
 				}
 
-				if analysis.CheckIsNeedSellOnTrendUp(currencyConfig, coin, *holdCoinMid, *holdCoinLong, baseCheckingTime) {
+				if analysis.CheckIsNeedSellOnTrendUp(currencyConfig, coin) {
 					bands := coin.Bands
 					lastBand := bands[len(bands)-1]
 					err = crypto.ReleaseCoin(*currencyConfig, lastBand.Candle)
@@ -139,7 +139,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 func setLimitCheckOnTrendUp() {
 	var limit int = crypto.GetLimit()
 	if limit > 60 {
-		limit = limit / 2
+		limit = 60
 	}
 	if limit < 10 {
 		limit = 10
