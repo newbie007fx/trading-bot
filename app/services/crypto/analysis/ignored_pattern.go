@@ -86,12 +86,14 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 	midSecondLastBand := mid.Bands[bandLen-2]
 
 	if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
-		ignoredReason = "pattern 1"
-		return true
+		if !isHeadMoreThanBody(midSecondLastBand) && !isOpenCloseAboveUpper(midLastBand) {
+			ignoredReason = "pattern 1"
+			return true
+		}
 	}
 
 	if isLastBandDoublePreviousHeigest(mid.Bands) && bandPercent(midLastBand) > 3 && isLastBandHeigestBand(short.Bands, 4) {
-		if !isOpenCloseAboveUpper(midLastBand) {
+		if !isOpenCloseAboveUpper(midLastBand) && !isHeadMoreThanBody(midSecondLastBand) {
 			ignoredReason = "pattern 2"
 			return true
 		}
@@ -99,14 +101,16 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 
 	if shortSecondLastBand.Candle.Close > shortLastBand.Candle.Open {
 		if isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) && bandPercent(shortSecondLastBand) > 1.5 {
-			ignoredReason = "pattern 3"
-			return true
+			if !isOpenCloseAboveUpper(midLastBand) && !isHeadMoreThanBody(midSecondLastBand) {
+				ignoredReason = "pattern 3"
+				return true
+			}
 		}
 	}
 
 	if midSecondLastBand.Candle.Close > midSecondLastBand.Candle.Open {
 		if isLastBandDoublePreviousHeigest(mid.Bands[:bandLen-1]) && bandPercent(midSecondLastBand) > 3 {
-			if !isOpenCloseAboveUpper(midLastBand) && !isHeadMoreThanBody(shortSecondLastBand) {
+			if !isOpenCloseAboveUpper(midLastBand) && !isHeadMoreThanBody(midSecondLastBand) {
 				if isLastBandHeigestBand(short.Bands[:bandLen-1], 4) || isLastBandHeigestBand(short.Bands, 4) {
 					ignoredReason = "pattern 4"
 					return true
