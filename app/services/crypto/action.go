@@ -114,7 +114,18 @@ func GetWeightLog(symbol string, datetime time.Time) string {
 	datetime = datetime.In(utcZone)
 	timeInMili := datetime.Unix() * 1000
 
-	result := CheckCoin(symbol, "15m", 0, timeInMili, 0, 0, 0)
+	var result *models.BandResult
+
+	isTimeOnFifteenMinute := datetime.Unix()%(15*60) == 0
+	if isTimeOnFifteenMinute {
+		result = CheckCoin(symbol, "15m", 0, timeInMili, 0, 0, 0)
+	} else {
+		oneMinuteResult := CheckCoin(symbol, "1m", 0, timeInMili, 0, 0, 0)
+		higest := analysis.GetHighestHightPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
+		lowest := analysis.GetLowestLowPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
+		result = CheckCoin(symbol, "15m", 0, timeInMili, oneMinuteResult.CurrentPrice, higest, lowest)
+	}
+
 	msg := GenerateMsg(*result)
 
 	higest := analysis.GetHighestHightPriceByTime(datetime, result.Bands, analysis.Time_type_1h, true)
