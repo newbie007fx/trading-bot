@@ -76,6 +76,31 @@ func isHeadMoreThanBody(band models.Band) bool {
 	return head > body
 }
 
+func isUpperHeadMoreThanUpperBody(band models.Band) bool {
+	if band.Candle.Open > band.Candle.Close {
+		return false
+	}
+
+	if !(band.Candle.Open < float32(band.Upper) && band.Candle.Close > float32(band.Upper)) {
+		return false
+	}
+
+	upperToHead := band.Candle.Close - float32(band.Upper)
+	upperToBody := float32(band.Upper) - band.Candle.Open
+
+	return upperToHead > upperToBody
+}
+
+func countUpperHeadMoreThanUpperBody(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		if isUpperHeadMoreThanUpperBody(band) {
+			count++
+		}
+	}
+	return count
+}
+
 func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) bool {
 	ignoredReason = ""
 
@@ -94,8 +119,10 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 
 	if isLastBandDoublePreviousHeigest(mid.Bands) && bandPercent(midLastBand) > 3 && isLastBandHeigestBand(short.Bands, 4) {
 		if !isOpenCloseAboveUpper(midLastBand) && !isHeadMoreThanBody(midSecondLastBand) {
-			ignoredReason = "pattern 2"
-			return true
+			if !(isOpenCloseAboveUpper(shortLastBand) && countUpperHeadMoreThanUpperBody(short.Bands[bandLen-3:bandLen-1]) > 1) {
+				ignoredReason = "pattern 2"
+				return true
+			}
 		}
 	}
 
