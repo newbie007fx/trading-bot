@@ -37,7 +37,7 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 		changes := currencyConfig.HoldPrice - shortInterval.CurrentPrice
 		changesInPercent := changes / currencyConfig.HoldPrice * 100
 		if shortInterval.Direction == BAND_DOWN && changesInPercent > 3 {
-			reason = "sell on profit"
+			reason = "sell on defisit"
 			return true
 		}
 	} else {
