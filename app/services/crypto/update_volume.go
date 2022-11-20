@@ -31,7 +31,7 @@ func updateVolume() {
 		request := CandleRequest{
 			Symbol:       data.Symbol,
 			Limit:        40,
-			Resolution:   "1h",
+			Resolution:   "15m",
 			ResponseChan: responseChan,
 		}
 
@@ -48,7 +48,7 @@ func updateVolume() {
 		priceToVolume := vol + (vol * pricePercent / 100)
 
 		bollinger := analysis.GenerateBollingerBands(response.CandleData)
-		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.ShortTrend == models.TREND_UP {
+		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.Trend == models.TREND_UP {
 			countTrendUp++
 		}
 

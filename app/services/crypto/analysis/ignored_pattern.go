@@ -76,12 +76,12 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 
 	if (isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5) || (isLastBandDoublePreviousHeigest(mid.Bands) && bandPercent(midLastBand) > 3 && isLastBandHeigestBand(short.Bands, 4)) {
 		ignoredReason = "pattern 1"
-		return false
+		return true
 	}
 
 	if (isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) && bandPercent(shortSecondLastBand) > 1.5) || (isLastBandDoublePreviousHeigest(mid.Bands[:bandLen-1]) && bandPercent(midSecondLastBand) > 3 && (isLastBandHeigestBand(short.Bands[:bandLen-1], 4) || isLastBandHeigestBand(short.Bands, 4))) {
 		ignoredReason = "pattern 2"
-		return false
+		return true
 	}
 
 	return false

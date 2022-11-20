@@ -67,6 +67,8 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 	orderBy := "price_changes desc"
 	currencyConfigs := repositories.GetCurrencyNotifConfigs(&condition, &limit, &orderBy)
 
+	log.Println("found: ", len(*currencyConfigs))
+
 	for _, data := range *currencyConfigs {
 		if data.PriceChanges < 1 {
 			continue
