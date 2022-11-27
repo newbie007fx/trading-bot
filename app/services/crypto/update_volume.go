@@ -43,8 +43,8 @@ func updateVolume() {
 			continue
 		}
 
-		vol := countVolume(response.CandleData[len(response.CandleData)-4:])
-		pricePercent := priceChanges(response.CandleData[len(response.CandleData)-4:])
+		vol := countVolume(response.CandleData[len(response.CandleData)-10:])
+		pricePercent := priceChanges(response.CandleData[len(response.CandleData)-10:])
 		priceToVolume := vol + (vol * pricePercent / 100)
 
 		bollinger := analysis.GenerateBollingerBands(response.CandleData)

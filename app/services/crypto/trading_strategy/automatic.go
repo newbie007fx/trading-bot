@@ -31,6 +31,11 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 		ats.cryptoHoldCoinPriceChan <- true
 	}
 
+	if crypto.IsProfitMoreThanThreshold() {
+		log.Println("skipped: profit is more than threshold")
+		return
+	}
+
 	if holdCount < maxHold && ats.isTimeToCheckAltCoinPrice(currentTime) {
 		ats.cryptoAltCoinPriceChan <- true
 	}
@@ -56,7 +61,7 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 		return false
 	}
 
-	var listMinutes []int = []int{4, 19, 34, 49}
+	var listMinutes []int = []int{4, 11, 19, 26, 34, 41, 49, 56}
 	for _, a := range listMinutes {
 		if a == minute {
 			return true
@@ -81,13 +86,6 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					continue
 				}
 
-				holdCoinMid := crypto.CheckCoin(currencyConfig.Symbol, "1h", 0, sellTime, 0, 0, 0)
-				holdCoinLong := crypto.CheckCoin(currencyConfig.Symbol, "4h", 0, sellTime, 0, 0, 0)
-				if holdCoinMid == nil || holdCoinLong == nil {
-					log.Println("error hold coin nil. skip need to sell checking process")
-					continue
-				}
-
 				if analysis.CheckIsNeedSellOnTrendUp(currencyConfig, coin) {
 					bands := coin.Bands
 					lastBand := bands[len(bands)-1]
@@ -104,6 +102,14 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 
 						balance := crypto.GetBalanceFromConfig()
 						tmpMsg += fmt.Sprintf("saldo saat ini: %f\n", balance)
+
+						var changes float32 = 0
+						if currencyConfig.HoldPrice < coin.CurrentPrice {
+							changes = (coin.CurrentPrice - currencyConfig.HoldPrice) / currencyConfig.HoldPrice * 100
+						} else {
+							changes = -((currencyConfig.HoldPrice - coin.CurrentPrice) / currencyConfig.HoldPrice * 100)
+						}
+						crypto.SetProfit(changes)
 					}
 					msg += tmpMsg
 				}
@@ -138,11 +144,11 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	var limit int = crypto.GetLimit()
-	if limit > 40 {
-		limit = 40
+	if limit > 30 {
+		limit = 30
 	}
-	if limit < 4 {
-		limit = 10
+	if limit < 3 {
+		limit = 3
 	}
 
 	checkOnTrendUpLimit = limit

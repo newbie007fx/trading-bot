@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -40,6 +41,10 @@ func isLastBandDoublePreviousHeigest(bands []models.Band) bool {
 	var higestBody float32 = 0
 	for _, band := range bands[len(bands)-5 : len(bands)-1] {
 		bodyHeight := band.Candle.Close - band.Candle.Open
+		if band.Candle.Close < band.Candle.Open {
+			bodyHeight = band.Candle.Open - band.Candle.Close
+		}
+
 		if bodyHeight > higestBody {
 			higestBody = bodyHeight
 		}
@@ -63,6 +68,20 @@ func isLastBandHeigestBand(bands []models.Band, count int) bool {
 	}
 
 	return true
+}
+
+func isOpenCloseBelowLower(band models.Band) bool {
+	return band.Candle.Open < float32(band.Lower) && band.Candle.Close < float32(band.Lower)
+}
+
+func countOpenCloseBelowLower(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		if isOpenCloseBelowLower(band) {
+			count++
+		}
+	}
+	return count
 }
 
 func isOpenCloseAboveUpper(band models.Band) bool {
@@ -127,6 +146,25 @@ func isAboveUpperAndOrUpperHeadMoreThanUpperBody(band models.Band, bands []model
 	return false
 }
 
+func isHightCrossUpper(band models.Band) bool {
+	return band.Candle.Hight > float32(band.Upper)
+}
+
+func isBadBand(band models.Band) bool {
+	return isHeadMoreThanBody(band) || band.Candle.Open > band.Candle.Close
+}
+
+func countBadBandAndCrossUpper(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		if isBadBand(band) && isHightCrossUpper(band) {
+			count++
+		}
+	}
+
+	return count
+}
+
 func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) bool {
 	ignoredReason = ""
 
@@ -137,38 +175,90 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 	midSecondLastBand := mid.Bands[bandLen-2]
 	longLastBand := long.Bands[bandLen-1]
 
+	if isUpperHeadMoreThanUpperBody(shortLastBand) || isOpenCloseAboveUpper(shortLastBand) {
+		if isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand) {
+			if isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand) || bandPercent(longLastBand) > 50 {
+				log.Println("skipped1")
+				return false
+			}
+
+			if isHightCrossUpper(longLastBand) && long.AllTrend.SecondTrend == models.TREND_DOWN {
+				log.Println("skipped1.1")
+				return false
+			}
+		}
+	}
+
+	if currentTime.Minute() < 15 && bandPercent(shortLastBand) < 1.5 {
+		log.Println("skipped2")
+		return false
+	}
+
+	if long.AllTrend.ShortTrend == models.TREND_DOWN && mid.Position == models.BELOW_SMA {
+		log.Println("skipped3")
+		return false
+	}
+
+	if longLastBand.Candle.Low < float32(longLastBand.Lower) {
+		if short.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
+			log.Println("skipped4")
+			return false
+		}
+	}
+
+	if countOpenCloseAboveUpper(short.Bands[bandLen-2:]) > 1 {
+		log.Println("skipped5")
+		return false
+	}
+
+	if isUpperHeadMoreThanUpperBody(shortLastBand) && (long.AllTrend.ShortTrend != models.TREND_UP || long.PriceChanges < 0) {
+		log.Println("skipped6")
+		return false
+	}
+
+	if long.AllTrend.SecondTrend == models.TREND_DOWN && long.Position == models.BELOW_SMA && countOpenCloseBelowLower(long.Bands[bandLen-4:]) > 0 {
+		log.Println("skipped7")
+		return false
+	}
+
 	if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
-		if !isHeadMoreThanBody(midSecondLastBand) && !isOpenCloseAboveUpper(midLastBand) {
+		if !(isHeadMoreThanBody(midSecondLastBand) && isHightCrossUpper(midSecondLastBand)) && !isOpenCloseAboveUpper(midLastBand) {
 			ignoredReason = "pattern 1"
 			return true
 		}
 	}
 
-	if isLastBandDoublePreviousHeigest(mid.Bands) && bandPercent(midLastBand) > 3 && isLastBandHeigestBand(short.Bands, 4) {
-		if !isOpenCloseAboveUpper(midLastBand) && !isHeadMoreThanBody(midSecondLastBand) {
-			if !isAboveUpperAndOrUpperHeadMoreThanUpperBody(shortLastBand, short.Bands[bandLen-3:bandLen-1]) {
-				ignoredReason = "pattern 2"
-				return true
+	if countBadBandAndCrossUpper(short.Bands[bandLen-3:]) <= 1 {
+		if isLastBandDoublePreviousHeigest(mid.Bands) && bandPercent(midLastBand) > 3 && isLastBandHeigestBand(short.Bands, 4) {
+			if !isOpenCloseAboveUpper(midLastBand) && !isHeadMoreThanBody(midSecondLastBand) {
+				if !isAboveUpperAndOrUpperHeadMoreThanUpperBody(shortLastBand, short.Bands[bandLen-3:bandLen-1]) {
+					ignoredReason = "pattern 2"
+					return true
+				}
 			}
 		}
 	}
 
-	if shortSecondLastBand.Candle.Close > shortLastBand.Candle.Open {
+	if shortSecondLastBand.Candle.Close > shortSecondLastBand.Candle.Open {
 		if isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) && bandPercent(shortSecondLastBand) > 1.5 {
 			if !isOpenCloseAboveUpper(midLastBand) && !isHeadMoreThanBody(midSecondLastBand) {
-				ignoredReason = "pattern 3"
-				return true
+				if !isOpenCloseAboveUpper(shortLastBand) && !isOpenCloseAboveUpper(longLastBand) {
+					ignoredReason = "pattern 3"
+					return true
+				}
 			}
 		}
 	}
 
-	if midSecondLastBand.Candle.Close > midSecondLastBand.Candle.Open {
+	if midSecondLastBand.Candle.Close > midSecondLastBand.Candle.Open && countBadBandAndCrossUpper(short.Bands[bandLen-3:]) <= 1 {
 		if !isAboveUpperAndOrUpperHeadMoreThanUpperBody(longLastBand, long.Bands[bandLen-3:bandLen-1]) {
 			if isLastBandDoublePreviousHeigest(mid.Bands[:bandLen-1]) && bandPercent(midSecondLastBand) > 3 {
 				if !isOpenCloseAboveUpper(midLastBand) && !isHeadMoreThanBody(midSecondLastBand) {
 					if isLastBandHeigestBand(short.Bands[:bandLen-1], 4) || isLastBandHeigestBand(short.Bands, 4) {
-						ignoredReason = "pattern 4"
-						return true
+						if !isOpenCloseAboveUpper(shortLastBand) && !isOpenCloseAboveUpper(longLastBand) {
+							ignoredReason = "pattern 4"
+							return true
+						}
 					}
 				}
 			}
