@@ -61,7 +61,7 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 		return false
 	}
 
-	var listMinutes []int = []int{4, 11, 19, 26, 34, 41, 49, 56}
+	var listMinutes []int = []int{4, 19, 34, 49}
 	for _, a := range listMinutes {
 		if a == minute {
 			return true
