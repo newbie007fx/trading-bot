@@ -93,5 +93,5 @@ func isMuted() bool {
 
 func isTimeToUpdateVolume(time time.Time) bool {
 	minute := time.Minute()
-	return minute == 1 || minute == 16 || minute == 31 || minute == 46
+	return minute == 13 || minute == 28 || minute == 43 || minute == 58
 }
