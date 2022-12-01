@@ -144,8 +144,8 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	var limit int = crypto.GetLimit()
-	if limit > 30 {
-		limit = 30
+	if limit > 40 {
+		limit = 40
 	}
 	if limit < 3 {
 		limit = 3
@@ -186,7 +186,7 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp() *models.BandResult {
 	timeInMilli := GetEndDate(altCheckingTime, OPERATION_BUY)
 	altCoins := checkCoinOnTrendUp(altCheckingTime)
 	for _, coin := range altCoins {
-
+		log.Print(coin.Symbol, ", ")
 		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
 		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
 		resultMid := crypto.CheckCoin(coin.Symbol, "1h", 0, timeInMilli, coin.CurrentPrice, higest, lowest)

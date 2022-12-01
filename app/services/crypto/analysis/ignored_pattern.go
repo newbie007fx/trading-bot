@@ -253,6 +253,19 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 		return false
 	}
 
+	if isShortBandComplete(currentTime) {
+		if shortSecondLastBand.Candle.Open > shortSecondLastBand.Candle.Close || !isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) {
+			if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.5 {
+				if !(isHeadMoreThanBody(midSecondLastBand) && isHightCrossUpper(midSecondLastBand)) && !isOpenCloseAboveUpper(midLastBand) {
+					ignoredReason = "band complete: pattern 1"
+					return true
+				}
+			}
+		}
+
+		return false
+	}
+
 	if shortSecondLastBand.Candle.Open > shortSecondLastBand.Candle.Close || !isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) {
 		if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
 			if !(isHeadMoreThanBody(midSecondLastBand) && isHightCrossUpper(midSecondLastBand)) && !isOpenCloseAboveUpper(midLastBand) {
@@ -260,11 +273,6 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 				return true
 			}
 		}
-	}
-
-	if isShortBandComplete(currentTime) {
-		log.Println("short band complete")
-		return false
 	}
 
 	if !(isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5) && !(isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) && bandPercent(shortSecondLastBand) > 1.5) {
