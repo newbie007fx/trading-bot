@@ -42,18 +42,21 @@ func updateVolume() {
 			log.Println("error: ", response.Err.Error())
 			continue
 		}
-
-		vol := countVolume(response.CandleData[len(response.CandleData)-6:])
-		pricePercent := priceChanges(response.CandleData[len(response.CandleData)-6:])
-		priceToVolume := vol + (vol * pricePercent / 100)
-
 		bollinger := analysis.GenerateBollingerBands(response.CandleData)
+		direction := analysis.BAND_DOWN
+		if analysis.CheckLastCandleIsUp(bollinger.Data) {
+			direction = analysis.BAND_UP
+		}
+
+		pricePercent := analysis.CalculateBandPriceChangesPercent(bollinger, direction)
+		vol := countVolume(response.CandleData[len(response.CandleData)-8:])
+
 		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.Trend == models.TREND_UP {
 			countTrendUp++
 		}
 
 		err := repositories.UpdateCurrencyNotifConfig(data.ID, map[string]interface{}{
-			"volume":        vol + priceToVolume,
+			"volume":        vol,
 			"price_changes": pricePercent,
 		})
 
@@ -70,27 +73,11 @@ func updateVolume() {
 
 func countVolume(candles []models.CandleData) float32 {
 	var volume float32 = 0
-	var lastPrice float32 = 1
 	for _, candle := range candles {
 		volume += candle.Volume
-		lastPrice = candle.Close
 	}
 
-	return volume / float32(len(candles)) * lastPrice
-}
-
-func priceChanges(candles []models.CandleData) float32 {
-	firstCandle := candles[0]
-	lastCandle := candles[len(candles)-1]
-
-	var firstOpen float32 = 0
-	if firstCandle.Open < firstCandle.Close {
-		firstOpen = firstCandle.Open
-	} else {
-		firstOpen = firstCandle.Close
-	}
-
-	return (lastCandle.Close - firstOpen) / firstOpen * 100
+	return volume
 }
 
 func GetLimit() int {

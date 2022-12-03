@@ -126,7 +126,7 @@ func isUpperHeadMoreThanUpperBody(band models.Band) bool {
 	upperToHead := band.Candle.Close - float32(band.Upper)
 	upperToBody := float32(band.Upper) - band.Candle.Open
 
-	return upperToHead > upperToBody
+	return upperToHead >= upperToBody
 }
 
 func countUpperHeadMoreThanUpperBody(bands []models.Band) int {
@@ -197,15 +197,8 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 
 	if isUpperHeadMoreThanUpperBody(shortLastBand) || isOpenCloseAboveUpper(shortLastBand) {
 		if isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand) {
-			if isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand) || bandPercent(longLastBand) > 50 {
-				log.Println("skipped1")
-				return false
-			}
-
-			if isHightCrossUpper(longLastBand) && long.AllTrend.SecondTrend == models.TREND_DOWN {
-				log.Println("skipped1.1")
-				return false
-			}
+			log.Println("skipped1")
+			return false
 		}
 	}
 
@@ -254,8 +247,22 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 	}
 
 	if isShortBandComplete(currentTime) {
+		if short.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
+			if countBadBandAndCrossUpper(short.Bands[bandLen-4:]) > 0 && (countBadBandAndCrossUpper(mid.Bands[bandLen-4:]) > 0 || countBadBandAndCrossUpper(long.Bands[bandLen-4:]) > 0) {
+				log.Println("band complete: skipped1")
+				return false
+			}
+		}
+
+		if short.Position == models.ABOVE_SMA && mid.AllTrend.SecondTrend == models.TREND_UP {
+			if countBadBand(mid.Bands[bandLen-4:]) > 2 {
+				log.Println("band complete: skipped2")
+				return false
+			}
+		}
+
 		if shortSecondLastBand.Candle.Open > shortSecondLastBand.Candle.Close || !isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) {
-			if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.5 {
+			if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
 				if !(isHeadMoreThanBody(midSecondLastBand) && isHightCrossUpper(midSecondLastBand)) && !isOpenCloseAboveUpper(midLastBand) {
 					ignoredReason = "band complete: pattern 1"
 					return true

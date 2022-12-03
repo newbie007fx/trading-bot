@@ -63,8 +63,8 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 	limit := checkOnTrendUpLimit
 
-	condition := map[string]interface{}{"is_master = ?": false, "is_on_hold = ?": false, "price_changes > ?": 0}
-	orderBy := "price_changes desc"
+	condition := map[string]interface{}{"is_master = ?": false, "is_on_hold = ?": false, "price_changes > ?": 1.5}
+	orderBy := "volume desc"
 	currencyConfigs := repositories.GetCurrencyNotifConfigs(&condition, &limit, &orderBy)
 
 	log.Println("found: ", len(*currencyConfigs))
