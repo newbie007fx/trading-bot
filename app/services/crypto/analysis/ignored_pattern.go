@@ -159,6 +159,17 @@ func isHightCrossUpper(band models.Band) bool {
 	return band.Candle.Hight > float32(band.Upper)
 }
 
+func countHightCrossUpper(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		if isHightCrossUpper(band) {
+			count++
+		}
+	}
+
+	return count
+}
+
 func isBadBand(band models.Band) bool {
 	return isHeadMoreThanBody(band) || band.Candle.Open > band.Candle.Close
 }
@@ -166,7 +177,7 @@ func isBadBand(band models.Band) bool {
 func countBadBandAndCrossUpper(bands []models.Band) int {
 	count := 0
 	for _, band := range bands {
-		if isBadBand(band) && isHightCrossUpper(band) {
+		if (isBadBand(band) && isHightCrossUpper(band)) || isOpenCloseAboveUpper(band) {
 			count++
 		}
 	}
@@ -252,11 +263,30 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 				log.Println("band complete: skipped1")
 				return false
 			}
+
+			if countBadBandAndCrossUpper(short.Bands[bandLen-4:]) > 1 && countHightCrossUpper(mid.Bands[bandLen-4:]) == 1 && countHightCrossUpper(long.Bands[bandLen-4:]) == 1 {
+				log.Println("band complete: skipped1.1")
+				return false
+			}
+
+			if countBadBandAndCrossUpper(long.Bands[bandLen-4:]) > 2 {
+				if countBadBandAndCrossUpper(short.Bands[bandLen-4:]) == 1 && countBadBandAndCrossUpper(mid.Bands[bandLen-4:]) == 1 {
+					log.Println("band complete: skipped1.2")
+					return false
+				}
+			}
 		}
 
 		if short.Position == models.ABOVE_SMA && mid.AllTrend.SecondTrend == models.TREND_UP {
 			if countBadBand(mid.Bands[bandLen-4:]) > 2 {
 				log.Println("band complete: skipped2")
+				return false
+			}
+		}
+
+		if short.Position == models.ABOVE_SMA && mid.Position == models.ABOVE_SMA {
+			if short.AllTrend.Trend == models.TREND_DOWN && mid.AllTrend.Trend == models.TREND_DOWN {
+				log.Println("band complete: skipped3")
 				return false
 			}
 		}

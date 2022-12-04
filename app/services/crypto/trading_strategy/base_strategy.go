@@ -69,7 +69,9 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 	log.Println("found: ", len(*currencyConfigs))
 
+	coinsString := ""
 	for _, data := range *currencyConfigs {
+		coinsString = coinsString + ", " + data.Symbol
 		if data.PriceChanges < 1 {
 			continue
 		}
@@ -91,6 +93,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 		altCoin = append(altCoin, *result)
 	}
+	log.Println("listCoin: ", coinsString)
 
 	return altCoin
 }
