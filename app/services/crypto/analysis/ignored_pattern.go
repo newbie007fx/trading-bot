@@ -155,6 +155,21 @@ func isAboveUpperAndOrUpperHeadMoreThanUpperBody(band models.Band, bands []model
 	return false
 }
 
+func isCrossUpSMAOnBody(band models.Band) bool {
+	return band.Candle.Close > float32(band.SMA)
+}
+
+func countCrossUpSMAOnBody(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		if isCrossUpSMAOnBody(band) {
+			count++
+		}
+	}
+
+	return count
+}
+
 func isHightCrossUpper(band models.Band) bool {
 	return band.Candle.Hight > float32(band.Upper)
 }
@@ -288,6 +303,15 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 			if short.AllTrend.Trend == models.TREND_DOWN && mid.AllTrend.Trend == models.TREND_DOWN {
 				log.Println("band complete: skipped3")
 				return false
+			}
+		}
+
+		if long.AllTrend.SecondTrend == models.TREND_DOWN {
+			if midLastBand.Candle.Open < float32(midLastBand.SMA) && countCrossUpSMAOnBody(mid.Bands[bandLen-5:bandLen-1]) == 0 {
+				if mid.Position == models.ABOVE_UPPER && short.Position == models.ABOVE_UPPER {
+					log.Println("band complete: skipped4")
+					return false
+				}
 			}
 		}
 
