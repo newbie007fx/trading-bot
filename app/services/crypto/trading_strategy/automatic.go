@@ -86,7 +86,7 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 					continue
 				}
 
-				if analysis.CheckIsNeedSellOnTrendUp(currencyConfig, coin) {
+				if analysis.CheckIsNeedSellOnTrendUp(currencyConfig, coin, baseCheckingTime) {
 					bands := coin.Bands
 					lastBand := bands[len(bands)-1]
 					err = crypto.ReleaseCoin(*currencyConfig, lastBand.Candle)
