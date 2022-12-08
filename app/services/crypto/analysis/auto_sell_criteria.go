@@ -47,7 +47,7 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 	if currencyConfig.HoldPrice > shortInterval.CurrentPrice {
 		changes := currencyConfig.HoldPrice - shortInterval.CurrentPrice
 		changesInPercent := changes / currencyConfig.HoldPrice * 100
-		if shortInterval.Direction == BAND_DOWN && changesInPercent > 3 {
+		if (shortInterval.Direction == BAND_DOWN && changesInPercent > 3) || holdedHour > 11 {
 			reason = fmt.Sprintf("sell on defisit after holded %d hours", holdedHour)
 			return true
 		}
