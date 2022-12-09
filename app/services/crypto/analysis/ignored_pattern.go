@@ -315,6 +315,22 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 			}
 		}
 
+		if mid.Position == models.ABOVE_UPPER && countHightCrossUpper(mid.Bands[bandLen-4:]) == 1 && !isLastBandDoublePreviousHeigest(mid.Bands) {
+			if currentTime.Minute() > 55 || currentTime.Minute() < 5 {
+				log.Println("band complete: skipped5")
+				return false
+			}
+		}
+
+		if long.Position == models.ABOVE_UPPER && long.AllTrend.ShortTrend != models.TREND_UP {
+			if mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP && countBadBand(mid.Bands[bandLen-4:]) > 2 {
+				if currentTime.Minute() > 55 || currentTime.Minute() < 5 {
+					log.Println("band complete: skipped6")
+					return false
+				}
+			}
+		}
+
 		if shortSecondLastBand.Candle.Open > shortSecondLastBand.Candle.Close || !isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) {
 			if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
 				if !(isHeadMoreThanBody(midSecondLastBand) && isHightCrossUpper(midSecondLastBand)) && !isOpenCloseAboveUpper(midLastBand) {

@@ -29,15 +29,15 @@ func StartCryptoWorker() {
 			strategy.Execute(currentTime)
 		}
 
-		if isTimeToUpdateVolume(currentTime) && second < 20 {
+		if isTimeToUpdateVolume(currentTime) && second < 15 {
 			updateVolumeChan <- true
 		}
 
-		if second >= 30 {
-			second -= 30
+		if second >= 15 {
+			second -= 15
 		}
 
-		sleep := 30 - second
+		sleep := 15 - second
 		log.Println("sleep: ", sleep)
 		time.Sleep(time.Duration(sleep) * time.Second)
 	}
