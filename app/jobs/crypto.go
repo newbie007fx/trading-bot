@@ -34,7 +34,7 @@ func StartCryptoWorker() {
 		}
 
 		if second >= 15 {
-			second -= 15
+			second = second % 15
 		}
 
 		sleep := 15 - second
