@@ -384,6 +384,12 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) 
 				log.Println("band complete: skipped11")
 				return false
 			}
+
+			if CountBadBand(short.Bands[bandLen-4:]) > 2 {
+				log.Println("band complete: skipped12")
+				return false
+			}
+			}
 		}
 
 		if shortSecondLastBand.Candle.Open > shortSecondLastBand.Candle.Close || !isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) {
