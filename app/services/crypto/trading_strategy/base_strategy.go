@@ -62,9 +62,9 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 	}
 
 	limit := checkOnTrendUpLimit
-	priceThreshold := 1.5
+	var priceThreshold float32 = 1
 	if baseTime.Minute()%15 != 0 {
-		priceThreshold = 1
+		priceThreshold = 0.5
 	}
 
 	condition := map[string]interface{}{"is_master = ?": false, "is_on_hold = ?": false, "price_changes > ?": priceThreshold}
