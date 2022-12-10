@@ -7,6 +7,7 @@ import (
 	"sync"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
+	"telebot-trading/app/services/crypto/analysis"
 	"telebot-trading/app/services/crypto/driver"
 	"telebot-trading/utils"
 	"time"
@@ -110,12 +111,16 @@ func GetWalletBalance() []map[string]interface{} {
 				continue
 			}
 
+			holdTime := time.Unix(config.HoldedAt, 0)
+			holdDuration := analysis.CalculateHoldTimeDiff(holdTime, currentTime).Minutes()
+
 			percentChange := (candlesData[0].Close - config.HoldPrice) / config.HoldPrice * 100
 			tmp := map[string]interface{}{
 				"symbol":          config.Symbol,
 				"balance":         config.Balance,
 				"estimation_usdt": candlesData[0].Close * config.Balance,
 				"percent_change":  percentChange,
+				"hold_duration":   int(holdDuration),
 			}
 
 			data = append(data, tmp)

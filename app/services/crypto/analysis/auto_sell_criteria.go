@@ -36,7 +36,7 @@ func GetSellReason() string {
 
 func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortInterval models.BandResult, currentTime time.Time) bool {
 	holdTime := time.Unix(currencyConfig.HoldedAt, 0)
-	holdedHour := calculateHoldTimeInHour(holdTime, currentTime)
+	holdedHour := CalculateHoldTimeDiff(holdTime, currentTime).Hours()
 	var threshold float32 = 3
 	if holdedHour > 5 {
 		threshold = 1
@@ -48,14 +48,14 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 		changes := currencyConfig.HoldPrice - shortInterval.CurrentPrice
 		changesInPercent := changes / currencyConfig.HoldPrice * 100
 		if ((shortInterval.Direction == BAND_DOWN || changesInPercent > 5) && changesInPercent > 3) || holdedHour > 11 {
-			reason = fmt.Sprintf("sell on defisit after holded %d hours", holdedHour)
+			reason = fmt.Sprintf("sell on defisit after holded %d hours", int(holdedHour))
 			return true
 		}
 	} else {
 		changes := shortInterval.CurrentPrice - currencyConfig.HoldPrice
 		changesInPercent := changes / currencyConfig.HoldPrice * 100
 		if changesInPercent > threshold || holdedHour > 11 {
-			reason = fmt.Sprintf("sell on profit after holded %d hours", holdedHour)
+			reason = fmt.Sprintf("sell on profit after holded %d hours", int(holdedHour))
 			return true
 		}
 	}
@@ -63,12 +63,12 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 	return false
 }
 
-func calculateHoldTimeInHour(holdTime, currentTime time.Time) int {
+func CalculateHoldTimeDiff(holdTime, currentTime time.Time) time.Duration {
 	var utcZone, _ = time.LoadLocation("UTC")
 	holdTime = holdTime.In(utcZone)
 	currentTime = currentTime.In(utcZone)
 
 	result := currentTime.Sub(holdTime)
 
-	return int(result.Hours())
+	return result
 }
