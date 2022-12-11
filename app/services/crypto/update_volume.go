@@ -78,7 +78,7 @@ func updateVolume() {
 
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
 
-	if countTrendUp/countTrendUpSignifican <= 8 && countTrendUp >= 20 {
+	if countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 20 {
 		modeChecking = "trend_up"
 	} else {
 		modeChecking = "not_trend_up"
