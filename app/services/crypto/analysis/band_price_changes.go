@@ -5,23 +5,23 @@ import "telebot-trading/app/models"
 const BAND_UP int8 = 1
 const BAND_DOWN int8 = 2
 
-func CalculateBandPriceChangesPercent(bands models.Bands, direction int8) float32 {
+func CalculateBandPriceChangesPercent(bands models.Bands, direction int8, candleLen int) float32 {
 	data := bands.Data
 
 	dataLength := len(data)
 	lastCandle := data[dataLength-1]
-	threeCandleBeforeLast := data[dataLength-4 : dataLength-1]
+	candleBeforeLast := data[dataLength-candleLen : dataLength-1]
 
 	if bands.AllTrend.ShortTrend != models.TREND_UP {
-		return percentDownCandle(threeCandleBeforeLast, lastCandle)
+		return percentDownCandle(candleBeforeLast, lastCandle)
 	}
 
-	return percentUpCandle(threeCandleBeforeLast, lastCandle)
+	return percentUpCandle(candleBeforeLast, lastCandle)
 }
 
-func percentUpCandle(threeCandleBeforeLast []models.Band, lastCandle models.Band) float32 {
-	lowest := threeCandleBeforeLast[0].Candle.Close
-	for _, val := range threeCandleBeforeLast {
+func percentUpCandle(candleBeforeLast []models.Band, lastCandle models.Band) float32 {
+	lowest := candleBeforeLast[0].Candle.Close
+	for _, val := range candleBeforeLast {
 		if lowest > lowestFromBand(val) {
 			lowest = lowestFromBand(val)
 		}
@@ -36,9 +36,9 @@ func percentUpCandle(threeCandleBeforeLast []models.Band, lastCandle models.Band
 	return changes / lowest * 100
 }
 
-func percentDownCandle(threeCandleBeforeLast []models.Band, lastCandle models.Band) float32 {
-	higest := higestFromBand(threeCandleBeforeLast[0])
-	for _, val := range threeCandleBeforeLast {
+func percentDownCandle(candleBeforeLast []models.Band, lastCandle models.Band) float32 {
+	higest := higestFromBand(candleBeforeLast[0])
+	for _, val := range candleBeforeLast {
 		if higest < higestFromBand(val) {
 			higest = higestFromBand(val)
 		}

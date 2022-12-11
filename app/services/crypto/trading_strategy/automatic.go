@@ -13,6 +13,8 @@ import (
 var baseCheckingTime time.Time
 var altCheckingTime time.Time
 var holdCount int64 = 0
+var modeChecking string = ""
+var isSkiped bool = false
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
@@ -26,17 +28,21 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 	condition := map[string]interface{}{"is_on_hold": true}
 	holdCount = repositories.CountNotifConfig(&condition)
 
-	log.Println(fmt.Sprintf("execute automatic trading, with hold count: %d and maxHold %d", holdCount, maxHold))
 	if holdCount > 0 {
 		ats.cryptoHoldCoinPriceChan <- true
 	}
 
 	if crypto.IsProfitMoreThanThreshold() {
-		log.Println("skipped: profit is more than threshold")
+		if !isSkiped {
+			log.Println("skipped: profit is more than threshold")
+			isSkiped = true
+		}
 		return
 	}
 
+	isSkiped = false
 	if holdCount < maxHold && ats.isTimeToCheckAltCoinPrice(currentTime) {
+		log.Println(fmt.Sprintf("execute automatic trading, with hold count: %d and maxHold %d", holdCount, maxHold))
 		ats.cryptoAltCoinPriceChan <- true
 	}
 
@@ -80,6 +86,8 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 
 			tmpMsg := ""
 			for _, coin := range holdCoin {
+				log.Println("checking holded coin: ", coin.Symbol)
+
 				currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
 				if err != nil {
 					log.Println(err.Error())
@@ -144,13 +152,11 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	var limit int = crypto.GetLimit()
-	if limit > 50 {
-		limit = 50
-	}
-	if limit < 3 {
-		limit = 3
+	if limit > 60 {
+		limit = 60
 	}
 
+	modeChecking = crypto.GetModeChecking()
 	checkOnTrendUpLimit = limit
 }
 

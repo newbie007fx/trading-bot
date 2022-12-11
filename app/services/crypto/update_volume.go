@@ -1,6 +1,7 @@
 package crypto
 
 import (
+	"fmt"
 	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
@@ -9,10 +10,14 @@ import (
 )
 
 var countLimit int = 0
+var modeChecking string = ""
 
 func StartUpdateVolumeService(updateVolumeChan chan bool) {
 	for <-updateVolumeChan {
-		updateVolume()
+		currentTime := time.Now()
+		if !IsProfitMoreThanThreshold() || (currentTime.Hour() == 23 && currentTime.Minute() > 45) {
+			updateVolume()
+		}
 	}
 }
 
@@ -23,6 +28,7 @@ func updateVolume() {
 
 	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil, nil)
 	countTrendUp := 0
+	countTrendUpSignifican := 0
 	for i, data := range *currency_configs {
 		if i%15 == 0 {
 			time.Sleep(1 * time.Second)
@@ -48,11 +54,15 @@ func updateVolume() {
 			direction = analysis.BAND_UP
 		}
 
-		pricePercent := analysis.CalculateBandPriceChangesPercent(bollinger, direction)
-		vol := countVolume(response.CandleData[len(response.CandleData)-8:])
+		pricePercent := analysis.CalculateBandPriceChangesPercent(bollinger, direction, 11)
+		vol := countVolume(response.CandleData[len(response.CandleData)-11:])
 
-		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.Trend == models.TREND_UP {
+		if bollinger.AllTrend.SecondTrend == models.TREND_UP && pricePercent > 3 {
 			countTrendUp++
+		}
+
+		if bollinger.AllTrend.SecondTrend == models.TREND_UP && pricePercent > 5 {
+			countTrendUpSignifican++
 		}
 
 		err := repositories.UpdateCurrencyNotifConfig(data.ID, map[string]interface{}{
@@ -64,6 +74,14 @@ func updateVolume() {
 			log.Println("error: ", err.Error())
 			continue
 		}
+	}
+
+	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
+
+	if countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 40 {
+		modeChecking = "trend_up"
+	} else {
+		modeChecking = "not_trend_up"
 	}
 
 	countLimit = countTrendUp
@@ -82,4 +100,8 @@ func countVolume(candles []models.CandleData) float32 {
 
 func GetLimit() int {
 	return countLimit
+}
+
+func GetModeChecking() string {
+	return modeChecking
 }
