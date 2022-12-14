@@ -57,11 +57,11 @@ func updateVolume() {
 		pricePercent := analysis.CalculateBandPriceChangesPercent(bollinger, direction, 21)
 		vol := countVolume(response.CandleData[len(response.CandleData)-11:])
 
-		if bollinger.AllTrend.SecondTrend == models.TREND_UP && pricePercent > 2 {
+		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 2.1 {
 			countTrendUp++
 		}
 
-		if bollinger.AllTrend.SecondTrend == models.TREND_UP && pricePercent > 4 {
+		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 4.1 {
 			countTrendUpSignifican++
 		}
 
@@ -78,10 +78,10 @@ func updateVolume() {
 
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
 
-	if countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 20 {
-		modeChecking = "trend_up"
+	if countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 25 {
+		modeChecking = models.MODE_TREND_UP
 	} else {
-		modeChecking = "not_trend_up"
+		modeChecking = models.MODE_TREND_NOT_UP
 	}
 
 	countLimit = countTrendUp

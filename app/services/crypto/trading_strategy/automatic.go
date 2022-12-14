@@ -140,6 +140,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 				if ok, resMsg := holdAndGenerateMessage(coin); ok {
 					msg += resMsg
 					msg += "pattern: " + analysis.GetIgnoredReason() + " \n\n"
+					msg += "modeChecking: " + modeChecking + " \n\n"
 
 					holdCount++
 				}
@@ -213,7 +214,7 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp() *models.BandResult {
 
 		coin.Long = resultLong
 
-		if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime) {
+		if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime, modeChecking) {
 			return &coin
 		}
 	}

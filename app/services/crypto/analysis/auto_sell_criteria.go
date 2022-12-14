@@ -38,23 +38,29 @@ func CheckIsNeedSellOnTrendUp(currencyConfig *models.CurrencyNotifConfig, shortI
 	holdTime := time.Unix(currencyConfig.HoldedAt, 0)
 	holdedHour := CalculateHoldTimeDiff(holdTime, currentTime).Hours()
 	var threshold float32 = 3
-	if holdedHour > 5 {
-		threshold = 1
-	} else if holdedHour > 2 {
+	if holdedHour >= 11 {
+		threshold = 0.5
+	} else if holdedHour >= 9 {
+		threshold = 1.5
+	} else if holdedHour >= 7 {
+		threshold = 1.5
+	} else if holdedHour >= 5 {
 		threshold = 2
+	} else if holdedHour >= 3 {
+		threshold = 2.5
 	}
 
 	if currencyConfig.HoldPrice > shortInterval.CurrentPrice {
 		changes := currencyConfig.HoldPrice - shortInterval.CurrentPrice
 		changesInPercent := changes / currencyConfig.HoldPrice * 100
-		if ((shortInterval.Direction == BAND_DOWN || changesInPercent > 5) && changesInPercent > 3) || holdedHour > 11 {
+		if ((shortInterval.Direction == BAND_DOWN || changesInPercent > 4) && changesInPercent > 3) || holdedHour >= 12 {
 			reason = fmt.Sprintf("sell on defisit after holded %d hours", int(holdedHour))
 			return true
 		}
 	} else {
 		changes := shortInterval.CurrentPrice - currencyConfig.HoldPrice
 		changesInPercent := changes / currencyConfig.HoldPrice * 100
-		if changesInPercent > threshold || holdedHour > 11 {
+		if changesInPercent > threshold || holdedHour >= 12 {
 			reason = fmt.Sprintf("sell on profit after holded %d hours", int(holdedHour))
 			return true
 		}
