@@ -345,6 +345,11 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 		return false
 	}
 
+	if long.AllTrend.SecondTrend == models.TREND_DOWN && long.Position == models.BELOW_SMA && mid.Position == models.BELOW_SMA {
+		log.Println("skipped12")
+		return false
+	}
+
 	if isShortBandComplete(currentTime) {
 		return checkingOnBandComplete(short, mid, long, currentTime, modeChecking)
 	}
