@@ -5,12 +5,13 @@ import (
 	"log"
 	"strconv"
 	"telebot-trading/app/helper"
+	"telebot-trading/app/models"
 	"time"
 )
 
 const profitKey string = "dailyProfit"
 const timeKey string = "currentDay"
-const profitThreshold float32 = 6
+const defaultProfitThreshold float32 = 6
 const defisitThreshold float32 = -2.3
 
 func SetProfit(profit float32) {
@@ -29,6 +30,7 @@ func SetProfit(profit float32) {
 }
 
 func IsProfitMoreThanThreshold() bool {
+	profitThreshold := getProfitThreshold()
 	currentTimeKey := getKeyTime()
 	storedTimeKey := populateKeyTimeFromStorage()
 	if currentTimeKey == storedTimeKey {
@@ -40,6 +42,13 @@ func IsProfitMoreThanThreshold() bool {
 	storeKeyTimeToStorage(currentTimeKey)
 
 	return false
+}
+
+func getProfitThreshold() float32 {
+	if modeChecking == models.MODE_TREND_UP {
+		return defaultProfitThreshold * 2
+	}
+	return defaultProfitThreshold
 }
 
 func populateCurrentProfitFromStorage() float32 {
