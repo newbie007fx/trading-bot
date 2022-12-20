@@ -345,7 +345,7 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 		return false
 	}
 
-	if (long.AllTrend.ShortTrend == models.TREND_DOWN || isHasOpenOrCloseBelowLower(long.Bands[bandLen-4:])) && long.Position == models.BELOW_SMA {
+	if (long.AllTrend.SecondTrend == models.TREND_DOWN || isHasOpenOrCloseBelowLower(long.Bands[bandLen-4:])) && long.Position == models.BELOW_SMA {
 		log.Println("skipped12")
 		return false
 	}
