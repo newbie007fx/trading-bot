@@ -285,6 +285,13 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 				return false
 			}
 		}
+
+		if long.AllTrend.Trend == models.TREND_DOWN {
+			if countBadBandAndCrossUpper(short.Bands[bandLen-5:]) > 2 && short.AllTrend.ShortTrend == models.TREND_UP {
+				log.Println("skip on mode not up: 4")
+				return false
+			}
+		}
 	}
 
 	if isUpperHeadMoreThanUpperBody(shortLastBand) || isOpenCloseAboveUpper(shortLastBand) {
