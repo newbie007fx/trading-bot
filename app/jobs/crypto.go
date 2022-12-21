@@ -29,7 +29,7 @@ func StartCryptoWorker() {
 			strategy.Execute(currentTime)
 		}
 
-		if isTimeToUpdateVolume(currentTime) && second < 15 || (!volumeAlreadyChecked && checkMinuteVolumteAlreadyChecked(currentTime)) {
+		if (isTimeToUpdateVolume(currentTime) && second < 15) || (!volumeAlreadyChecked && checkMinuteVolumteAlreadyChecked(currentTime)) {
 			updateVolumeChan <- true
 			volumeAlreadyChecked = true
 		}
