@@ -122,10 +122,10 @@ func countOpenCloseAboveUpper(bands []models.Band) int {
 }
 
 func isTailMoreThanBody(band models.Band) bool {
-	head := band.Candle.Hight - band.Candle.Close
+	tail := band.Candle.Open - band.Candle.Low
 	body := band.Candle.Close - band.Candle.Open
 
-	return head > body
+	return tail > body
 }
 
 func isHeadMoreThanBody(band models.Band) bool {
@@ -258,6 +258,21 @@ func countOpenCloseAboveUpperOrUpperHeadMoreThanUpperBody(bands []models.Band) i
 	return count
 }
 
+func isCloseAboveSMA(band models.Band) bool {
+	return band.Candle.Close > float32(band.SMA) && band.Candle.Close < float32(band.Upper)
+}
+
+func countCloseAboveSMA(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		if isCloseAboveSMA(band) {
+			count++
+		}
+	}
+
+	return count
+}
+
 func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, modeChecking string) bool {
 	ignoredReason = ""
 
@@ -286,10 +301,17 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 			}
 		}
 
-		if long.AllTrend.Trend == models.TREND_DOWN {
-			if countBadBandAndCrossUpper(short.Bands[bandLen-5:]) > 2 && short.AllTrend.ShortTrend == models.TREND_UP {
+		if long.AllTrend.Trend != models.TREND_UP {
+			if countBadBandAndCrossUpper(short.Bands[bandLen-5:]) > 2 {
 				log.Println("skip on mode not up: 4")
 				return false
+			}
+
+			if long.Position == models.ABOVE_SMA && countCloseAboveSMA(long.Bands[bandLen-5:]) == 1 {
+				if CountBadBand(long.Bands[bandLen-5:]) > 3 {
+					log.Println("skip on mode not up: 5")
+					return false
+				}
 			}
 		}
 	}
@@ -436,6 +458,15 @@ func checkingOnBandComplete(short, mid, long models.BandResult, currentTime time
 			if CountBadBand(mid.Bands[bandLen-4:bandLen-1]) > 2 || (short.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1) {
 				log.Println("skip on mode not up  band complete: 2")
 				return false
+			}
+		}
+
+		if long.Position == models.ABOVE_UPPER {
+			if CountBadBand(mid.Bands[bandLen-5:]) > 3 {
+				if countBadBandAndCrossUpper(short.Bands[bandLen-5:bandLen-1]) > 1 {
+					log.Println("skip on mode not up  band complete: 3")
+					return false
+				}
 			}
 		}
 	}

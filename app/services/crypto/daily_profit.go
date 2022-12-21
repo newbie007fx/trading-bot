@@ -35,7 +35,7 @@ func IsProfitMoreThanThreshold() bool {
 	storedTimeKey := populateKeyTimeFromStorage()
 	if currentTimeKey == storedTimeKey {
 		storedProfit := populateCurrentProfitFromStorage()
-		return storedProfit > profitThreshold || storedProfit < defisitThreshold
+		return storedProfit > profitThreshold
 	}
 
 	storeProfitToStorage(0)
