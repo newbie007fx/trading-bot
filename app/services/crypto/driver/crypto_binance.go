@@ -16,9 +16,10 @@ import (
 )
 
 type BinanceClient struct {
-	klineService       *binance.KlinesService
-	accountService     *binance.GetAccountService
-	createOrderService *binance.CreateOrderService
+	klineService        *binance.KlinesService
+	accountService      *binance.GetAccountService
+	createOrderService  *binance.CreateOrderService
+	exchangeinfoService *binance.ExchangeInfoService
 }
 
 func (client *BinanceClient) init() {
@@ -28,6 +29,7 @@ func (client *BinanceClient) init() {
 	client.klineService = service.NewKlinesService()
 	client.accountService = service.NewGetAccountService()
 	client.createOrderService = service.NewCreateOrderService()
+	client.exchangeinfoService = service.NewExchangeInfoService()
 }
 
 func (client *BinanceClient) GetCandlesData(symbol string, limit int, startDate, endDate int64, resolution string) ([]models.CandleData, error) {
@@ -98,6 +100,15 @@ func (client *BinanceClient) GetBlanceInfo() (*[]models.AssetBalance, error) {
 	return &assetBalances, err
 }
 
+func (client *BinanceClient) GetExchangeInformation() (*[]models.MarketSymbol, error) {
+	res, err := client.exchangeinfoService.Permissions("SPOT").Do(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return convertMarketSymbols(res.Symbols), nil
+}
+
 func (client *BinanceClient) CreateBuyOrder(symbol string, quantity float32) (*models.CreateOrderResponse, error) {
 	return client.createOrder(binance.SideTypeBuy, symbol, quantity)
 }
@@ -151,6 +162,34 @@ func convertCreateOrderReponse(response *binance.CreateOrderResponse) models.Cre
 		Quantity: convertToFloat32(response.ExecutedQuantity),
 		Status:   string(response.Status),
 	}
+}
+
+func convertMarketSymbols(symbols []binance.Symbol) *[]models.MarketSymbol {
+	marketSymbols := []models.MarketSymbol{}
+	for _, symbol := range symbols {
+		marketSymbol := models.MarketSymbol{
+			Symbol:                     symbol.Symbol,
+			Status:                     symbol.Status,
+			BaseAsset:                  symbol.BaseAsset,
+			BaseAssetPrecision:         symbol.BaseAssetPrecision,
+			QuoteAsset:                 symbol.QuoteAsset,
+			QuotePrecision:             symbol.QuotePrecision,
+			QuoteAssetPrecision:        symbol.QuoteAssetPrecision,
+			BaseCommissionPrecision:    symbol.BaseCommissionPrecision,
+			QuoteCommissionPrecision:   symbol.QuoteCommissionPrecision,
+			OrderTypes:                 symbol.OrderTypes,
+			IcebergAllowed:             symbol.IcebergAllowed,
+			OcoAllowed:                 symbol.OcoAllowed,
+			QuoteOrderQtyMarketAllowed: symbol.QuoteOrderQtyMarketAllowed,
+			IsSpotTradingAllowed:       symbol.IsSpotTradingAllowed,
+			IsMarginTradingAllowed:     symbol.IsMarginTradingAllowed,
+			Filters:                    symbol.Filters,
+			Permissions:                symbol.Permissions,
+		}
+		marketSymbols = append(marketSymbols, marketSymbol)
+	}
+
+	return &marketSymbols
 }
 
 func convertToFloat32(data string) float32 {

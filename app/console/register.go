@@ -15,4 +15,5 @@ func init() {
 	cli.RegisterCommand(commands.WorkerRunCommand())
 	cli.RegisterCommand(commands.TestingWeightCommand())
 	cli.RegisterCommand(commands.TestingSellCommand())
+	cli.RegisterCommand(commands.UpdateCurrencyCommand())
 }

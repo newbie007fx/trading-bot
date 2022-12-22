@@ -16,4 +16,5 @@ func init() {
 	db.RegistMigration(migrations.AddHoldedAtColumnCurrencyNotifTable())
 	db.RegistMigration(migrations.AddReachTargetProfitAtColumnCurrencyNotifTable())
 	db.RegistMigration(migrations.AddPriceChangeColumnCurrencyNotifTable())
+	db.RegistMigration(migrations.AddStatusAndConfigColumnCurrencyNotifTable())
 }

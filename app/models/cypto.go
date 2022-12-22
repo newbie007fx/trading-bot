@@ -78,3 +78,23 @@ type TrendDetail struct {
 	Trend              int8
 	ShortTrend         int8
 }
+
+type MarketSymbol struct {
+	Symbol                     string
+	Status                     string
+	BaseAsset                  string
+	BaseAssetPrecision         int
+	QuoteAsset                 string
+	QuotePrecision             int
+	QuoteAssetPrecision        int
+	BaseCommissionPrecision    int32
+	QuoteCommissionPrecision   int32
+	OrderTypes                 []string
+	IcebergAllowed             bool
+	OcoAllowed                 bool
+	QuoteOrderQtyMarketAllowed bool
+	IsSpotTradingAllowed       bool
+	IsMarginTradingAllowed     bool
+	Filters                    []map[string]interface{}
+	Permissions                []string
+}

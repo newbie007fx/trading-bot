@@ -26,6 +26,11 @@ func updateVolume() {
 
 	responseChan := make(chan CandleResponse)
 
+	repositories.UpdateCurrencyNotifConfigAll(map[string]interface{}{
+		"volume":        0,
+		"price_changes": 0,
+	}, nil)
+
 	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil, nil)
 	countTrendUp := 0
 	countTrendUpSignifican := 0
@@ -78,7 +83,7 @@ func updateVolume() {
 
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
 
-	if countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 25 {
+	if countTrendUpSignifican > 0 && countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 25 {
 		modeChecking = models.MODE_TREND_UP
 	} else {
 		modeChecking = models.MODE_TREND_NOT_UP

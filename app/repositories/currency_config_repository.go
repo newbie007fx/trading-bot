@@ -80,9 +80,15 @@ func UpdateCurrencyNotifConfigBySymbol(symbol string, data map[string]interface{
 	return result.Error
 }
 
-func UpdateCurrencyNotifConfigAll(data map[string]interface{}) error {
+func UpdateCurrencyNotifConfigAll(data map[string]interface{}, condition *map[string]interface{}) error {
 	data["updated_at"] = time.Now()
-	result := db.GetDB().Table("currency_notif_configs").Updates(data)
+	query := db.GetDB().Table("currency_notif_configs")
+	if condition != nil {
+		for key, value := range *condition {
+			query.Where(key, value)
+		}
+	}
+	result := query.Updates(data)
 	return result.Error
 }
 

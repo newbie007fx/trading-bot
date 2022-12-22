@@ -10,6 +10,7 @@ import (
 )
 
 var updateVolumeChan chan bool
+var updateCurrencyChan chan bool
 var volumeAlreadyChecked bool = false
 var strategy trading_strategy.TradingStrategy
 
@@ -19,6 +20,7 @@ func StartCryptoWorker() {
 	defer func() {
 		strategy.Shutdown()
 		close(updateVolumeChan)
+		close(updateCurrencyChan)
 	}()
 
 	for {
@@ -32,6 +34,10 @@ func StartCryptoWorker() {
 		if (isTimeToUpdateVolume(currentTime) && second < 15) || (!volumeAlreadyChecked && checkMinuteVolumteAlreadyChecked(currentTime)) {
 			updateVolumeChan <- true
 			volumeAlreadyChecked = true
+		}
+
+		if currentTime.Hour() == 23 && currentTime.Minute() == 59 && second < 15 {
+			updateCurrencyChan <- true
 		}
 
 		if second >= 15 {
@@ -48,6 +54,7 @@ func startService() {
 
 	go crypto.RequestCandleService()
 	go crypto.StartUpdateVolumeService(updateVolumeChan)
+	go crypto.StartUpdateCurrencyService(updateCurrencyChan)
 	go crypto.StartSyncBalanceService()
 
 	setStrategy()

@@ -4,6 +4,10 @@ import (
 	"time"
 )
 
+const STATUS_ACTIVE = 10
+const STATUS_MARKET_OFF = 5
+const STATUS_NONACTIVE = 0
+
 type CurrencyNotifConfig struct {
 	ID                  uint    `gorm:"primaryKey"`
 	Symbol              string  `gorm:"size:200;unique"`
@@ -15,6 +19,8 @@ type CurrencyNotifConfig struct {
 	HoldedAt            int64   `gorm:"default:0"`
 	ReachTargetProfitAt int64   `gorm:"default:0"`
 	PriceChanges        float32 `gorm:"default:0"`
+	Status              int8    `gorm:"default:0;index"`
+	Config              string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
