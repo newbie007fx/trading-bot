@@ -26,12 +26,16 @@ func updateVolume() {
 
 	responseChan := make(chan CandleResponse)
 
+	condition := map[string]interface{}{
+		"status": models.STATUS_ACTIVE,
+	}
 	repositories.UpdateCurrencyNotifConfigAll(map[string]interface{}{
 		"volume":        0,
 		"price_changes": 0,
-	}, nil)
+	}, &condition)
 
-	currency_configs := repositories.GetCurrencyNotifConfigs(nil, nil, nil)
+	orderBy := "price_changes desc"
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil, &orderBy)
 	countTrendUp := 0
 	countTrendUpSignifican := 0
 	for i, data := range *currency_configs {
