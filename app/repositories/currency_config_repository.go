@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func GetCurrencyNotifConfigs(condition *map[string]interface{}, limit *int, order *string) *[]models.CurrencyNotifConfig {
+func GetCurrencyNotifConfigs(condition *map[string]interface{}, limit *int, offset *int, order *string) *[]models.CurrencyNotifConfig {
 	notifConfigs := []models.CurrencyNotifConfig{}
 
 	defaultOrder := "is_master desc, is_on_hold desc, volume desc, price_changes desc"
@@ -17,6 +17,10 @@ func GetCurrencyNotifConfigs(condition *map[string]interface{}, limit *int, orde
 	res := db.GetDB().Order(*order)
 	if limit != nil {
 		res.Limit(*limit)
+	}
+
+	if offset != nil {
+		res.Offset(*offset)
 	}
 
 	if condition != nil {

@@ -24,38 +24,55 @@
                                 <th>Price Changes</th>
                                 <th>Volume</th>
                                 <th>Is On Hold</th>
-                                <th>Is Master</th>
                                 <th>Last Update</th>
-                                <th>Action</th>
+                                <th>Status</th>
+                                <th>Config</th>
                             </tr>
                         </thead>
                         <tbody>
                             {{ range $index, $val := .currency_configs }}
                             <tr>
-                                <th scope="row">{{ $index }}</th>
-                                <td>{{ $val.Symbol }}</td>
-                                <td>{{ $val.PriceChanges }}</td>
-                                <td>{{ $val.Volume }}</td>
-                                <td>{{ $val.IsOnHold }}</td>
-                                <td>{{ $val.IsMaster }}</td>
-                                <td>{{ $val.GetFormattedUpdatedAt }}</td>
-                                <td>
+                                <th scope="row">
+                                    {{ len (printf "a%*s" $index "") }} </br>
                                     <a href="/admin/currency-config/edit/{{ $val.ID }}" title="edit"><i class="fas fa-edit"></i></a> |
                                     <a class="delete-currency-config" href="#" data-id="{{ $val.ID }}"><i class="fas fa-trash-alt"></i></a>
-                                    {{ if eq $val.IsMaster false }}
-                                       | <a class="set-master-currency-config" href="#" data-id="{{ $val.ID }}">Set Master</a>
-                                    {{ end }}
                                     {{ if eq $val.IsOnHold false }}
                                        | <a class="hold-currency-config" href="#" data-id="{{ $val.ID }}">Hold</a>
                                     {{ else }}
                                        | <a class="release-currency-config" href="#" data-id="{{ $val.ID }}">Release</a>
                                     {{ end }}
+                                </th>
+                                <td>{{ $val.Symbol }}</td>
+                                <td>{{ $val.PriceChanges }}</td>
+                                <td>{{ $val.Volume }}</td>
+                                <td>{{ $val.IsOnHold }}</td>
+                                <td>{{ $val.GetFormattedUpdatedAt }}</td>
+                                <td>
+                                    {{ if eq $val.Status 10 }}
+                                       <label> Active </label>
+                                    {{ else if eq $val.Status 5 }}
+                                        <label> Market Off </label>
+                                    {{ else }}
+                                        <label> Non-Active </label>
+                                    {{ end }}
                                 </td>
+                                <td> <pre><code> {{ $val.Config }} </code></pre> </td>
                             </tr>
                             {{ end }}
                         </tbody>
                     </table>
                 </div>
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                        {{ if gt .page 0 }}
+                            <li class="page-item"><a class="page-link" href="/admin/currency-config?page={{ len (slice (printf "%*s" .page "") 1) }}">Previous</a></li>
+                        {{ end }}
+                        <li class="page-item active" aria-current="page">
+                            <a class="page-link" href="#">{{ len (printf "a%*s" .page "") }}</a>
+                        </li>
+                        <li class="page-item"><a class="page-link" href="/admin/currency-config?page={{ len (printf "a%*s" .page "") }}">Next</a></li>
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>
