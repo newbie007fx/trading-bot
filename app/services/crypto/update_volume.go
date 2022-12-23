@@ -34,19 +34,8 @@ func updateVolume(currentTime time.Time) {
 		"price_changes": 0,
 	}, &condition)
 
-	var limit *int = nil
-	if currentTime.Minute()%15 != 0 {
-		if countLimit > 0 {
-			tmpLimit := countLimit * 2
-			if tmpLimit > 100 {
-				tmpLimit = countLimit
-			}
-			limit = &tmpLimit
-		}
-	}
-
 	orderBy := "price_changes desc"
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, limit, nil, &orderBy)
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil, nil, &orderBy)
 	countTrendUp := 0
 	countTrendUpSignifican := 0
 	for i, data := range *currency_configs {
