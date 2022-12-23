@@ -11,7 +11,6 @@ import (
 
 var updateVolumeChan chan bool
 var updateCurrencyChan chan bool
-var volumeAlreadyChecked bool = false
 var strategy trading_strategy.TradingStrategy
 
 func StartCryptoWorker() {
@@ -31,9 +30,8 @@ func StartCryptoWorker() {
 			strategy.Execute(currentTime)
 		}
 
-		if (isTimeToUpdateVolume(currentTime) && second < 15) || (!volumeAlreadyChecked && checkMinuteVolumteAlreadyChecked(currentTime)) {
+		if isTimeToUpdateVolume(currentTime) && second < 15 {
 			updateVolumeChan <- true
-			volumeAlreadyChecked = true
 		}
 
 		if currentTime.Hour() == 23 && currentTime.Minute() == 59 && second < 15 {
@@ -100,20 +98,5 @@ func isMuted() bool {
 
 func isTimeToUpdateVolume(currentTime time.Time) bool {
 	minute := currentTime.Minute()
-	return minute == 13 || minute == 28 || minute == 43 || minute == 58
-}
-
-func checkMinuteVolumteAlreadyChecked(currentTime time.Time) bool {
-	minute := currentTime.Minute()
-	if minute < 8 {
-		return true
-	} else if minute > 15 && minute < 23 {
-		return true
-	} else if minute > 30 && minute < 38 {
-		return true
-	} else if minute > 45 && minute > 53 {
-		return true
-	}
-
-	return false
+	return minute%5 == 0
 }

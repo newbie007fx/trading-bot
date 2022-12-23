@@ -16,12 +16,12 @@ func StartUpdateVolumeService(updateVolumeChan chan bool) {
 	for <-updateVolumeChan {
 		currentTime := time.Now()
 		if !IsProfitMoreThanThreshold() || (currentTime.Hour() == 23 && currentTime.Minute() > 45) {
-			updateVolume()
+			updateVolume(currentTime)
 		}
 	}
 }
 
-func updateVolume() {
+func updateVolume(currentTime time.Time) {
 	log.Println("starting update volume worker ")
 
 	responseChan := make(chan CandleResponse)
@@ -34,8 +34,19 @@ func updateVolume() {
 		"price_changes": 0,
 	}, &condition)
 
+	var limit *int = nil
+	if currentTime.Minute()%15 != 0 {
+		if countLimit > 0 {
+			tmpLimit := countLimit * 2
+			if tmpLimit > 100 {
+				tmpLimit = countLimit
+			}
+			limit = &tmpLimit
+		}
+	}
+
 	orderBy := "price_changes desc"
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil, &orderBy)
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, limit, nil, &orderBy)
 	countTrendUp := 0
 	countTrendUpSignifican := 0
 	for i, data := range *currency_configs {

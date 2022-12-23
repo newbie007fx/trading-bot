@@ -27,7 +27,7 @@ func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
 	responseChan := make(chan crypto.CandleResponse)
 
 	condition := map[string]interface{}{"is_on_hold = ?": true}
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil, nil)
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil, nil, nil)
 
 	for _, data := range *currency_configs {
 		request := crypto.CandleRequest{
@@ -67,9 +67,9 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 		priceThreshold = 1
 	}
 
-	condition := map[string]interface{}{"is_master = ?": false, "is_on_hold = ?": false, "price_changes > ?": priceThreshold, "status = ?": models.STATUS_ACTIVE}
+	condition := map[string]interface{}{"is_on_hold = ?": false, "price_changes > ?": priceThreshold, "status = ?": models.STATUS_ACTIVE}
 	orderBy := "volume desc"
-	currencyConfigs := repositories.GetCurrencyNotifConfigs(&condition, &limit, &orderBy)
+	currencyConfigs := repositories.GetCurrencyNotifConfigs(&condition, &limit, nil, &orderBy)
 
 	log.Println("found: ", len(*currencyConfigs))
 	log.Println("mode checking: ", modeChecking)
