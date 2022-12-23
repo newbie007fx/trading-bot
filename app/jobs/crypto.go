@@ -36,7 +36,7 @@ func StartCryptoWorker() {
 			volumeAlreadyChecked = true
 		}
 
-		if currentTime.Hour() == 23 && currentTime.Minute() == 59 && second < 15 {
+		if currentTime.Hour() == 0 && currentTime.Minute() == 0 && second < 15 {
 			updateCurrencyChan <- true
 		}
 
