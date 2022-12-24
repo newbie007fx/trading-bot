@@ -319,6 +319,11 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 				return false
 			}
 		}
+
+		if isOpenCloseAboveUpper(midSecondLastBand) && (isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand)) {
+			log.Println("skip on mode not up: 7")
+			return false
+		}
 	}
 
 	if isUpperHeadMoreThanUpperBody(shortLastBand) || isOpenCloseAboveUpper(shortLastBand) {
