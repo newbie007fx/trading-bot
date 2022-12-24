@@ -126,23 +126,30 @@ func GetWeightLog(symbol string, datetime time.Time, modeChecking string) string
 		result = CheckCoin(symbol, "15m", 0, timeInMili, oneMinuteResult.CurrentPrice, higest, lowest)
 	}
 
-	msg := GenerateMsg(*result)
+	msg := "some issue happend. please check"
 
-	higest := analysis.GetHighestHightPriceByTime(datetime, result.Bands, analysis.Time_type_1h, true)
-	lowest := analysis.GetLowestLowPriceByTime(datetime, result.Bands, analysis.Time_type_1h, true)
-	resultMid := CheckCoin(symbol, "1h", 0, timeInMili, result.CurrentPrice, higest, lowest)
+	if result != nil {
+		msg = GenerateMsg(*result)
 
-	msg += "\n" + GenerateMsg(*resultMid)
+		higest := analysis.GetHighestHightPriceByTime(datetime, result.Bands, analysis.Time_type_1h, true)
+		lowest := analysis.GetLowestLowPriceByTime(datetime, result.Bands, analysis.Time_type_1h, true)
+		resultMid := CheckCoin(symbol, "1h", 0, timeInMili, result.CurrentPrice, higest, lowest)
 
-	higest = analysis.GetHighestHightPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h, true)
-	lowest = analysis.GetLowestLowPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h, true)
-	resultLong := CheckCoin(symbol, "4h", 0, timeInMili, resultMid.CurrentPrice, higest, lowest)
+		if resultMid != nil {
+			msg += "\n" + GenerateMsg(*resultMid)
 
-	msg += "\n" + GenerateMsg(*resultLong)
+			higest = analysis.GetHighestHightPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h, true)
+			lowest = analysis.GetLowestLowPriceByTime(datetime, resultMid.Bands, analysis.Time_type_4h, true)
+			resultLong := CheckCoin(symbol, "4h", 0, timeInMili, resultMid.CurrentPrice, higest, lowest)
 
-	analysis.ApprovedPattern(*result, *resultMid, *resultLong, datetime, modeChecking)
-	msg += "\npattern: " + analysis.GetIgnoredReason()
+			if resultLong != nil {
+				msg += "\n" + GenerateMsg(*resultLong)
 
+				analysis.ApprovedPattern(*result, *resultMid, *resultLong, datetime, modeChecking)
+				msg += "\npattern: " + analysis.GetIgnoredReason()
+			}
+		}
+	}
 	return msg
 }
 

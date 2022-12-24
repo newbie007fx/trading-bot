@@ -59,10 +59,14 @@ func (client *BinanceClient) GetCandlesData(symbol string, limit int, startDate,
 		candlesData = client.convertCandleDataMap(cryptoCandles)
 	}
 
-	if len(cryptoCandles) < 40 && limit == 40 {
+	if len(cryptoCandles) != limit {
 		log.Println(symbol, " ,", limit, " ,", startDate, " ,", endDate, " ,", resolution)
 		if conteks.Err() != nil {
 			log.Println(conteks.Err().Error())
+		}
+
+		if err == nil {
+			err = errors.New("invalid candle length")
 		}
 
 		s, _ := json.MarshalIndent(cryptoCandles, "", "\t")
