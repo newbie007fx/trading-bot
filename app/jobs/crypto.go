@@ -50,6 +50,7 @@ func StartCryptoWorker() {
 
 func startService() {
 	updateVolumeChan = make(chan bool)
+	updateCurrencyChan = make(chan bool)
 
 	go crypto.RequestCandleService()
 	go crypto.StartUpdateVolumeService(updateVolumeChan)
