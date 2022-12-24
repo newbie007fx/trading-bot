@@ -121,9 +121,11 @@ func GetWeightLog(symbol string, datetime time.Time, modeChecking string) string
 		result = CheckCoin(symbol, "15m", 0, timeInMili, 0, 0, 0)
 	} else {
 		oneMinuteResult := CheckCoin(symbol, "1m", 0, timeInMili, 0, 0, 0)
-		higest := analysis.GetHighestHightPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
-		lowest := analysis.GetLowestLowPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
-		result = CheckCoin(symbol, "15m", 0, timeInMili, oneMinuteResult.CurrentPrice, higest, lowest)
+		if oneMinuteResult != nil {
+			higest := analysis.GetHighestHightPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
+			lowest := analysis.GetLowestLowPriceByTime(datetime, oneMinuteResult.Bands, analysis.Time_type_15m, true)
+			result = CheckCoin(symbol, "15m", 0, timeInMili, oneMinuteResult.CurrentPrice, higest, lowest)
+		}
 	}
 
 	msg := "some issue happend. please check"
