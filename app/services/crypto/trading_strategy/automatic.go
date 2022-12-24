@@ -150,7 +150,7 @@ func setLimitCheckOnTrendUp() {
 		limit = 60
 	}
 	if limit > 0 && limit <= 40 {
-		limit += limit * 3 / 4
+		limit += limit * 6
 	}
 
 	modeChecking = crypto.GetModeChecking()

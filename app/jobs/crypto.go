@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var updateVolumeChan chan bool
+var updatePriceChan chan bool
 var updateCurrencyChan chan bool
 var strategy trading_strategy.TradingStrategy
 
@@ -18,7 +18,7 @@ func StartCryptoWorker() {
 
 	defer func() {
 		strategy.Shutdown()
-		close(updateVolumeChan)
+		close(updatePriceChan)
 		close(updateCurrencyChan)
 	}()
 
@@ -30,8 +30,8 @@ func StartCryptoWorker() {
 			strategy.Execute(currentTime)
 		}
 
-		if isTimeToUpdateVolume(currentTime) && second < 15 {
-			updateVolumeChan <- true
+		if isTimeToUpdatePrice(currentTime) && second < 15 {
+			updatePriceChan <- true
 		}
 
 		if currentTime.Hour() == 0 && currentTime.Minute() == 0 && second < 15 {
@@ -49,11 +49,11 @@ func StartCryptoWorker() {
 }
 
 func startService() {
-	updateVolumeChan = make(chan bool)
+	updatePriceChan = make(chan bool)
 	updateCurrencyChan = make(chan bool)
 
 	go crypto.RequestCandleService()
-	go crypto.StartUpdateVolumeService(updateVolumeChan)
+	go crypto.StartUpdatePriceService(updatePriceChan)
 	go crypto.StartUpdateCurrencyService(updateCurrencyChan)
 	go crypto.StartSyncBalanceService()
 
@@ -98,7 +98,7 @@ func isMuted() bool {
 	return false
 }
 
-func isTimeToUpdateVolume(currentTime time.Time) bool {
+func isTimeToUpdatePrice(currentTime time.Time) bool {
 	minute := currentTime.Minute()
-	return minute == 2 || minute == 11 || minute == 19 || minute == 26 || minute == 34 || minute == 41 || minute == 49 || minute == 56
+	return minute%6 == 0
 }

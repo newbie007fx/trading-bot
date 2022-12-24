@@ -14,6 +14,7 @@ func StartUpdateCurrencyService(updateCurrencyChan chan bool) {
 		log.Println("starting update currency worker ")
 		UpdateCurrency()
 		log.Println("update currency worker done")
+		UpdateVolume()
 	}
 }
 
