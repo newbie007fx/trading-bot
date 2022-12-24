@@ -37,10 +37,6 @@ func updateVolume(currentTime time.Time) {
 	condition := map[string]interface{}{
 		"status": models.STATUS_ACTIVE,
 	}
-	repositories.UpdateCurrencyNotifConfigAll(map[string]interface{}{
-		"volume":        0,
-		"price_changes": 0,
-	}, &condition)
 
 	var limit *int = nil
 	if currentTime.Minute() > 5 {
@@ -85,7 +81,9 @@ func updateVolume(currentTime time.Time) {
 
 		pricePercent := analysis.CalculateBandPriceChangesPercent(bollinger, direction, 21)
 		vol := countVolume(response.CandleData[len(response.CandleData)-11:])
-
+		if bollinger.AllTrend.ShortTrend != models.TREND_UP {
+			pricePercent = -pricePercent
+		}
 		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 2.1 {
 			countTrendUp++
 		}
