@@ -9,6 +9,7 @@ import (
 )
 
 func StartUpdateCurrencyService(updateCurrencyChan chan bool) {
+	log.Println("update currency service is up")
 	for <-updateCurrencyChan {
 		log.Println("starting update currency worker ")
 		UpdateCurrency()

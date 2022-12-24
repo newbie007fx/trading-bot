@@ -10,6 +10,8 @@ import (
 )
 
 var countLimit int = 0
+var countTotal int = 0
+var countDown int = 0
 var modeChecking string = ""
 
 func StartUpdateVolumeService(updateVolumeChan chan bool) {
@@ -22,6 +24,12 @@ func StartUpdateVolumeService(updateVolumeChan chan bool) {
 }
 
 func updateVolume(currentTime time.Time) {
+	if countDown > 0 {
+		log.Println("skipped update volume worker, after massive update ")
+		countDown--
+		return
+	}
+
 	log.Println("starting update volume worker ")
 
 	responseChan := make(chan CandleResponse)
@@ -34,8 +42,20 @@ func updateVolume(currentTime time.Time) {
 		"price_changes": 0,
 	}, &condition)
 
+	var limit *int = nil
+	if currentTime.Minute() > 5 {
+		if countTotal == 0 {
+			countTotal = 300
+		}
+		temp := countTotal / 3
+		limit = &temp
+	} else {
+		countTotal = 0
+		countDown = 2
+	}
+
 	orderBy := "price_changes desc"
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil, nil, &orderBy)
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, limit, nil, &orderBy)
 	countTrendUp := 0
 	countTrendUpSignifican := 0
 	for i, data := range *currency_configs {
@@ -86,6 +106,7 @@ func updateVolume(currentTime time.Time) {
 	}
 
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
+	log.Println("total checked data: ", len(*currency_configs))
 
 	if countTrendUpSignifican > 0 && countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 25 {
 		modeChecking = models.MODE_TREND_UP
@@ -94,6 +115,9 @@ func updateVolume(currentTime time.Time) {
 	}
 
 	countLimit = countTrendUp
+	if countTotal == 0 {
+		countTotal = len(*currency_configs)
+	}
 
 	log.Println("update volume worker done")
 }
