@@ -67,14 +67,7 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 		return false
 	}
 
-	var listMinutes []int = []int{0, 4, 9, 15, 19, 24, 30, 34, 39, 45, 49, 54}
-	for _, a := range listMinutes {
-		if a == minute {
-			return true
-		}
-	}
-
-	return false
+	return minute%5 == 0
 }
 
 func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan bool) {

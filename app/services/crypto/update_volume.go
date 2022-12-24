@@ -47,11 +47,11 @@ func updateVolume(currentTime time.Time) {
 		if countTotal == 0 {
 			countTotal = 300
 		}
-		temp := countTotal / 3
+		temp := countTotal / 2
 		limit = &temp
 	} else {
 		countTotal = 0
-		countDown = 2
+		countDown = 1
 	}
 
 	orderBy := "price_changes desc"
