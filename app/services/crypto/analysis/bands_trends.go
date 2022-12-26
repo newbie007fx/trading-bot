@@ -87,7 +87,7 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	trend.FirstTrendPercent = firstPercent
 	trend.SecondTrend = midleToLastTrend
 	trend.SecondTrendPercent = secondPercent
-	trend.ShortTrend = conclusionShortTrend(CalculateTrendShort(data[len(data)-5:]), CalculateTrendShort(data[len(data)-3:]))
+	trend.ShortTrend = conclusionShortTrend(CalculateTrendShort(data[len(data)-5:], false), CalculateTrendShort(data[len(data)-3:], true))
 
 	if trend.Trend == 0 {
 		trend.Trend = getConclusionTrend(firstToMidleTrend, midleToLastTrend, firstAvg, midleAvg, lastAvg, baseLinePoint)
@@ -163,7 +163,7 @@ func getTrend(baseLine, fistAvg, secondAvg float32) (percent float32, trend int8
 	return
 }
 
-func CalculateTrendShort(data []models.Band) int8 {
+func CalculateTrendShort(data []models.Band, isIgnorePosiblyChecking bool) int8 {
 	if len(data) == 0 {
 		log.Println("invalid data when calculate trends")
 		return models.TREND_DOWN
@@ -186,7 +186,7 @@ func CalculateTrendShort(data []models.Band) int8 {
 		}
 
 		if i < limit {
-			totalFirstData += getBandValue(possibly, val)
+			totalFirstData += getBandValue(possibly, val, isIgnorePosiblyChecking)
 		}
 
 		if i >= len(data)-limit {
@@ -224,8 +224,8 @@ func checkPossibly(firstBand models.Band, lastBand models.Band) int {
 	return POSSIBLY_UP
 }
 
-func getBandValue(possibly int, band models.Band) float32 {
-	if possibly == POSSIBLY_DOWN {
+func getBandValue(possibly int, band models.Band, isIgnorePosiblyChecking bool) float32 {
+	if possibly == POSSIBLY_DOWN || isIgnorePosiblyChecking {
 		if band.Candle.Close > band.Candle.Open {
 			return band.Candle.Close
 		}

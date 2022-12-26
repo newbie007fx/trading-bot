@@ -327,8 +327,10 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 		}
 
 		if long.AllTrend.ShortTrend != models.TREND_UP && countBadBandAndCrossUpper(long.Bands[bandLen-4:]) > 0 {
-			log.Println("skip on mode not up: 8")
-			return false
+			if countHightCrossUpper(short.Bands[bandLen-4:]) > 1 || mid.AllTrend.SecondTrend == models.TREND_DOWN {
+				log.Println("skip on mode not up: 8")
+				return false
+			}
 		}
 	}
 
