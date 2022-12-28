@@ -73,7 +73,9 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 	ignoredCoins := services.GetIgnoredCurrencies()
 	currencyConfigs := repositories.GetCurrencyNotifConfigsIgnoredCoins(&condition, &limit, ignoredCoins, &orderBy)
 
-	log.Println("ignored coins: ", *ignoredCoins)
+	if ignoredCoins != nil {
+		log.Println("ignored coins: ", *ignoredCoins)
+	}
 	log.Println("found: ", len(*currencyConfigs))
 	log.Println("mode checking: ", modeChecking)
 
