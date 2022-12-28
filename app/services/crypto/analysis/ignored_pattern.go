@@ -341,6 +341,14 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 				return false
 			}
 		}
+
+		if long.AllTrend.Trend == models.TREND_DOWN && mid.AllTrend.Trend == models.TREND_DOWN {
+			if isHightCrossUpper(midLastBand) && isHightCrossUpper(shortLastBand) {
+				services.SetIgnoredCurrency(short.Symbol, 3)
+				log.Println("skip on mode not up: 10")
+				return false
+			}
+		}
 	}
 
 	if isUpperHeadMoreThanUpperBody(shortLastBand) || isOpenCloseAboveUpper(shortLastBand) {
