@@ -320,6 +320,13 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 				log.Println("skip on mode not up: 6")
 				return false
 			}
+
+			if isBadBand(longSecondLastBand) && countBadBandAndCrossUpper(mid.Bands[bandLen-4:]) > 0 {
+				if countHightCrossUpper(mid.Bands[bandLen-4:]) > 2 && CountBadBand(mid.Bands[bandLen-4:]) > 1 {
+					log.Println("skip on mode not up: 6.1")
+					return false
+				}
+			}
 		}
 
 		if isOpenCloseAboveUpper(midSecondLastBand) && (isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand)) {
