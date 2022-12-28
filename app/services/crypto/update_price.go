@@ -90,7 +90,7 @@ func updatePrice() {
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
 	log.Println("total checked data: ", len(*currency_configs))
 
-	if countTrendUpSignifican > 0 && countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 13 {
+	if countTrendUpSignifican > 0 && countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 10 {
 		modeChecking = models.MODE_TREND_UP
 	} else {
 		modeChecking = models.MODE_TREND_NOT_UP

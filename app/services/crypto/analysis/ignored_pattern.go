@@ -3,6 +3,7 @@ package analysis
 import (
 	"log"
 	"telebot-trading/app/models"
+	"telebot-trading/app/services"
 	"time"
 )
 
@@ -328,7 +329,15 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 
 		if long.AllTrend.ShortTrend != models.TREND_UP && countBadBandAndCrossUpper(long.Bands[bandLen-4:]) > 0 {
 			if countHightCrossUpper(short.Bands[bandLen-4:]) > 1 || mid.AllTrend.SecondTrend == models.TREND_DOWN {
+				services.SetIgnoredCurrency(short.Symbol, 12)
 				log.Println("skip on mode not up: 8")
+				return false
+			}
+		}
+
+		if short.AllTrend.Trend == models.TREND_UP && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+			if CountBadBand(short.Bands[bandLen-4:]) > 2 {
+				log.Println("skip on mode not up: 9")
 				return false
 			}
 		}
@@ -414,6 +423,7 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 
 	if isOpenCloseAboveUpper(longLastBand) || isUpperHeadMoreThanUpperBody(longLastBand) {
 		if countBadBandAndCrossUpper(long.Bands[bandLen-4:bandLen-1]) > 1 {
+			services.SetIgnoredCurrency(short.Symbol, 12)
 			log.Println("skipped16")
 			return false
 		}
@@ -421,6 +431,7 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 
 	if long.AllTrend.ShortTrend != models.TREND_UP || longLastBand.Candle.Close < longSecondLastBand.Candle.Open || longLastBand.Candle.Close < longSecondLastBand.Candle.Close {
 		if countBadBandAndCrossUpper(long.Bands[bandLen-4:bandLen-1]) > 1 {
+			services.SetIgnoredCurrency(short.Symbol, 12)
 			log.Println("skipped17")
 			return false
 		}
@@ -428,7 +439,8 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 
 	if long.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER && short.Position == models.ABOVE_UPPER {
 		if countBadBandAndCrossUpper(long.Bands[bandLen-4:bandLen-1]) > 1 && CountBadBand(long.Bands[bandLen-4:bandLen-1]) == 3 {
-			if countHightCrossUpper(short.Bands[bandLen-4:]) > 1 {
+			if countHightCrossUpper(short.Bands[bandLen-4:]) > 1 || countOpenCloseBelowSMA(short.Bands[bandLen-4:]) > 2 {
+				services.SetIgnoredCurrency(short.Symbol, 12)
 				log.Println("skipped18")
 				return false
 			}

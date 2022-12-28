@@ -4,6 +4,7 @@ import (
 	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
+	"telebot-trading/app/services"
 	"telebot-trading/app/services/crypto"
 	"telebot-trading/app/services/crypto/analysis"
 	"time"
@@ -69,7 +70,8 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 	condition := map[string]interface{}{"is_on_hold = ?": false, "price_changes > ?": priceThreshold, "status = ?": models.STATUS_ACTIVE}
 	orderBy := "volume desc"
-	currencyConfigs := repositories.GetCurrencyNotifConfigs(&condition, &limit, nil, &orderBy)
+	ignoredCoins := services.GetIgnoredCurrencies()
+	currencyConfigs := repositories.GetCurrencyNotifConfigsIgnoredCoins(&condition, &limit, ignoredCoins, &orderBy)
 
 	log.Println("found: ", len(*currencyConfigs))
 	log.Println("mode checking: ", modeChecking)
