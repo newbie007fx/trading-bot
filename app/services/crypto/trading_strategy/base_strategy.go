@@ -73,15 +73,13 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 	ignoredCoins := services.GetIgnoredCurrencies()
 	currencyConfigs := repositories.GetCurrencyNotifConfigsIgnoredCoins(&condition, &limit, ignoredCoins, &orderBy)
 
+	log.Println("ignored coins: ", *ignoredCoins)
 	log.Println("found: ", len(*currencyConfigs))
 	log.Println("mode checking: ", modeChecking)
 
 	coinsString := ""
 	for _, data := range *currencyConfigs {
 		coinsString = coinsString + ", " + data.Symbol
-		if data.PriceChanges < 1 {
-			continue
-		}
 
 		var result *models.BandResult
 		request := crypto.CandleRequest{
@@ -95,6 +93,8 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 		result = crypto.MakeCryptoRequest(request)
 
 		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.PriceChanges < 1 {
+			services.SetIgnoredCurrency(result.Symbol, 2)
+
 			continue
 		}
 
