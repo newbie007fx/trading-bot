@@ -356,6 +356,18 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 				return false
 			}
 		}
+
+		if long.AllTrend.SecondTrend == models.TREND_UP && long.Position == models.ABOVE_SMA {
+			if countBadBandAndCrossUpper(long.Bands[bandLen-3:]) > 0 {
+				if mid.Position == models.ABOVE_SMA || (mid.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1) {
+					if short.AllTrend.FirstTrend == models.TREND_DOWN && short.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+						services.SetIgnoredCurrency(short.Symbol, 3)
+						log.Println("skip on mode not up: 11")
+						return false
+					}
+				}
+			}
+		}
 	}
 
 	if isUpperHeadMoreThanUpperBody(shortLastBand) || isOpenCloseAboveUpper(shortLastBand) {
