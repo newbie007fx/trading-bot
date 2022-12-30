@@ -307,9 +307,11 @@ func approvedPatternFirstCheck(short, mid, long models.BandResult, modeChecking 
 			return true
 		}
 
-		if isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) && bandPercent(shortSecondLastBand) > 1.5 {
-			matchPattern = "first check up: pattern 2"
-			return true
+		if isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) && bandPercent(shortSecondLastBand) > 2.6 {
+			if bandPercent(shortLastBand) > 1 {
+				matchPattern = "first check up: pattern 2"
+				return true
+			}
 		}
 	} else {
 		if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
@@ -317,9 +319,11 @@ func approvedPatternFirstCheck(short, mid, long models.BandResult, modeChecking 
 			return true
 		}
 
-		if isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) && bandPercent(shortSecondLastBand) > 1.5 {
-			matchPattern = "first check not up: pattern 2"
-			return true
+		if isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) && bandPercent(shortSecondLastBand) > 2.6 {
+			if bandPercent(shortLastBand) > 1 {
+				matchPattern = "first check not up: pattern 2"
+				return true
+			}
 		}
 	}
 
