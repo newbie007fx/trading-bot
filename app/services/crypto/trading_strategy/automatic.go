@@ -133,7 +133,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 			if holdCount < maxHold {
 				if ok, resMsg := holdAndGenerateMessage(coin); ok {
 					msg += resMsg
-					msg += "pattern: " + analysis.GetIgnoredReason() + " \n\n"
+					msg += "pattern: " + analysis.GetMatchPattern() + " \n\n"
 					msg += "modeChecking: " + modeChecking + " \n\n"
 
 					holdCount++
