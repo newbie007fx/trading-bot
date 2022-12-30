@@ -281,16 +281,16 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 	ignoredReason = ""
 	matchPattern = ""
 
-	if approvedPatternFirstCheck(short, mid, long, modeChecking) {
-		return true
+	if isOnFirstCheck(currentTime) {
+		return approvedPatternFirstCheck(short, mid, long, modeChecking)
 	}
 
-	if approvedPatternSecondCheck(short, mid, long, modeChecking) {
-		return true
+	if isOnSecondCheck(currentTime) {
+		return approvedPatternSecondCheck(short, mid, long, modeChecking)
 	}
 
-	if approvedPatternOnCompleteCheck(short, mid, long, modeChecking) {
-		return true
+	if isOnBandCompleteCheck(currentTime) {
+		return approvedPatternOnCompleteCheck(short, mid, long, modeChecking)
 	}
 
 	return false
@@ -364,7 +364,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 	return false
 }
 
-func isShortBandComplete(currentTime time.Time) bool {
+func isOnBandCompleteCheck(currentTime time.Time) bool {
 	minute := currentTime.Minute()
 
 	if minute == 59 || minute == 0 {
