@@ -11,7 +11,7 @@ import (
 
 var countLimit int = 0
 var offset int = 0
-var limit int = 100
+var limit int = 130
 var modeChecking string = ""
 
 func StartUpdatePriceService(updatePriceChan chan bool) {
@@ -32,7 +32,7 @@ func updatePrice() {
 		"status": models.STATUS_ACTIVE,
 	}
 
-	if offset >= countTotal || offset >= 300 {
+	if offset >= countTotal || offset >= 250 {
 		offset = 0
 	}
 

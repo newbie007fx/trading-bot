@@ -285,10 +285,6 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 		return approvedPatternFirstCheck(short, mid, long, modeChecking)
 	}
 
-	if isOnSecondCheck(currentTime) {
-		return approvedPatternSecondCheck(short, mid, long, modeChecking)
-	}
-
 	if isOnBandCompleteCheck(currentTime) {
 		return approvedPatternOnCompleteCheck(short, mid, long, modeChecking)
 	}
@@ -330,25 +326,6 @@ func approvedPatternFirstCheck(short, mid, long models.BandResult, modeChecking 
 	return false
 }
 
-func approvedPatternSecondCheck(short, mid, long models.BandResult, modeChecking string) bool {
-	bandLen := len(short.Bands)
-	shortLastBand := short.Bands[bandLen-1]
-
-	if modeChecking == models.MODE_TREND_UP {
-		if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.1 {
-			matchPattern = "second check up: pattern 1"
-			return true
-		}
-	} else {
-		if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.1 {
-			matchPattern = "second check not up: pattern 1"
-			return true
-		}
-	}
-
-	return false
-}
-
 func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChecking string) bool {
 	bandLen := len(short.Bands)
 	shortLastBand := short.Bands[bandLen-1]
@@ -359,6 +336,28 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 			return true
 		}
 	} else {
+		if long.Position == models.BELOW_SMA && long.AllTrend.SecondTrend == models.TREND_DOWN && long.AllTrend.ShortTrend == models.TREND_UP {
+			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+				if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+					if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+						matchPattern = "band complete not up: pattern 1:perl base"
+						return true
+					}
+				}
+			}
+		}
+
+		if long.Position == models.ABOVE_SMA && long.AllTrend.SecondTrend == models.TREND_DOWN && long.AllTrend.ShortTrend == models.TREND_UP {
+			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+				if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+					if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+						matchPattern = "band complete not up: pattern 1:perl base"
+						return true
+					}
+				}
+			}
+		}
+
 		if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
 			matchPattern = "band complete not up: pattern 1"
 			return true
@@ -394,22 +393,6 @@ func isOnFirstCheck(currentTime time.Time) bool {
 	} else if minute == 34 || minute == 35 {
 		return true
 	} else if minute == 49 || minute == 50 {
-		return true
-	}
-
-	return false
-}
-
-func isOnSecondCheck(currentTime time.Time) bool {
-	minute := currentTime.Minute()
-
-	if minute == 9 || minute == 10 {
-		return true
-	} else if minute == 24 || minute == 25 {
-		return true
-	} else if minute == 39 || minute == 40 {
-		return true
-	} else if minute == 54 || minute == 55 {
 		return true
 	}
 
