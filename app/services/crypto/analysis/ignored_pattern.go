@@ -351,7 +351,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
 				if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
 					if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-						matchPattern = "band complete not up: pattern 1:perl base"
+						matchPattern = "band complete not up: pattern 1:dent base"
 						return true
 					}
 				}
