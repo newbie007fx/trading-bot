@@ -39,7 +39,8 @@ func UpdateVolume() {
 		vol := countVolume(response.CandleData)
 
 		err := repositories.UpdateCurrencyNotifConfig(data.ID, map[string]interface{}{
-			"volume": vol,
+			"volume":        vol,
+			"price_changes": 0,
 		})
 
 		if err != nil {
