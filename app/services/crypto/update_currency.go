@@ -59,5 +59,7 @@ func UpdateCurrency() {
 				})
 			}
 		}
+	} else {
+		log.Println(err)
 	}
 }

@@ -22,7 +22,6 @@ func (DatabaseService) loadConnString() string {
 	pass := utils.Env("DB_PASS", "root")
 	database := utils.Env("DB_NAME", "todo")
 	connstring := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, pass, host, port, database)
-	fmt.Println("*Databaseconn:", connstring)
 	return connstring
 }
 
