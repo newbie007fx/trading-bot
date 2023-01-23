@@ -1,7 +1,6 @@
 package analysis
 
 import (
-	"log"
 	"telebot-trading/app/models"
 	"time"
 )
@@ -75,12 +74,12 @@ func bandPercent(band models.Band) float32 {
 	return (band.Candle.Close - band.Candle.Open) / band.Candle.Open * 100
 }
 
-func isLastBandHeigestBand(bands []models.Band, count int) bool {
+func isLastBandHeigestHeightBand(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	lastBandClose := lastBand.Candle.Close
 
-	for _, band := range bands[len(bands)-count : len(bands)-1] {
-		if band.Candle.Close > lastBandClose {
+	for _, band := range bands[:len(bands)-1] {
+		if band.Candle.Hight > lastBandClose {
 			return false
 		}
 	}
@@ -156,6 +155,10 @@ func isHeadMoreThanBody(band models.Band) bool {
 func isUpperHeadMoreThanUpperBody(band models.Band) bool {
 	if band.Candle.Open > band.Candle.Close {
 		return false
+	}
+
+	if band.Candle.Open > float32(band.Upper) && band.Candle.Close > float32(band.Upper) {
+		return true
 	}
 
 	if !(band.Candle.Open <= float32(band.Upper) && band.Candle.Close >= float32(band.Upper)) {
@@ -342,6 +345,51 @@ func approvedPatternFirstCheck(short, mid, long models.BandResult, modeChecking 
 	longSecondLastBand := long.Bands[bandLen-2]
 
 	if modeChecking == models.MODE_TREND_UP {
+		if !(isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand)) {
+			if !(isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand)) {
+				if countOpenCloseAboveUpper(short.Bands[bandLen-4:]) == 0 && countOpenCloseBelowSMA(short.Bands[bandLen-4:]) < 3 {
+					if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
+						matchPattern = "first check up: general pattern 1"
+						return true
+					}
+				}
+			}
+		}
+
+		if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+			if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+				if !(isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand)) {
+					if isUpperHeadMoreThanUpperBody(midLastBand) && isUpperHeadMoreThanUpperBody(shortLastBand) {
+						if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
+							matchPattern = "first check up: general pattern 2"
+							return true
+						}
+					}
+				}
+			}
+		}
+
+		if long.Position == models.ABOVE_UPPER && long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
+			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+				if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+					if isLastBandDoublePreviousHeigest(long.Bands) && bandPercent(longLastBand) > 1.5 && countOpenCloseAboveUpper(long.Bands[bandLen-2:]) == 0 {
+						if isLastBandDoublePreviousHeigest(mid.Bands) && bandPercent(midLastBand) > 1.5 {
+							if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 && countOpenCloseBelowSMA(short.Bands[bandLen-4:]) < 3 {
+								matchPattern = "first check up: pattern 1: apt base"
+								return true
+							}
+						}
+					}
+				}
+			}
+		}
+
+		//skipped
+		if countOpenCloseBelowSMA(short.Bands[bandLen-4:]) == 3 {
+			ignoredReason = "first check up: skipped1"
+			return false
+		}
+
 		if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
 			matchPattern = "first check up: pattern 1"
 			return true
@@ -357,11 +405,23 @@ func approvedPatternFirstCheck(short, mid, long models.BandResult, modeChecking 
 						}
 					}
 
-					if countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1 && countCrossUpUpperOnBody(mid.Bands[bandLen-2:]) == 1 && countCrossUpUpperOnBody(long.Bands[bandLen-2:]) == 1 {
-						log.Println("masuk")
-						if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
-							matchPattern = "first check not up: pattern 1: jasmy base"
-							return true
+					if countOpenCloseBelowSMA(short.Bands[bandLen-4:]) == 0 && !(isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand)) {
+						if !isBandMultipleThanList(short.Bands[bandLen-2], short.Bands[bandLen-6:bandLen-2], 2) {
+							if countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1 && countCrossUpUpperOnBody(mid.Bands[bandLen-2:]) == 1 && countCrossUpUpperOnBody(long.Bands[bandLen-2:]) == 1 {
+								if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
+									matchPattern = "first check not up: pattern 1: jasmy base"
+									return true
+								}
+							}
+						}
+					}
+
+					if countOpenCloseBelowSMA(long.Bands[bandLen-4:]) == 0 && countCrossUpUpperOnBody(long.Bands[bandLen-4:]) == 1 && !isUpperHeadMoreThanUpperBody(longLastBand) {
+						if countOpenCloseBelowSMA(mid.Bands[bandLen-4:]) == 0 && countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 && !isUpperHeadMoreThanUpperBody(midLastBand) {
+							if countOpenCloseBelowSMA(short.Bands[bandLen-3:]) == 0 && countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 && !isUpperHeadMoreThanUpperBody(midLastBand) {
+								matchPattern = "first check not up: pattern 1: apt base"
+								return true
+							}
 						}
 					}
 				}
@@ -383,6 +443,36 @@ func approvedPatternFirstCheck(short, mid, long models.BandResult, modeChecking 
 			}
 		}
 
+		if (long.Position == models.ABOVE_SMA || long.Position == models.BELOW_SMA) && long.AllTrend.SecondTrend == models.TREND_DOWN && long.AllTrend.ShortTrend == models.TREND_UP {
+			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+				if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+					if !isBandMultipleThanList(short.Bands[bandLen-2], short.Bands[bandLen-6:bandLen-2], 2) {
+						if !(isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand)) {
+							if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
+								matchPattern = "first check not up: pattern 1: ctxc base"
+								return true
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if long.Position == models.ABOVE_SMA && long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
+			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+				if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+					if countOpenCloseBelowSMA(long.Bands[bandLen-4:]) == 0 {
+						if countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 && countOpenCloseBelowSMA(mid.Bands[bandLen-4:]) == 0 {
+							if countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1 && shortLastBand.Candle.Open < float32(shortLastBand.SMA) {
+								matchPattern = "first check not up: pattern 1: enj base"
+								return true
+							}
+						}
+					}
+				}
+			}
+		}
+
 		// skipped
 		if long.Position == models.ABOVE_UPPER && long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
 			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
@@ -393,6 +483,34 @@ func approvedPatternFirstCheck(short, mid, long models.BandResult, modeChecking 
 							return false
 						}
 					}
+
+					if isBandMultipleThanList(short.Bands[bandLen-2], short.Bands[bandLen-6:bandLen-2], 2) {
+						if isUpperHeadMoreThanUpperBody(shortLastBand) {
+							ignoredReason = "first check not up: skipped 1.1"
+							return false
+						}
+					}
+
+					if countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 && (isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand)) {
+						if countOpenCloseBelowSMA(short.Bands[bandLen-4:]) > 0 && countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+							ignoredReason = "first check not up: skipped 1.2"
+							return false
+						}
+					}
+				}
+			}
+		}
+
+		if long.AllTrend.ShortTrend != models.TREND_UP && mid.AllTrend.ShortTrend != models.TREND_UP {
+			ignoredReason = "first check not up: skipped 2"
+			return false
+		}
+
+		if long.Position == models.ABOVE_UPPER && long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
+			if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+				if countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1 && countOpenCloseAboveUpper(long.Bands[bandLen-2:]) > 0 {
+					ignoredReason = "first check not up: skipped 3"
+					return false
 				}
 			}
 		}
@@ -423,6 +541,55 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 							return true
 						}
 					}
+				}
+			}
+		}
+
+		if !(isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand)) {
+			if !(isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand)) {
+				if countOpenCloseAboveUpper(short.Bands[bandLen-4:]) == 0 {
+					if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+						matchPattern = "band complete up: general pattern 1"
+						return true
+					}
+				}
+			}
+		}
+
+		if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+			if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+				if !(isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand)) {
+					if isUpperHeadMoreThanUpperBody(midLastBand) && isUpperHeadMoreThanUpperBody(shortLastBand) {
+						if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+							matchPattern = "band complete up: general pattern 2"
+							return true
+						}
+					}
+				}
+
+				if currentTime.Hour()%4 == 0 || currentTime.Hour()%4 == 3 {
+					if currentTime.Minute() > 2 && currentTime.Minute() < 58 {
+						if isUpperHeadMoreThanUpperBody(midLastBand) || isUpperHeadMoreThanUpperBody(shortLastBand) {
+							if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+								matchPattern = "band complete up: general pattern 3"
+								return true
+							}
+						}
+					}
+
+				}
+			}
+		}
+
+		// skipped
+		if long.Position == models.ABOVE_UPPER && long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
+			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+				if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+					if (isUpperHeadMoreThanUpperBody(shortLastBand) || isOpenCloseAboveUpper(shortLastBand)) && (isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand)) {
+						ignoredReason = "band complete up: skipped1"
+						return false
+					}
+
 				}
 			}
 		}
@@ -461,9 +628,13 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 		if long.Position == models.ABOVE_SMA && long.AllTrend.SecondTrend == models.TREND_SIDEWAY && long.AllTrend.ShortTrend == models.TREND_UP {
 			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
 				if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
-					if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-						matchPattern = "band complete not up: pattern 1:lsk base"
-						return true
+					if countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 && isLastBandDoublePreviousHeigest(mid.Bands) {
+						if !(isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand)) {
+							if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+								matchPattern = "band complete not up: pattern 1:lsk base"
+								return true
+							}
+						}
 					}
 
 				}
@@ -694,7 +865,6 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 								ignoredReason = "band complete not up: skipped6.1"
 								return false
 							}
-
 						}
 					}
 				}
@@ -704,6 +874,32 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 		if shortLastBand.Candle.Open != shortSecondLastBand.Candle.Close {
 			ignoredReason = "band complete not up: skipped7"
 			return false
+		}
+
+		if long.Position == models.ABOVE_UPPER && long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
+			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+				if countCrossUpUpperOnBody(long.Bands[bandLen-4:]) == 1 {
+					if countOpenCloseAboveUpper(mid.Bands[bandLen-4:]) > 0 || countDownFromUpper(mid.Bands[bandLen-4:]) > 0 {
+						if !isLastBandHeigestHeightBand(mid.Bands[bandLen-4:]) {
+							if currentTime.Hour()%4 == 0 || currentTime.Hour()%4 == 3 {
+								if currentTime.Minute() < 2 || currentTime.Minute() > 58 {
+									ignoredReason = "band complete not up: skipped8"
+									return false
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+			if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+				if countUpperHeadMoreThanUpperBody(short.Bands[bandLen-3:]) > 2 {
+					ignoredReason = "band complete not up: skipped9"
+					return false
+				}
+			}
 		}
 
 		if mid.AllTrend.ShortTrend == models.TREND_UP {
