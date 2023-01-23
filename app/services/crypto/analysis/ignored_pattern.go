@@ -419,8 +419,10 @@ func approvedPatternFirstCheck(short, mid, long models.BandResult, modeChecking 
 					if countOpenCloseBelowSMA(long.Bands[bandLen-4:]) == 0 && countCrossUpUpperOnBody(long.Bands[bandLen-4:]) == 1 && !isUpperHeadMoreThanUpperBody(longLastBand) {
 						if countOpenCloseBelowSMA(mid.Bands[bandLen-4:]) == 0 && countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 && !isUpperHeadMoreThanUpperBody(midLastBand) {
 							if countOpenCloseBelowSMA(short.Bands[bandLen-3:]) == 0 && countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 && !isUpperHeadMoreThanUpperBody(midLastBand) {
-								matchPattern = "first check not up: pattern 1: apt base"
-								return true
+								if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
+									matchPattern = "first check not up: pattern 1: apt base"
+									return true
+								}
 							}
 						}
 					}
