@@ -9,10 +9,11 @@ import (
 	"time"
 )
 
-var countLimit int = 0
+var countLimit int = 1
 var offset int = 0
 var limit int = 130
 var modeChecking string = ""
+var autoDebugMode bool = false
 
 func StartUpdatePriceService(updatePriceChan chan bool) {
 	for <-updatePriceChan {
@@ -40,11 +41,7 @@ func updatePrice() {
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, &offset, &orderBy)
 	countTrendUp := 0
 	countTrendUpSignifican := 0
-	for i, data := range *currency_configs {
-		if i%15 == 0 {
-			time.Sleep(1 * time.Second)
-		}
-
+	for _, data := range *currency_configs {
 		request := CandleRequest{
 			Symbol:       data.Symbol,
 			Limit:        40,
@@ -55,6 +52,10 @@ func updatePrice() {
 		DispatchRequestJob(request)
 
 		response := <-responseChan
+		if autoDebugMode {
+			log.Println("coin: ", data.Symbol)
+			log.Printf("response: %v", response)
+		}
 		if response.Err != nil {
 			log.Println("error: ", response.Err.Error())
 			continue
@@ -83,12 +84,17 @@ func updatePrice() {
 
 		if err != nil {
 			log.Println("error: ", err.Error())
-			continue
 		}
 	}
 
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
 	log.Println("total checked data: ", len(*currency_configs))
+
+	if countTrendUp == 0 && countTrendUpSignifican == 0 && countLimit == 0 {
+		autoDebugMode = true
+	} else {
+		autoDebugMode = false
+	}
 
 	if countTrendUpSignifican > 0 && countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 10 {
 		modeChecking = models.MODE_TREND_UP
