@@ -41,7 +41,11 @@ func updatePrice() {
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, &offset, &orderBy)
 	countTrendUp := 0
 	countTrendUpSignifican := 0
-	for _, data := range *currency_configs {
+	for i, data := range *currency_configs {
+		if i%20 == 0 {
+			time.Sleep(1 * time.Second)
+		}
+
 		request := CandleRequest{
 			Symbol:       data.Symbol,
 			Limit:        40,
