@@ -392,18 +392,18 @@ func approvedPatternFirstCheck(short, mid, long models.BandResult, modeChecking 
 			}
 		}
 
-		if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
-			if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
-				if !(isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand)) {
-					if isUpperHeadMoreThanUpperBody(midLastBand) && isUpperHeadMoreThanUpperBody(shortLastBand) {
-						if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
-							matchPattern = "first check up: general pattern 2"
-							return true
-						}
-					}
-				}
-			}
-		}
+		// if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+		// 	if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+		// 		if !(isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand)) {
+		// 			if isUpperHeadMoreThanUpperBody(midLastBand) && isUpperHeadMoreThanUpperBody(shortLastBand) {
+		// 				if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
+		// 					matchPattern = "first check up: general pattern 2"
+		// 					return true
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 		if long.Position == models.ABOVE_UPPER && long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP {
 			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
@@ -597,12 +597,12 @@ func approvedPatternFirstCheck(short, mid, long models.BandResult, modeChecking 
 			}
 		}
 
-		if !isUpperHeadMoreThanUpperBody(shortLastBand) && bandPercent(shortLastBand) < 6 {
-			if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
-				matchPattern = "first check not up: pattern 1"
-				return true
-			}
-		}
+		// if !isUpperHeadMoreThanUpperBody(shortLastBand) && bandPercent(shortLastBand) < 6 {
+		// 	if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 1.5 {
+		// 		matchPattern = "first check not up: pattern 1"
+		// 		return true
+		// 	}
+		// }
 
 	}
 
@@ -612,6 +612,7 @@ func approvedPatternFirstCheck(short, mid, long models.BandResult, modeChecking 
 func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChecking string, currentTime time.Time) bool {
 	bandLen := len(short.Bands)
 	longLastBand := long.Bands[bandLen-1]
+	longSecondLastBand := long.Bands[bandLen-2]
 	midLastBand := mid.Bands[bandLen-1]
 	midSecondLastBand := mid.Bands[bandLen-2]
 	shortLastBand := short.Bands[bandLen-1]
@@ -631,71 +632,87 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 			}
 		}
 
-		if short.Position == models.ABOVE_UPPER || short.AllTrend.SecondTrend == models.TREND_UP {
-			if mid.Position == models.ABOVE_UPPER || mid.AllTrend.SecondTrend == models.TREND_UP {
-				if long.Position == models.ABOVE_UPPER || long.AllTrend.SecondTrend == models.TREND_UP {
-					if !(isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) && bandPercent(shortLastBand) > 7) {
-						if countOpenCloseBelowSMA(long.Bands[bandLen-4:]) == 0 || bandPercentFromUpper(longLastBand) > 3 {
-							if !(isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand)) {
-								if !(isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand)) {
-									if countOpenCloseAboveUpper(short.Bands[bandLen-4:]) == 0 {
-										if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-											matchPattern = "band complete up: unfi"
-											return true
-										}
-									}
-								}
-							}
-						}
+		// if short.Position == models.ABOVE_UPPER || short.AllTrend.SecondTrend == models.TREND_UP {
+		// 	if mid.Position == models.ABOVE_UPPER || mid.AllTrend.SecondTrend == models.TREND_UP {
+		// 		if long.Position == models.ABOVE_UPPER || long.AllTrend.SecondTrend == models.TREND_UP {
+		// 			if !(isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) && bandPercent(shortLastBand) > 7) {
+		// 				if countOpenCloseBelowSMA(long.Bands[bandLen-4:]) == 0 || bandPercentFromUpper(longLastBand) > 3 {
+		// 					if !(isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand)) {
+		// 						if !(isUpperHeadMoreThanUpperBody(midLastBand) || isOpenCloseAboveUpper(midLastBand)) {
+		// 							if countOpenCloseAboveUpper(short.Bands[bandLen-4:]) == 0 {
+		// 								if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+		// 									matchPattern = "band complete up: unfi"
+		// 									return true
+		// 								}
+		// 							}
+		// 						}
+		// 					}
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
+
+		// if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
+		// 	if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+		// 		if short.Position == models.ABOVE_UPPER || short.AllTrend.SecondTrend == models.TREND_UP {
+		// 			if mid.Position == models.ABOVE_UPPER || mid.AllTrend.SecondTrend == models.TREND_UP {
+		// 				if long.Position == models.ABOVE_UPPER || long.AllTrend.SecondTrend == models.TREND_UP {
+		// 					if !(CalculateTrendShort(long.Bands[bandLen-8:bandLen-4], false) == models.TREND_DOWN && countDownFromUpper(long.Bands[bandLen-8:bandLen-4]) > 0 && countUpperHeadMoreThanUpperBody(long.Bands[bandLen-8:bandLen-4]) > 0) {
+		// 						if !(isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand)) {
+		// 							if isUpperHeadMoreThanUpperBody(midLastBand) && isUpperHeadMoreThanUpperBody(shortLastBand) {
+		// 								if countUpperHeadMoreThanUpperBody(mid.Bands[bandLen-4:]) < 3 && countUpperHeadMoreThanUpperBody(short.Bands[bandLen-4:]) < 3 {
+		// 									if !isBandMultipleThanList(shortSecondLastBand, short.Bands[bandLen-6:bandLen-2], 2) { // dent related
+		// 										if isLastBandDoublePreviousHeigest(mid.Bands) {
+		// 											if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+		// 												matchPattern = "band complete up: general pattern 2"
+		// 												return true
+		// 											}
+		// 										}
+		// 									}
+		// 								}
+		// 							}
+		// 						}
+		// 					}
+
+		// 					if currentTime.Hour()%4 == 0 || currentTime.Hour()%4 == 3 {
+		// 						if currentTime.Minute() > 2 && currentTime.Minute() < 58 {
+		// 							if (isUpperHeadMoreThanUpperBody(midLastBand) || isUpperHeadMoreThanUpperBody(shortLastBand)) && !(isUpperHeadMoreThanUpperBody(midLastBand) && isUpperHeadMoreThanUpperBody(shortLastBand)) { // dent
+		// 								if CountBadBand(short.Bands[bandLen-5:bandLen-1]) < 4 {
+		// 									if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+		// 										matchPattern = "band complete up: general pattern 3"
+		// 										return true
+		// 									}
+		// 								}
+		// 							}
+		// 						}
+		// 					}
+		// 				}
+		// 			}
+		// 		}
+		// 	}
+		// }
+
+		if currentTime.Minute() > 58 || currentTime.Minute() < 3 {
+			if (currentTime.Minute() < 3 && currentTime.Hour()%4 == 0) || (currentTime.Minute() > 58 && currentTime.Hour()%4 == 3) {
+				if isSolidBand(longLastBand) && !isBandDown(longSecondLastBand) {
+					if isLastBandDoublePreviousHeigest(long.Bands) && bandPercent(longLastBand) > 3.6 {
+						matchPattern = "band complete up: solid long band pattern"
+						return true
+					}
+				}
+			} else {
+				if isSolidBand(midLastBand) && !isBandDown(midSecondLastBand) {
+					if isLastBandDoublePreviousHeigest(mid.Bands) && bandPercent(midLastBand) > 3 {
+						matchPattern = "band complete up: solid mid band pattern"
+						return true
 					}
 				}
 			}
-		}
-
-		if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
-			if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
-				if short.Position == models.ABOVE_UPPER || short.AllTrend.SecondTrend == models.TREND_UP {
-					if mid.Position == models.ABOVE_UPPER || mid.AllTrend.SecondTrend == models.TREND_UP {
-						if long.Position == models.ABOVE_UPPER || long.AllTrend.SecondTrend == models.TREND_UP {
-							if !(CalculateTrendShort(long.Bands[bandLen-8:bandLen-4], false) == models.TREND_DOWN && countDownFromUpper(long.Bands[bandLen-8:bandLen-4]) > 0 && countUpperHeadMoreThanUpperBody(long.Bands[bandLen-8:bandLen-4]) > 0) {
-								if !(isUpperHeadMoreThanUpperBody(longLastBand) || isOpenCloseAboveUpper(longLastBand)) {
-									if isUpperHeadMoreThanUpperBody(midLastBand) && isUpperHeadMoreThanUpperBody(shortLastBand) {
-										if countUpperHeadMoreThanUpperBody(mid.Bands[bandLen-4:]) < 3 && countUpperHeadMoreThanUpperBody(short.Bands[bandLen-4:]) < 3 {
-											if !isBandMultipleThanList(shortSecondLastBand, short.Bands[bandLen-6:bandLen-2], 2) { // dent related
-												if isLastBandDoublePreviousHeigest(mid.Bands) {
-													if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-														matchPattern = "band complete up: general pattern 2"
-														return true
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-
-							if currentTime.Hour()%4 == 0 || currentTime.Hour()%4 == 3 {
-								if currentTime.Minute() > 2 && currentTime.Minute() < 58 {
-									if (isUpperHeadMoreThanUpperBody(midLastBand) || isUpperHeadMoreThanUpperBody(shortLastBand)) && !(isUpperHeadMoreThanUpperBody(midLastBand) && isUpperHeadMoreThanUpperBody(shortLastBand)) { // dent
-										if CountBadBand(short.Bands[bandLen-5:bandLen-1]) < 4 {
-											if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-												matchPattern = "band complete up: general pattern 3"
-												return true
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if !(isUpperHeadMoreThanUpperBody(shortLastBand) && bandPercent(shortLastBand) > 6) {
-			if isSolidBand(shortLastBand) {
+		} else {
+			if isSolidBand(shortLastBand) && !isBandDown(shortSecondLastBand) {
 				if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-					matchPattern = "band complete up: solid band pattern"
+					matchPattern = "band complete up: solid short band pattern"
 					return true
 				}
 			}
@@ -929,10 +946,26 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 			}
 		}
 
-		if !(isUpperHeadMoreThanUpperBody(shortLastBand) && bandPercent(shortLastBand) > 6) {
-			if isSolidBand(shortLastBand) {
+		if currentTime.Minute() > 58 || currentTime.Minute() < 3 {
+			if (currentTime.Minute() < 3 && currentTime.Hour()%4 == 0) || (currentTime.Minute() > 58 && currentTime.Hour()%4 == 3) {
+				if isSolidBand(longLastBand) && !isBandDown(longSecondLastBand) {
+					if isLastBandDoublePreviousHeigest(long.Bands) && bandPercent(longLastBand) > 3.6 {
+						matchPattern = "band complete not up: solid long band pattern"
+						return true
+					}
+				}
+			} else {
+				if isSolidBand(midLastBand) && !isBandDown(midSecondLastBand) {
+					if isLastBandDoublePreviousHeigest(mid.Bands) && bandPercent(midLastBand) > 3 {
+						matchPattern = "band complete not up: solid mid band pattern"
+						return true
+					}
+				}
+			}
+		} else {
+			if isSolidBand(shortLastBand) && !isBandDown(shortSecondLastBand) {
 				if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-					matchPattern = "band complete not up: solid band pattern"
+					matchPattern = "band complete not up: solid short band pattern"
 					return true
 				}
 			}
