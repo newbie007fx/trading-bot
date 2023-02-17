@@ -13,7 +13,6 @@ var countLimit int = 1
 var offset int = 0
 var limit int = 130
 var modeChecking string = ""
-var autoDebugMode bool = false
 
 func StartUpdatePriceService(updatePriceChan chan bool) {
 	for <-updatePriceChan {
@@ -56,10 +55,6 @@ func updatePrice() {
 		DispatchRequestJob(request)
 
 		response := <-responseChan
-		if autoDebugMode {
-			log.Println("coin: ", data.Symbol)
-			log.Printf("response: %v", response)
-		}
 		if response.Err != nil {
 			log.Println("error: ", response.Err.Error())
 			continue
@@ -93,12 +88,6 @@ func updatePrice() {
 
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
 	log.Println("total checked data: ", len(*currency_configs))
-
-	if countTrendUp == 0 && countTrendUpSignifican == 0 && countLimit == 0 {
-		autoDebugMode = true
-	} else {
-		autoDebugMode = false
-	}
 
 	if countTrendUpSignifican > 0 && countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 10 {
 		modeChecking = models.MODE_TREND_UP
