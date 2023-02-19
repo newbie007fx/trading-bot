@@ -64,7 +64,7 @@ func (ats *AutomaticTradingStrategy) Shutdown() {
 
 func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time) bool {
 	minute := currentTime.Minute()
-	if currentTime.Second() > 10 {
+	if currentTime.Second() > 5 {
 		return false
 	}
 

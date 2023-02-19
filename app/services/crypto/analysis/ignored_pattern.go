@@ -407,7 +407,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 					if isBandMultipleThanList(shortLastBand, short.Bands[bandLen-11:bandLen-1], 2) {
 
 						if isContainNotTrendup(long) && isContainNotTrendup(mid) && isContainNotTrendup(short) {
-							matchPattern = "band complete up: all time frame contain trend not up"
+							ignoredReason = "band complete up: all time frame contain trend not up"
 							return false
 						}
 
@@ -417,7 +417,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 						}
 
 						if countCrossLowerOnBody(short.Bands[bandLen-11:]) > 0 {
-							matchPattern = "band complete up: cointain cross lower"
+							ignoredReason = "band complete up: cointain cross lower"
 							return false
 						}
 
@@ -426,7 +426,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 								matchPattern = "band complete up: mid last previous 2 band solid band"
 								return true
 							} else {
-								matchPattern = "band complete up: mid not multiple last 2 band and not solid band"
+								ignoredReason = "band complete up: mid not multiple last 2 band and not solid band"
 								return false
 							}
 						}
@@ -436,7 +436,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 							return true
 						} else {
 							if isBandDown(mid.Bands[bandLen-2]) || isBandDown(mid.Bands[bandLen-3]) {
-								matchPattern = "band complete up: mid last band not double last 3 band, contain down band"
+								ignoredReason = "band complete up: mid last band not double last 3 band, contain down band"
 								return false
 							} else {
 								matchPattern = "band complete up: mid last band not double last 3 band, all up band"
@@ -540,7 +540,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 					if isBandMultipleThanList(shortLastBand, short.Bands[bandLen-11:bandLen-1], 2) {
 
 						if isContainNotTrendup(long) && isContainNotTrendup(mid) && isContainNotTrendup(short) {
-							matchPattern = "band complete not up: all time frame contain trend not up"
+							ignoredReason = "band complete not up: all time frame contain trend not up"
 							return false
 						}
 
@@ -550,7 +550,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 						}
 
 						if countCrossLowerOnBody(short.Bands[bandLen-11:]) > 0 {
-							matchPattern = "band complete not up: cointain cross lower"
+							ignoredReason = "band complete not up: cointain cross lower"
 							return false
 						}
 
@@ -559,7 +559,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 								matchPattern = "band complete not up: mid last previous 2 band solid band"
 								return true
 							} else {
-								matchPattern = "band complete not up: mid not multiple last 2 band and not solid band"
+								ignoredReason = "band complete not up: mid not multiple last 2 band and not solid band"
 								return false
 							}
 						}
@@ -569,7 +569,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 							return true
 						} else {
 							if isBandDown(mid.Bands[bandLen-2]) || isBandDown(mid.Bands[bandLen-3]) {
-								matchPattern = "band complete not up: mid last band not double last 3 band, contain down band"
+								ignoredReason = "band complete not up: mid last band not double last 3 band, contain down band"
 								return false
 							} else {
 								matchPattern = "band complete not up: mid last band not double last 3 band, all up band"
