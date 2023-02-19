@@ -68,7 +68,7 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 		return false
 	}
 
-	return minute == 0 || minute == 5 || minute == 15 || minute == 20 || minute == 30 || minute == 35 || minute == 45 || minute == 50
+	return minute == 0 || minute == 15 || minute == 30 || minute == 45
 }
 
 func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan bool) {

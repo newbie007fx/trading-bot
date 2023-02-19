@@ -64,9 +64,6 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 	limit := checkOnTrendUpLimit
 	var priceThreshold float32 = 1.24
-	if baseTime.Minute()%15 != 0 {
-		priceThreshold = 0.75
-	}
 
 	condition := map[string]interface{}{"is_on_hold = ?": false, "price_changes > ?": priceThreshold, "status = ?": models.STATUS_ACTIVE}
 	orderBy := "volume desc"
@@ -95,7 +92,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 		result = crypto.MakeCryptoRequest(request)
 
 		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.PriceChanges < 1 {
-			services.SetIgnoredCurrency(result.Symbol, 2)
+			services.SetIgnoredCurrency(result.Symbol, 1)
 
 			continue
 		}

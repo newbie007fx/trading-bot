@@ -30,20 +30,20 @@ func StartCryptoWorker() {
 			strategy.Execute(currentTime)
 		}
 
-		if isTimeToUpdatePrice(currentTime) && second < 15 {
+		if isTimeToUpdatePrice(currentTime) && second < 10 {
 			updatePriceChan <- true
 		}
 
-		if currentTime.Hour() == 0 && currentTime.Minute() == 0 && second < 15 {
+		if currentTime.Hour() == 0 && currentTime.Minute() == 0 && second < 10 {
 			log.Println("dispatch service update currency")
 			updateCurrencyChan <- true
 		}
 
-		if second >= 15 {
-			second = second % 15
+		if second >= 10 {
+			second = second % 10
 		}
 
-		sleep := 15 - second
+		sleep := 10 - second
 		time.Sleep(time.Duration(sleep) * time.Second)
 	}
 }
@@ -100,5 +100,5 @@ func isMuted() bool {
 
 func isTimeToUpdatePrice(currentTime time.Time) bool {
 	minute := currentTime.Minute()
-	return minute == 3 || minute == 13 || minute == 18 || minute == 28 || minute == 33 || minute == 43 || minute == 48 || minute == 58
+	return minute == 12 || minute == 27 || minute == 42 || minute == 57
 }

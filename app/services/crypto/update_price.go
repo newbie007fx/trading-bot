@@ -5,13 +5,13 @@ import (
 	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
+	"telebot-trading/app/services"
 	"telebot-trading/app/services/crypto/analysis"
 	"time"
 )
 
 var countLimit int = 1
-var offset int = 0
-var limit int = 130
+var limit int = 200
 var modeChecking string = ""
 
 func StartUpdatePriceService(updatePriceChan chan bool) {
@@ -32,12 +32,8 @@ func updatePrice() {
 		"status": models.STATUS_ACTIVE,
 	}
 
-	if offset >= countTotal || offset >= 250 {
-		offset = 0
-	}
-
 	orderBy := "volume desc"
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, &offset, &orderBy)
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, nil, &orderBy)
 	countTrendUp := 0
 	countTrendUpSignifican := 0
 	for i, data := range *currency_configs {
@@ -84,19 +80,26 @@ func updatePrice() {
 		if err != nil {
 			log.Println("error: ", err.Error())
 		}
+		if direction == analysis.BAND_DOWN {
+			ignoreCount := 1
+			if bollinger.AllTrend.ShortTrend == models.TREND_DOWN {
+				ignoreCount += 1
+			}
+
+			services.SetIgnoredCurrency(data.Symbol, ignoreCount)
+		}
 	}
 
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
 	log.Println("total checked data: ", len(*currency_configs))
 
-	if countTrendUpSignifican > 0 && countTrendUp/countTrendUpSignifican <= 6 && countTrendUp >= 10 {
+	if countTrendUpSignifican > 0 && countTrendUp/countTrendUpSignifican <= 9 && countTrendUp >= 15 {
 		modeChecking = models.MODE_TREND_UP
 	} else {
 		modeChecking = models.MODE_TREND_NOT_UP
 	}
 
 	countLimit = countTrendUp
-	offset += limit
 
 	log.Println("update price worker done")
 }
