@@ -104,15 +104,19 @@ func (client *BinanceClient) GetBlanceInfo() (*[]models.AssetBalance, error) {
 	return &assetBalances, err
 }
 
-func (client *BinanceClient) GetExchangeInformation() (*[]models.MarketSymbol, error) {
-	//res, err := client.exchangeinfoService.Permissions("SPOT").Do(context.Background())
-	// if err != nil {
-	// 	return nil, err
-	// }
+func (client *BinanceClient) GetExchangeInformation(symbols *[]string) (*[]models.MarketSymbol, error) {
+	service := client.exchangeinfoService
+	if symbols != nil {
+		service = service.Symbols(*symbols...)
+	}
+	//service = service.Permissions("SPOT")
 
-	// return convertMarketSymbols(res.Symbols), nil
+	res, err := service.Do(context.Background())
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	return convertMarketSymbols(res.Symbols), nil
 }
 
 func (client *BinanceClient) CreateBuyOrder(symbol string, quantity float32) (*models.CreateOrderResponse, error) {

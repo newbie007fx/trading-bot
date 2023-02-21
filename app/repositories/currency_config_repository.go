@@ -137,6 +137,15 @@ func DeleteCurrencyNotifConfig(id uint) error {
 	return result.Error
 }
 
+func DeleteCurrencyNotifConfigSymbolNotIn(symbols []string) error {
+	query := db.GetDB()
+	query.Not(map[string]interface{}{"symbol": symbols})
+
+	result := query.Delete(&models.CurrencyNotifConfig{})
+
+	return result.Error
+}
+
 func SetMaster(id uint) error {
 	db.GetDB().Table("currency_notif_configs").Where("is_master = ?", 1).Updates(map[string]interface{}{"updated_at": time.Now(), "is_master": false})
 	result := db.GetDB().Table("currency_notif_configs").Where("id = ?", id).Updates(map[string]interface{}{"updated_at": time.Now(), "is_master": true})

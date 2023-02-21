@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-var countTotal int = 300
-
 func UpdateVolume() {
 	log.Println("starting update volume worker ")
 
@@ -48,8 +46,6 @@ func UpdateVolume() {
 			continue
 		}
 	}
-
-	countTotal = len(*currency_configs)
 
 	log.Println("update volume worker done")
 }

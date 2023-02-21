@@ -81,12 +81,7 @@ func updatePrice() {
 			log.Println("error: ", err.Error())
 		}
 		if direction == analysis.BAND_DOWN {
-			ignoreCount := 1
-			if bollinger.AllTrend.ShortTrend == models.TREND_DOWN {
-				ignoreCount += 1
-			}
-
-			services.SetIgnoredCurrency(data.Symbol, ignoreCount)
+			services.SetIgnoredCurrency(data.Symbol, 1)
 		}
 	}
 

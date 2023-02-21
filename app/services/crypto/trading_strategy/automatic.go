@@ -5,7 +5,6 @@ import (
 	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
-	"telebot-trading/app/services"
 	"telebot-trading/app/services/crypto"
 	"telebot-trading/app/services/crypto/analysis"
 	"time"
@@ -196,7 +195,6 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp() *models.BandResult {
 		resultMid := crypto.CheckCoin(coin.Symbol, "1h", 0, timeInMilli, coin.CurrentPrice, higest, lowest)
 
 		if resultMid.Direction == analysis.BAND_DOWN {
-			services.SetIgnoredCurrency(resultMid.Symbol, 4)
 			continue
 		}
 
@@ -207,7 +205,6 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp() *models.BandResult {
 		resultLong := crypto.CheckCoin(coin.Symbol, "4h", 0, timeInMilli, resultMid.CurrentPrice, higest, lowest)
 
 		if resultLong.Direction == analysis.BAND_DOWN {
-			services.SetIgnoredCurrency(resultLong.Symbol, 12)
 			continue
 		}
 
