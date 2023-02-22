@@ -54,9 +54,14 @@ func countVolume(candles []models.CandleData) float32 {
 	var volume float32 = 0
 	var lastPrice float32 = 1
 	for _, candle := range candles {
-		volume += candle.Volume
+		if candle.Open < candle.Close {
+			volume += candle.Volume
+		} else {
+			volume -= candle.Volume
+		}
+
 		lastPrice = candle.Close
 	}
 
-	return volume / float32(len(candles)) * lastPrice
+	return volume * lastPrice
 }
