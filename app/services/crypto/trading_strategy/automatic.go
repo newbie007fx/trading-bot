@@ -189,7 +189,6 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp() *models.BandResult {
 	timeInMilli := GetEndDate(altCheckingTime, OPERATION_BUY)
 	altCoins := checkCoinOnTrendUp(altCheckingTime)
 	for _, coin := range altCoins {
-		log.Print(coin.Symbol, ", ")
 		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
 		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
 		resultMid := crypto.CheckCoin(coin.Symbol, "1h", 0, timeInMilli, coin.CurrentPrice, higest, lowest)

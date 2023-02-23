@@ -138,8 +138,7 @@ func DeleteCurrencyNotifConfig(id uint) error {
 }
 
 func DeleteCurrencyNotifConfigSymbolNotIn(symbols []string) error {
-	query := db.GetDB()
-	query.Not(map[string]interface{}{"symbol": symbols})
+	query := db.GetDB().Not(map[string]interface{}{"symbol": symbols})
 
 	result := query.Delete(&models.CurrencyNotifConfig{})
 

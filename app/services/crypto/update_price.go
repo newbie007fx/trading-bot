@@ -36,6 +36,7 @@ func updatePrice() {
 	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, nil, &orderBy)
 	countTrendUp := 0
 	countTrendUpSignifican := 0
+	trendUpCoins := ""
 	for i, data := range *currency_configs {
 		if i%20 == 0 {
 			time.Sleep(1 * time.Second)
@@ -66,6 +67,7 @@ func updatePrice() {
 			pricePercent = -pricePercent
 		}
 		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 2.1 {
+			trendUpCoins = trendUpCoins + ", " + data.Symbol
 			countTrendUp++
 		}
 
@@ -86,6 +88,7 @@ func updatePrice() {
 	}
 
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
+	log.Println("list trend up coin: ", trendUpCoins)
 	log.Println("total checked data: ", len(*currency_configs))
 
 	if countTrendUpSignifican > 0 && countTrendUp/countTrendUpSignifican <= 9 && countTrendUp >= 15 {
