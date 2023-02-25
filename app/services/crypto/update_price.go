@@ -13,7 +13,7 @@ import (
 var countLimit int = 1
 var limit int = 199
 var modeChecking string = ""
-var lastVolume float32
+var lastVolume float32 = 0
 
 func StartUpdatePriceService(updatePriceChan chan bool) {
 	for <-updatePriceChan {
@@ -81,7 +81,7 @@ func updatePrice() {
 			services.SetIgnoredCurrency(data.Symbol, 1)
 		}
 
-		log.Print(i, ", ")
+		log.Print(i, ", ", limit)
 		if i == limit-1 {
 			lastVolume = data.Volume
 		}
