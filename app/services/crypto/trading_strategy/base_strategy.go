@@ -64,10 +64,6 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 	limit := checkOnTrendUpLimit
 	lastVolume := crypto.GetLastVolume()
-	if lastVolume <= 0 {
-		log.Println("skip process last volume is zero")
-		return altCoin
-	}
 	var priceThreshold float32 = 1.24
 
 	condition := map[string]interface{}{"is_on_hold = ?": false, "volume >= ?": lastVolume, "price_changes > ?": priceThreshold, "status = ?": models.STATUS_ACTIVE}
