@@ -81,10 +81,12 @@ func updatePrice() {
 			services.SetIgnoredCurrency(data.Symbol, 1)
 		}
 
+		log.Print(i, ", ")
 		if i == limit-1 {
 			lastVolume = data.Volume
 		}
 	}
+	log.Println("")
 
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
 	log.Println("list trend up coin: ", trendUpCoins)
