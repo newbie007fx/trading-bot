@@ -81,7 +81,7 @@ func updatePrice() {
 			services.SetIgnoredCurrency(data.Symbol, 1)
 		}
 
-		log.Print(i, ", ", limit)
+		log.Print(i, ", ", data.Symbol, ", ", data.Volume)
 		if i == limit-1 {
 			lastVolume = data.Volume
 		}
