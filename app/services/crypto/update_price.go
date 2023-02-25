@@ -13,6 +13,7 @@ import (
 var countLimit int = 1
 var limit int = 199
 var modeChecking string = ""
+var lastVolume float32
 
 func StartUpdatePriceService(updatePriceChan chan bool) {
 	for <-updatePriceChan {
@@ -79,6 +80,10 @@ func updatePrice() {
 		if result.Direction == analysis.BAND_DOWN {
 			services.SetIgnoredCurrency(data.Symbol, 1)
 		}
+
+		if i == limit-1 {
+			lastVolume = data.Volume
+		}
 	}
 
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
@@ -102,6 +107,10 @@ func GetLimit() int {
 	}
 
 	return 1
+}
+
+func GetLastVolume() float32 {
+	return lastVolume
 }
 
 func GetModeChecking() string {
