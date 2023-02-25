@@ -11,7 +11,7 @@ import (
 )
 
 var countLimit int = 1
-var limit int = 200
+var limit int = 199
 var modeChecking string = ""
 
 func StartUpdatePriceService(updatePriceChan chan bool) {
@@ -49,29 +49,23 @@ func updatePrice() {
 			ResponseChan: responseChan,
 		}
 
-		DispatchRequestJob(request)
+		result := MakeCryptoRequest(request)
 
-		response := <-responseChan
-		if response.Err != nil {
-			log.Println("error: ", response.Err.Error())
+		if result == nil {
+			log.Println("empty result ")
 			continue
 		}
-		bollinger := analysis.GenerateBollingerBands(response.CandleData)
-		direction := analysis.BAND_DOWN
-		if analysis.CheckLastCandleIsUp(bollinger.Data) {
-			direction = analysis.BAND_UP
-		}
 
-		pricePercent := analysis.CalculateBandPriceChangesPercent(bollinger, direction, 21)
-		if bollinger.AllTrend.ShortTrend != models.TREND_UP {
+		pricePercent := result.PriceChanges
+		if result.AllTrend.ShortTrend != models.TREND_UP {
 			pricePercent = -pricePercent
 		}
-		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 2.1 {
+		if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 2.1 {
 			trendUpCoins = trendUpCoins + ", " + data.Symbol
 			countTrendUp++
 		}
 
-		if bollinger.AllTrend.SecondTrend == models.TREND_UP && bollinger.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 4.1 {
+		if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 4.1 {
 			countTrendUpSignifican++
 		}
 
@@ -82,7 +76,7 @@ func updatePrice() {
 		if err != nil {
 			log.Println("error: ", err.Error())
 		}
-		if direction == analysis.BAND_DOWN {
+		if result.Direction == analysis.BAND_DOWN {
 			services.SetIgnoredCurrency(data.Symbol, 1)
 		}
 	}
