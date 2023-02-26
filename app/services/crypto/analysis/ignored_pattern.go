@@ -403,8 +403,18 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 
 		if currentTime.Minute() < 58 && currentTime.Minute() > 2 {
 			if isSolidBand(shortLastBand) && !isBandDown(shortSecondLastBand) {
-				if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+				if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) >= 3 {
 					if isBandMultipleThanList(shortLastBand, short.Bands[bandLen-11:bandLen-1], 2) {
+
+						if isOpenCloseAboveUpper(longLastBand) {
+							ignoredReason = "band complete up: long open close above upper"
+							return false
+						}
+
+						if countTrendDown(short, mid, long) > 3 {
+							ignoredReason = "band complete up: count trend down more than 3"
+							return false
+						}
 
 						if isContainNotTrendup(long) && isContainNotTrendup(mid) && isContainNotTrendup(short) {
 							ignoredReason = "band complete up: all time frame contain trend not up"
@@ -504,8 +514,18 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 
 		if currentTime.Minute() < 58 && currentTime.Minute() > 2 {
 			if isSolidBand(shortLastBand) && !isBandDown(shortSecondLastBand) {
-				if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+				if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) >= 3 {
 					if isBandMultipleThanList(shortLastBand, short.Bands[bandLen-11:bandLen-1], 2) {
+
+						if isOpenCloseAboveUpper(longLastBand) {
+							ignoredReason = "band complete not up: long open close above upper"
+							return false
+						}
+
+						if countTrendDown(short, mid, long) > 3 {
+							ignoredReason = "band complete not up: count trend down more than 3"
+							return false
+						}
 
 						if isContainNotTrendup(long) && isContainNotTrendup(mid) && isContainNotTrendup(short) {
 							ignoredReason = "band complete not up: all time frame contain trend not up"
@@ -551,6 +571,33 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 	}
 
 	return false
+}
+
+func countTrendDown(short, mid, long models.BandResult) int {
+	count := 0
+
+	if short.AllTrend.FirstTrend != models.TREND_UP {
+		count++
+	}
+	if short.AllTrend.SecondTrend != models.TREND_UP {
+		count++
+	}
+
+	if mid.AllTrend.FirstTrend != models.TREND_UP {
+		count++
+	}
+	if mid.AllTrend.SecondTrend != models.TREND_UP {
+		count++
+	}
+
+	if long.AllTrend.FirstTrend != models.TREND_UP {
+		count++
+	}
+	if long.AllTrend.SecondTrend != models.TREND_UP {
+		count++
+	}
+
+	return count
 }
 
 func isOnBandCompleteCheck(currentTime time.Time) bool {
