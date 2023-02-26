@@ -26,6 +26,8 @@ func StartUpdatePriceService(updatePriceChan chan bool) {
 
 func updatePrice() {
 	log.Println("starting update price worker ")
+	currentTime := time.Now()
+	endDate := getEndDate(currentTime)
 
 	responseChan := make(chan CandleResponse)
 
@@ -43,14 +45,16 @@ func updatePrice() {
 			time.Sleep(1 * time.Second)
 		}
 
+		var result *models.BandResult
 		request := CandleRequest{
 			Symbol:       data.Symbol,
+			EndDate:      endDate,
 			Limit:        40,
 			Resolution:   "15m",
 			ResponseChan: responseChan,
 		}
 
-		result := MakeCryptoRequest(request)
+		result = MakeCryptoRequest(request)
 
 		if result == nil {
 			log.Println("empty result ")
@@ -115,4 +119,14 @@ func GetLastVolume() float32 {
 
 func GetModeChecking() string {
 	return modeChecking
+}
+
+func getEndDate(baseTime time.Time) int64 {
+	unixTime := baseTime.Unix()
+
+	if baseTime.Minute()%15 == 0 {
+		unixTime = unixTime - (int64(baseTime.Second()) % 60) - 1
+	}
+
+	return unixTime * 1000
 }

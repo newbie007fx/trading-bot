@@ -10,6 +10,9 @@ import (
 func UpdateVolume() {
 	log.Println("starting update volume worker ")
 
+	currentTime := time.Now()
+	endDate := getEndDate(currentTime)
+
 	responseChan := make(chan CandleResponse)
 
 	condition := map[string]interface{}{
@@ -22,6 +25,7 @@ func UpdateVolume() {
 
 		request := CandleRequest{
 			Symbol:       data.Symbol,
+			EndDate:      endDate,
 			Limit:        24,
 			Resolution:   "1h",
 			ResponseChan: responseChan,
