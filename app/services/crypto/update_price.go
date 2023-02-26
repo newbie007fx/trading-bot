@@ -11,7 +11,7 @@ import (
 )
 
 var countLimit int = 1
-var limit int = 199
+var limit int = 200
 var modeChecking string = ""
 var lastVolume float32 = 0
 

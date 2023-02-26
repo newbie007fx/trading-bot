@@ -100,5 +100,5 @@ func isMuted() bool {
 
 func isTimeToUpdatePrice(currentTime time.Time) bool {
 	minute := currentTime.Minute()
-	return minute == 12 || minute == 27 || minute == 42 || minute == 57
+	return minute == 13 || minute == 28 || minute == 43 || minute == 58
 }
