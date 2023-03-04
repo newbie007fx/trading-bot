@@ -1,8 +1,6 @@
 package models
 
-import (
-	"time"
-)
+import "time"
 
 const STATUS_ACTIVE = 10
 const STATUS_MARKET_OFF = 5
@@ -21,10 +19,11 @@ type CurrencyNotifConfig struct {
 	PriceChanges        float32 `gorm:"default:0"`
 	Status              int8    `gorm:"default:0;index"`
 	Config              string
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
+	CreatedAt           int64
+	UpdatedAt           int64
 }
 
 func (cnc CurrencyNotifConfig) GetFormattedUpdatedAt() string {
-	return cnc.UpdatedAt.Format("2006-01-02 15:04:05")
+	updatedTime := time.Unix(cnc.UpdatedAt, 0)
+	return updatedTime.Format("2006-01-02 15:04:05")
 }

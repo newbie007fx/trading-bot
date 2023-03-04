@@ -34,12 +34,12 @@ func Sell(config models.CurrencyNotifConfig, candleData *models.CandleData) erro
 		log.Println(fmt.Sprintf("coin sell, symbol %s, balance %f, price %f, status %s", result.Symbol, result.Quantity, result.Price, result.Status))
 
 		SetBalance(balance + (result.Price * result.Quantity))
-		repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": config.Balance - result.Quantity})
+		repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": config.Balance - result.Quantity, "price_changes": 0})
 		RequestSyncBalance()
 	} else {
 		fmt.Printf("sell coin %s with amount %.2f, price %f, total balance %f\n", config.Symbol, config.Balance, candleData.Close, totalBalance)
 		SetBalance(balance + totalBalance)
-		repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": 0})
+		repositories.UpdateCurrencyNotifConfig(config.ID, map[string]interface{}{"balance": 0, "price_changes": 0})
 	}
 
 	return nil

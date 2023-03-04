@@ -383,17 +383,16 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 	bandLen := len(short.Bands)
 	longLastBand := long.Bands[bandLen-1]
 	midLastBand := mid.Bands[bandLen-1]
-	midSecondLastBand := mid.Bands[bandLen-2]
 	shortLastBand := short.Bands[bandLen-1]
 	shortSecondLastBand := short.Bands[bandLen-2]
 
 	if modeChecking == models.MODE_TREND_UP {
-		if short.Position == models.ABOVE_UPPER && !isUpperHeadMoreThanUpperBody(shortLastBand) {
-			if mid.Position == models.ABOVE_UPPER || mid.AllTrend.SecondTrend == models.TREND_UP {
-				if long.Position == models.ABOVE_UPPER && isBandLongTimeComplete(currentTime) && !isUpperHeadMoreThanUpperBody(longLastBand) {
-					if isLastBandDoublePreviousHeigest(long.Bands) && !isLastBandDoublePreviousHeigest(long.Bands[:bandLen-1]) && isSolidBand(longLastBand) {
-						if isSolidBand(shortLastBand) && isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-							matchPattern = "band complete up: avax base"
+		if long.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(long.Bands[bandLen-4:]) == 1 {
+			if mid.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+				if countOpenCloseBelowSMA(mid.Bands[bandLen-4:]) == 0 && countOpenCloseBelowSMA(long.Bands[bandLen-4:]) == 0 {
+					if short.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1 {
+						if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
+							matchPattern = "band complete up: pattern 1:cfx base3"
 							return true
 						}
 					}
@@ -458,47 +457,6 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChec
 			}
 		}
 	} else {
-		if long.Position == models.ABOVE_SMA && long.AllTrend.SecondTrend == models.TREND_DOWN && long.AllTrend.ShortTrend == models.TREND_UP {
-			if mid.Position == models.ABOVE_UPPER && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP {
-				if short.Position == models.ABOVE_UPPER && short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
-					if countOpenCloseBelowSMA(long.Bands[bandLen-6:]) == 0 {
-						if countOpenCloseAboveUpper(mid.Bands[bandLen-4:]) == 0 && countOpenCloseAboveUpper(short.Bands[bandLen-4:]) == 0 {
-							if countUpperHeadMoreThanUpperBody(mid.Bands[bandLen-4:bandLen-1]) == 0 && countUpperHeadMoreThanUpperBody(short.Bands[bandLen-4:bandLen-1]) == 0 {
-								if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-									matchPattern = "band complete not up: pattern 1:fet2 base"
-									return true
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if long.Position == models.ABOVE_SMA && bandPercentFromUpper(longLastBand) > 3 {
-			if isLastBandDoublePreviousHeigest(long.Bands) && countOpenCloseBelowSMA(long.Bands[bandLen-4:]) > 2 {
-				if isLastBandDoublePreviousHeigest(mid.Bands) && !isLastBandDoublePreviousHeigest(mid.Bands[:bandLen-1]) {
-					if isSolidBand(midLastBand) {
-						if isLastBandDoublePreviousHeigest(short.Bands) && isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) {
-							if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 && bandPercent(shortLastBand) < 5 {
-								matchPattern = "band complete not up: pattern 1:fet1 base"
-								return true
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if short.Position == models.ABOVE_SMA && bandPercentFromUpper(shortLastBand) > 4 {
-			if countHightCrossUpper(mid.Bands[bandLen-4:]) > 1 && isBandDown(midSecondLastBand) {
-				if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-					matchPattern = "band complete not up: pattern 1:cfx base1"
-					return true
-				}
-			}
-		}
-
 		if long.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(long.Bands[bandLen-4:]) == 1 {
 			if mid.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
 				if countOpenCloseBelowSMA(mid.Bands[bandLen-4:]) == 0 && countOpenCloseBelowSMA(long.Bands[bandLen-4:]) == 0 {

@@ -6,11 +6,13 @@ import (
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto/driver"
+	"time"
 )
 
 func StartUpdateCurrencyService(updateCurrencyChan chan bool) {
 	log.Println("update currency service is up")
 	for <-updateCurrencyChan {
+		time.Sleep(10 * time.Second)
 		log.Println("starting update currency worker ")
 		checkCurrency()
 		log.Println("update currency worker done")

@@ -38,7 +38,7 @@ func AddNotifConfigCommand() *cobra.Command {
 func getConfigData(symbol string) models.CurrencyNotifConfig {
 	notifConfig := models.CurrencyNotifConfig{}
 	notifConfig.Symbol = symbol
-	notifConfig.CreatedAt = time.Now()
-	notifConfig.UpdatedAt = time.Now()
+	notifConfig.CreatedAt = time.Now().Unix()
+	notifConfig.UpdatedAt = time.Now().Unix()
 	return notifConfig
 }

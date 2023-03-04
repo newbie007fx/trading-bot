@@ -13,7 +13,6 @@ import (
 var countLimit int = 1
 var limit int = 200
 var modeChecking string = ""
-var lastVolume float32 = 0
 
 func StartUpdatePriceService(updatePriceChan chan bool) {
 	for <-updatePriceChan {
@@ -31,16 +30,18 @@ func updatePrice() {
 
 	responseChan := make(chan CandleResponse)
 
-	condition := map[string]interface{}{
-		"status": models.STATUS_ACTIVE,
-	}
-
 	orderBy := "volume desc"
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, &limit, nil, &orderBy)
+	condition := map[string]interface{}{
+		"is_on_hold = ?": false,
+		"status = ?":     models.STATUS_ACTIVE,
+	}
+	ignoredCoins := services.GetIgnoredCurrencies()
+	currencyConfigs := repositories.GetCurrencyNotifConfigsIgnoredCoins(&condition, &limit, ignoredCoins, &orderBy)
+
 	countTrendUp := 0
 	countTrendUpSignifican := 0
 	trendUpCoins := ""
-	for i, data := range *currency_configs {
+	for i, data := range *currencyConfigs {
 		if i%20 == 0 {
 			time.Sleep(1 * time.Second)
 		}
@@ -84,15 +85,11 @@ func updatePrice() {
 		if result.Direction == analysis.BAND_DOWN {
 			services.SetIgnoredCurrency(data.Symbol, 1)
 		}
-
-		if i == limit-1 {
-			lastVolume = data.Volume
-		}
 	}
 
 	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
 	log.Println("list trend up coin: ", trendUpCoins)
-	log.Println("total checked data: ", len(*currency_configs))
+	log.Println("total checked data: ", len(*currencyConfigs))
 
 	if countTrendUpSignifican > 0 && countTrendUp/countTrendUpSignifican <= 9 && countTrendUp >= 15 {
 		modeChecking = models.MODE_TREND_UP
@@ -111,10 +108,6 @@ func GetLimit() int {
 	}
 
 	return 1
-}
-
-func GetLastVolume() float32 {
-	return lastVolume
 }
 
 func GetModeChecking() string {

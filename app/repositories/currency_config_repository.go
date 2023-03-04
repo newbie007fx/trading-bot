@@ -78,8 +78,8 @@ func CountNotifConfig(condition *map[string]interface{}) (count int64) {
 }
 
 func SaveCurrencyNotifConfig(data map[string]interface{}) error {
-	data["created_at"] = time.Now()
-	data["updated_at"] = time.Now()
+	data["created_at"] = time.Now().Unix()
+	data["updated_at"] = time.Now().Unix()
 
 	result := db.GetDB().Table("currency_notif_configs").Create(data)
 	return result.Error
@@ -104,19 +104,19 @@ func GetCurrencyNotifConfigBySymbol(symbol string) (*models.CurrencyNotifConfig,
 }
 
 func UpdateCurrencyNotifConfig(id uint, data map[string]interface{}) error {
-	data["updated_at"] = time.Now()
+	data["updated_at"] = time.Now().Unix()
 	result := db.GetDB().Table("currency_notif_configs").Where("id = ?", id).Updates(data)
 	return result.Error
 }
 
 func UpdateCurrencyNotifConfigBySymbol(symbol string, data map[string]interface{}) error {
-	data["updated_at"] = time.Now()
+	data["updated_at"] = time.Now().Unix()
 	result := db.GetDB().Table("currency_notif_configs").Where("symbol = ?", symbol).Updates(data)
 	return result.Error
 }
 
 func UpdateCurrencyNotifConfigAll(data map[string]interface{}, condition *map[string]interface{}) error {
-	data["updated_at"] = time.Now()
+	data["updated_at"] = time.Now().Unix()
 	query := db.GetDB().Table("currency_notif_configs")
 	if condition != nil {
 		for key, value := range *condition {
@@ -146,8 +146,8 @@ func DeleteCurrencyNotifConfigSymbolNotIn(symbols []string) error {
 }
 
 func SetMaster(id uint) error {
-	db.GetDB().Table("currency_notif_configs").Where("is_master = ?", 1).Updates(map[string]interface{}{"updated_at": time.Now(), "is_master": false})
-	result := db.GetDB().Table("currency_notif_configs").Where("id = ?", id).Updates(map[string]interface{}{"updated_at": time.Now(), "is_master": true})
+	db.GetDB().Table("currency_notif_configs").Where("is_master = ?", 1).Updates(map[string]interface{}{"updated_at": time.Now().Unix(), "is_master": false})
+	result := db.GetDB().Table("currency_notif_configs").Where("id = ?", id).Updates(map[string]interface{}{"updated_at": time.Now().Unix(), "is_master": true})
 
 	return result.Error
 }

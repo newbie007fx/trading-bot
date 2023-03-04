@@ -63,10 +63,15 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 	}
 
 	limit := checkOnTrendUpLimit
-	lastVolume := crypto.GetLastVolume()
 	var priceThreshold float32 = 1.24
 
-	condition := map[string]interface{}{"is_on_hold = ?": false, "volume >= ?": lastVolume, "price_changes > ?": priceThreshold, "status = ?": models.STATUS_ACTIVE}
+	lastUpdate := baseTime.Unix() - (60 * 5)
+	condition := map[string]interface{}{
+		"is_on_hold = ?":    false,
+		"price_changes > ?": priceThreshold,
+		"status = ?":        models.STATUS_ACTIVE,
+		"updated_at > ?":    lastUpdate,
+	}
 	orderBy := "price_changes desc"
 	ignoredCoins := services.GetIgnoredCurrencies()
 	currencyConfigs := repositories.GetCurrencyNotifConfigsIgnoredCoins(&condition, &limit, ignoredCoins, &orderBy)
@@ -93,7 +98,9 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 		result = crypto.MakeCryptoRequest(request)
 
 		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.PriceChanges < 1 {
-			services.SetIgnoredCurrency(result.Symbol, 1)
+			if result.Direction == analysis.BAND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN {
+				services.SetIgnoredCurrency(result.Symbol, 1)
+			}
 
 			continue
 		}
