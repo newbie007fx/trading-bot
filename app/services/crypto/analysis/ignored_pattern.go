@@ -382,149 +382,31 @@ func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, 
 func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChecking string, currentTime time.Time) bool {
 	bandLen := len(short.Bands)
 	longLastBand := long.Bands[bandLen-1]
-	midLastBand := mid.Bands[bandLen-1]
 	shortLastBand := short.Bands[bandLen-1]
-	shortSecondLastBand := short.Bands[bandLen-2]
 
-	if modeChecking == models.MODE_TREND_UP {
-		if long.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(long.Bands[bandLen-4:]) == 1 {
-			if mid.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
-				if countOpenCloseBelowSMA(mid.Bands[bandLen-4:]) == 0 && countOpenCloseBelowSMA(long.Bands[bandLen-4:]) == 0 {
-					if short.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1 {
-						if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-							matchPattern = "band complete up: pattern 1:cfx base3"
-							return true
-						}
-					}
-				}
+	if isSolidBand(shortLastBand) && CountBadBand(short.Bands[bandLen-4:bandLen-1]) < 3 {
+		if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) >= 3 {
+			if isOpenCloseAboveUpper(longLastBand) {
+				ignoredReason = "long open close above upper"
+				return false
 			}
-		}
 
-		if currentTime.Minute() < 58 && currentTime.Minute() > 2 {
-			if isSolidBand(shortLastBand) && !isBandDown(shortSecondLastBand) {
-				if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) >= 3 {
-					if isBandMultipleThanList(shortLastBand, short.Bands[bandLen-11:bandLen-1], 2) {
-
-						if isOpenCloseAboveUpper(longLastBand) {
-							ignoredReason = "band complete up: long open close above upper"
-							return false
-						}
-
-						if countTrendDown(short, mid, long) > 3 {
-							ignoredReason = "band complete up: count trend down more than 3"
-							return false
-						}
-
-						if isContainNotTrendup(long) && isContainNotTrendup(mid) && isContainNotTrendup(short) {
-							ignoredReason = "band complete up: all time frame contain trend not up"
-							return false
-						}
-
-						if !isContainNotTrendup(long) && !isContainNotTrendup(mid) && !isContainNotTrendup(short) {
-							matchPattern = "band complete up: all trend up"
-							return true
-						}
-
-						if countCrossLowerOnBody(short.Bands[bandLen-11:]) > 0 {
-							ignoredReason = "band complete up: cointain cross lower"
-							return false
-						}
-
-						if !isBandMultipleThanList(midLastBand, mid.Bands[bandLen-3:bandLen-1], 2) {
-							if isSolidBand(mid.Bands[bandLen-2]) && isSolidBand(mid.Bands[bandLen-3]) {
-								matchPattern = "band complete up: mid last previous 2 band solid band"
-								return true
-							} else {
-								ignoredReason = "band complete up: mid not multiple last 2 band and not solid band"
-								return false
-							}
-						}
-
-						if isBandMultipleThanList(midLastBand, mid.Bands[bandLen-4:bandLen-1], 2) {
-							matchPattern = "band complete up: mid last band double last 3 band"
-							return true
-						} else {
-							if isBandDown(mid.Bands[bandLen-2]) || isBandDown(mid.Bands[bandLen-3]) {
-								ignoredReason = "band complete up: mid last band not double last 3 band, contain down band"
-								return false
-							} else {
-								matchPattern = "band complete up: mid last band not double last 3 band, all up band"
-								return true
-							}
-						}
-					}
-				}
+			if countTrendDown(short, mid, long) > 3 {
+				ignoredReason = "count trend down more than 3"
+				return false
 			}
-		}
-	} else {
-		if long.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(long.Bands[bandLen-4:]) == 1 {
-			if mid.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
-				if countOpenCloseBelowSMA(mid.Bands[bandLen-4:]) == 0 && countOpenCloseBelowSMA(long.Bands[bandLen-4:]) == 0 {
-					if short.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1 {
-						if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) > 2.6 {
-							matchPattern = "band complete not up: pattern 1:cfx base3"
-							return true
-						}
-					}
-				}
+
+			if isContainNotTrendup(long) && isContainNotTrendup(mid) && isContainNotTrendup(short) {
+				ignoredReason = "all time frame contain trend not up"
+				return false
 			}
-		}
 
-		if currentTime.Minute() < 58 && currentTime.Minute() > 2 {
-			if isSolidBand(shortLastBand) && !isBandDown(shortSecondLastBand) {
-				if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) >= 3 {
-					if isBandMultipleThanList(shortLastBand, short.Bands[bandLen-11:bandLen-1], 2) {
-
-						if isOpenCloseAboveUpper(longLastBand) {
-							ignoredReason = "band complete not up: long open close above upper"
-							return false
-						}
-
-						if countTrendDown(short, mid, long) > 3 {
-							ignoredReason = "band complete not up: count trend down more than 3"
-							return false
-						}
-
-						if isContainNotTrendup(long) && isContainNotTrendup(mid) && isContainNotTrendup(short) {
-							ignoredReason = "band complete not up: all time frame contain trend not up"
-							return false
-						}
-
-						if !isContainNotTrendup(long) && !isContainNotTrendup(mid) && !isContainNotTrendup(short) {
-							matchPattern = "band complete not up: all trend up"
-							return true
-						}
-
-						if countCrossLowerOnBody(short.Bands[bandLen-11:]) > 0 {
-							ignoredReason = "band complete not up: cointain cross lower"
-							return false
-						}
-
-						if !isBandMultipleThanList(midLastBand, mid.Bands[bandLen-3:bandLen-1], 2) {
-							if isSolidBand(mid.Bands[bandLen-2]) && isSolidBand(mid.Bands[bandLen-3]) {
-								matchPattern = "band complete not up: mid last previous 2 band solid band"
-								return true
-							} else {
-								ignoredReason = "band complete not up: mid not multiple last 2 band and not solid band"
-								return false
-							}
-						}
-
-						if isBandMultipleThanList(midLastBand, mid.Bands[bandLen-4:bandLen-1], 2) {
-							matchPattern = "band complete not up: mid last band double last 3 band"
-							return true
-						} else {
-							if isBandDown(mid.Bands[bandLen-2]) || isBandDown(mid.Bands[bandLen-3]) {
-								ignoredReason = "band complete not up: mid last band not double last 3 band, contain down band"
-								return false
-							} else {
-								matchPattern = "band complete not up: mid last band not double last 3 band, all up band"
-								return true
-							}
-						}
-					}
-				}
+			if countCrossLowerOnBody(short.Bands) > 0 {
+				ignoredReason = "cointain cross lower"
+				return false
 			}
+
+			return true
 		}
 	}
 
