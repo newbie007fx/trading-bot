@@ -109,7 +109,7 @@ func GetCurrencyStatus(config models.CurrencyNotifConfig, resolution string, req
 	return msg
 }
 
-func GetWeightLog(symbol string, datetime time.Time, modeChecking string) string {
+func GetWeightLog(symbol string, datetime time.Time) string {
 	var utcZone, _ = time.LoadLocation("UTC")
 	datetime = datetime.In(utcZone)
 	timeInMili := datetime.Unix() * 1000
@@ -147,7 +147,7 @@ func GetWeightLog(symbol string, datetime time.Time, modeChecking string) string
 			if resultLong != nil {
 				msg += "\n" + GenerateMsg(*resultLong)
 
-				if analysis.ApprovedPattern(*result, *resultMid, *resultLong, datetime, modeChecking) {
+				if analysis.ApprovedPattern(*result, *resultMid, *resultLong, datetime) {
 					msg += "\npattern: " + analysis.GetMatchPattern()
 				} else {
 					msg += "\nignored reason: " + analysis.GetIgnoredReason()

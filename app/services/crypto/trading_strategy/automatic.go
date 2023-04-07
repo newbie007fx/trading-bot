@@ -42,7 +42,7 @@ func (ats *AutomaticTradingStrategy) Execute(currentTime time.Time) {
 
 	isSkiped = false
 	if holdCount < maxHold && ats.isTimeToCheckAltCoinPrice(currentTime) {
-		log.Println(fmt.Sprintf("execute automatic trading, with hold count: %d and maxHold %d", holdCount, maxHold))
+		log.Printf("execute automatic trading, with hold count: %d and maxHold %d", holdCount, maxHold)
 		ats.cryptoAltCoinPriceChan <- true
 	}
 
@@ -209,7 +209,7 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp() *models.BandResult {
 
 		coin.Long = resultLong
 
-		if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime, modeChecking) {
+		if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime) {
 			return &coin
 		}
 	}

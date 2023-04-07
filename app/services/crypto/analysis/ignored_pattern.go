@@ -142,18 +142,34 @@ func countOpenCloseAboveUpper(bands []models.Band) int {
 	return count
 }
 
-func isTailMoreThanBody(band models.Band) bool {
+func isTailMoreThanBody(band models.Band, percentCheck bool) bool {
 	tail := band.Candle.Open - band.Candle.Low
 	body := band.Candle.Close - band.Candle.Open
 
-	return tail > body
+	if tail > body {
+		if percentCheck {
+			return tail/band.Candle.Low*100 >= 3
+		} else {
+			return true
+		}
+	}
+
+	return false
 }
 
-func isHeadMoreThanBody(band models.Band) bool {
+func isHeadMoreThanBody(band models.Band, percentCheck bool) bool {
 	head := band.Candle.Hight - band.Candle.Close
 	body := band.Candle.Close - band.Candle.Open
 
-	return head > body
+	if head > body {
+		if percentCheck {
+			return head/band.Candle.Close*100 >= 3
+		} else {
+			return true
+		}
+	}
+
+	return false
 }
 
 func isUpperHeadMoreThanUpperBody(band models.Band) bool {
@@ -261,8 +277,8 @@ func countHightCrossUpper(bands []models.Band) int {
 	return count
 }
 
-func isBadBand(band models.Band) bool {
-	return isHeadMoreThanBody(band) || isBandDown(band) || isTailMoreThanBody(band) || band.Candle.Open == band.Candle.Close
+func isBadBand(band models.Band, percentCheck bool) bool {
+	return isHeadMoreThanBody(band, percentCheck) || isBandDown(band) || isTailMoreThanBody(band, percentCheck) || band.Candle.Open == band.Candle.Close
 }
 
 func isBandDown(band models.Band) bool {
@@ -272,7 +288,7 @@ func isBandDown(band models.Band) bool {
 func countBadBandAndCrossUpper(bands []models.Band) int {
 	count := 0
 	for _, band := range bands {
-		if (isBadBand(band) && isHightCrossUpper(band)) || isOpenCloseAboveUpper(band) {
+		if (isBadBand(band, false) && isHightCrossUpper(band)) || isOpenCloseAboveUpper(band) {
 			count++
 		}
 	}
@@ -280,10 +296,10 @@ func countBadBandAndCrossUpper(bands []models.Band) int {
 	return count
 }
 
-func CountBadBand(bands []models.Band) int {
+func CountBadBand(bands []models.Band, percentCheck bool) int {
 	count := 0
 	for _, band := range bands {
-		if isBadBand(band) {
+		if isBadBand(band, percentCheck) {
 			count++
 		}
 	}
@@ -368,45 +384,43 @@ func isContainNotTrendup(result models.BandResult) bool {
 	return result.AllTrend.FirstTrend != models.TREND_UP || result.AllTrend.SecondTrend != models.TREND_UP
 }
 
-func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, modeChecking string) bool {
+func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) bool {
 	ignoredReason = ""
 	matchPattern = ""
 
 	if isOnBandCompleteCheck(currentTime) {
-		return approvedPatternOnCompleteCheck(short, mid, long, modeChecking, currentTime)
+		return approvedPatternOnCompleteCheck(short, mid, long, currentTime)
 	}
 
 	return false
 }
 
-func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, modeChecking string, currentTime time.Time) bool {
+func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentTime time.Time) bool {
 	bandLen := len(short.Bands)
 	longLastBand := long.Bands[bandLen-1]
+	midLastBand := mid.Bands[bandLen-1]
 	shortLastBand := short.Bands[bandLen-1]
 
 	if isSolidBand(shortLastBand) && CountBadBand(short.Bands[bandLen-4:bandLen-1]) < 3 {
 		if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) >= 3 {
-			if isOpenCloseAboveUpper(longLastBand) {
-				ignoredReason = "long open close above upper"
+			if isUpperHeadMoreThanUpperBody(midLastBand) || isUpperHeadMoreThanUpperBody(longLastBand) {
+				ignoredReason = "mid || long upper head more than body"
 				return false
 			}
 
-			if countTrendDown(short, mid, long) > 3 {
-				ignoredReason = "count trend down more than 3"
-				return false
+			if shortLastBand.Candle.Close < float32(shortLastBand.Upper) {
+				if bandPercentFromUpper(shortLastBand) >= 2.5 {
+					matchPattern = "below upper and percent from upper more than 2.5"
+					return true
+				}
 			}
 
-			if isContainNotTrendup(long) && isContainNotTrendup(mid) && isContainNotTrendup(short) {
-				ignoredReason = "all time frame contain trend not up"
-				return false
+			if shortLastBand.Candle.Close > float32(shortLastBand.Upper) {
+				if CountBadBand(mid.Bands[bandLen-4:], true) <= 1 {
+					matchPattern = "short above upper and mid good"
+					return true
+				}
 			}
-
-			if countCrossLowerOnBody(short.Bands) > 0 {
-				ignoredReason = "cointain cross lower"
-				return false
-			}
-
-			return true
 		}
 	}
 

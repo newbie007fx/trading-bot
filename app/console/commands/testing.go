@@ -22,13 +22,11 @@ func TestingWeightCommand() *cobra.Command {
 	cmd.Flags().StringP("symbol", "s", "", "Set the coin symbol")
 
 	cmd.Flags().StringP("time", "t", "", "Set the epoch time")
-	cmd.Flags().StringP("mode", "m", "", "Set mode checking")
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		go crypto.RequestCandleService()
 		go crypto.StartSyncBalanceService()
 		symbol, _ := cmd.Flags().GetString("symbol")
-		mode, _ := cmd.Flags().GetString("mode")
 		date, _ := cmd.Flags().GetString("time")
 		currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
 		if err != nil {
@@ -42,7 +40,7 @@ func TestingWeightCommand() *cobra.Command {
 			return
 		}
 		tm := time.Unix(i, 0)
-		msg := crypto.GetWeightLog(currencyConfig.Symbol, tm, mode)
+		msg := crypto.GetWeightLog(currencyConfig.Symbol, tm)
 		log.Println(msg)
 	}
 

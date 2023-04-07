@@ -24,8 +24,12 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 	highestIndex, lowestIndex := 0, 0
 	thirtyPercent := float64(len(data)) * float64(19) / float64(100)
 	limit := int(math.Floor(thirtyPercent))
+	firstEndLimit := limit
 	if limit < 1 {
 		limit = 1
+	}
+	if firstEndLimit == 3 {
+		firstEndLimit = 2
 	}
 
 	var totalFirstData float32 = 0
@@ -48,7 +52,7 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 			lowestIndex = i
 		}
 
-		if i < limit {
+		if i < firstEndLimit {
 			totalFirstData += val.Candle.Close
 			first_counter++
 		}
@@ -58,7 +62,7 @@ func CalculateTrendsDetail(data []models.Band) models.TrendDetail {
 			midle_counter++
 		}
 
-		if i >= len(data)-limit {
+		if i >= len(data)-firstEndLimit {
 			totalLastData += val.Candle.Close
 			last_counter++
 		}
