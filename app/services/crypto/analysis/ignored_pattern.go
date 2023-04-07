@@ -337,7 +337,7 @@ func isDoubleSignificanUp(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	secondLastBand := bands[len(bands)-2]
 	listBands := bands[len(bands)-6 : len(bands)-2]
-	if CountBadBand(bands[len(bands)-2:]) == 0 {
+	if CountBadBand(bands[len(bands)-2:], false) == 0 {
 		if isBandMultipleThanList(lastBand, listBands, 2) && isBandMultipleThanList(secondLastBand, listBands, 2) {
 			return true
 		}
@@ -401,7 +401,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 	midLastBand := mid.Bands[bandLen-1]
 	shortLastBand := short.Bands[bandLen-1]
 
-	if isSolidBand(shortLastBand) && CountBadBand(short.Bands[bandLen-4:bandLen-1]) < 3 {
+	if isSolidBand(shortLastBand) && CountBadBand(short.Bands[bandLen-4:bandLen-1], false) < 3 {
 		if isLastBandDoublePreviousHeigest(short.Bands) && bandPercent(shortLastBand) >= 3 {
 			if isUpperHeadMoreThanUpperBody(midLastBand) || isUpperHeadMoreThanUpperBody(longLastBand) {
 				ignoredReason = "mid || long upper head more than body"
