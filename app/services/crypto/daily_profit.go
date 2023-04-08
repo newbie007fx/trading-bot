@@ -11,7 +11,8 @@ import (
 
 const profitKey string = "dailyProfit"
 const timeKey string = "currentDay"
-const defaultProfitThreshold float32 = 20
+const defaultProfitThreshold float32 = 11
+const defisitThreshold float32 = -2.3
 
 func SetProfit(profit float32) {
 	currentTimeKey := getKeyTime()
@@ -34,7 +35,7 @@ func IsProfitMoreThanThreshold() bool {
 	storedTimeKey := populateKeyTimeFromStorage()
 	if currentTimeKey == storedTimeKey {
 		storedProfit := populateCurrentProfitFromStorage()
-		return storedProfit > profitThreshold
+		return storedProfit > profitThreshold || storedProfit < defisitThreshold
 	}
 
 	storeProfitToStorage(0)

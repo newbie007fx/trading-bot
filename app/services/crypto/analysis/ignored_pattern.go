@@ -409,19 +409,42 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 			}
 
 			if shortLastBand.Candle.Close < float32(shortLastBand.Upper) {
-				if bandPercentFromUpper(shortLastBand) >= 2.5 {
-					matchPattern = "below upper and percent from upper more than 2.5"
-					return true
-				}
+				matchPattern = "below upper and percent from upper more than 2.5"
+				return true
 			}
 
 			if shortLastBand.Candle.Close > float32(shortLastBand.Upper) {
-				if CountBadBand(mid.Bands[bandLen-4:], true) <= 1 {
-					matchPattern = "short above upper and mid good"
-					return true
+				if CountBadBand(mid.Bands[bandLen-4:], false) > 1 {
+					ignoredReason = "short above upper and mid bad"
+					return false
 				}
+
+				if countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1 && isBandMultipleThanList(shortLastBand, short.Bands[bandLen-5:bandLen-1], 3) {
+					if mid.Position == models.ABOVE_UPPER && long.Position == models.ABOVE_UPPER {
+						if countHightCrossUpper(long.Bands[bandLen-4:]) > 1 && isBandDown(long.Bands[bandLen-2]) {
+							ignoredReason = "short above upper and all above upper but bad"
+							return false
+						}
+					}
+				}
+
+				if isFirstCrossSMA(mid.Bands) && long.AllTrend.ShortTrend == models.TREND_DOWN {
+					ignoredReason = "short above upper and mid first cross sma, long short trend down"
+					return false
+				}
+
+				matchPattern = "short above upper and mid good"
+				return true
 			}
 		}
+	}
+
+	return false
+}
+
+func isFirstCrossSMA(bands []models.Band) bool {
+	if isCrossUpSMAOnBody(bands[len(bands)-1]) {
+		return countOpenCloseBelowSMA(bands[len(bands)-5:len(bands)-1]) == 4
 	}
 
 	return false
