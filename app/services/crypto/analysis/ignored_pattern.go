@@ -233,7 +233,7 @@ func countCrossLowerOnBody(bands []models.Band) int {
 }
 
 func isCrossUpSMAOnBody(band models.Band) bool {
-	return band.Candle.Close > float32(band.SMA)
+	return band.Candle.Open < float32(band.SMA) && band.Candle.Close > float32(band.SMA)
 }
 
 func countCrossUpSMAOnBody(bands []models.Band) int {
@@ -409,7 +409,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 			}
 
 			if shortLastBand.Candle.Close < float32(shortLastBand.Upper) {
-				matchPattern = "below upper and percent from upper more than 2.5"
+				matchPattern = "below upper"
 				return true
 			}
 
@@ -433,7 +433,12 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 					return false
 				}
 
-				matchPattern = "short above upper and mid good"
+				if isFirstCrossSMA(mid.Bands) && isLastBandDoublePreviousHeigest(mid.Bands) && isFirstCrossSMA(long.Bands) && isLastBandDoublePreviousHeigest(long.Bands) {
+					ignoredReason = "short above upper and mid and long first cross sma"
+					return false
+				}
+
+				matchPattern = "short above upper"
 				return true
 			}
 		}
