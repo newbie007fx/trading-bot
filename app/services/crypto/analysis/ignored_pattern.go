@@ -409,6 +409,11 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 			}
 
 			if shortLastBand.Candle.Close < float32(shortLastBand.Upper) {
+				if short.AllTrend.SecondTrend != models.TREND_UP && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend != models.TREND_UP {
+					matchPattern = "below upper but down from upper"
+					return true
+				}
+
 				matchPattern = "below upper"
 				return true
 			}
