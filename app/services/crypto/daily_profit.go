@@ -20,6 +20,9 @@ func SetProfit(profit float32) {
 
 	storedProfit := populateCurrentProfitFromStorage()
 	totalProfit := storedProfit + profit
+	if profit < 0 && totalProfit > 3 {
+		totalProfit = defaultProfitThreshold + 1
+	}
 	storeProfitToStorage(totalProfit)
 
 	if currentTimeKey != storedTimeKey {
