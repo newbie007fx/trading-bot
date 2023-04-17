@@ -167,6 +167,10 @@ func getTrend(baseLine, fistAvg, secondAvg float32) (percent float32, trend int8
 	return
 }
 
+func CalculateShortTrendWithConclusion(data []models.Band) int8 {
+	return conclusionShortTrend(CalculateTrendShort(data[len(data)-5:], false), CalculateTrendShort(data[len(data)-3:], true))
+}
+
 func CalculateTrendShort(data []models.Band, isIgnorePosiblyChecking bool) int8 {
 	if len(data) == 0 {
 		log.Println("invalid data when calculate trends")
