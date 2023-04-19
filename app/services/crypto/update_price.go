@@ -1,7 +1,6 @@
 package crypto
 
 import (
-	"fmt"
 	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
@@ -66,12 +65,12 @@ func updatePrice() {
 		if result.AllTrend.ShortTrend != models.TREND_UP {
 			pricePercent = -pricePercent
 		}
-		if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 2.1 {
+		if result.AllTrend.Trend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 1.1 {
 			trendUpCoins = trendUpCoins + ", " + data.Symbol
 			countTrendUp++
 		}
 
-		if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 4.1 {
+		if result.AllTrend.Trend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 3.1 {
 			countTrendUpSignifican++
 		}
 
@@ -87,7 +86,7 @@ func updatePrice() {
 		}
 	}
 
-	log.Println(fmt.Sprintf("count trend up %d, count significan trend up %d", countTrendUp, countTrendUpSignifican))
+	log.Printf("count trend up %d, count significan trend up %d\n", countTrendUp, countTrendUpSignifican)
 	log.Println("list trend up coin: ", trendUpCoins)
 	log.Println("total checked data: ", len(*currencyConfigs))
 

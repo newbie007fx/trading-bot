@@ -90,7 +90,7 @@ func checkCounter() {
 
 	debug := utils.Env("debug", "false")
 	if debug == "true" {
-		log.Println(fmt.Sprintf("time: %d:%d counter: %d", currentTime.Minute(), currentTime.Second(), counter))
+		log.Printf("time: %d:%d counter: %d\n", currentTime.Minute(), currentTime.Second(), counter)
 	}
 
 	counter++

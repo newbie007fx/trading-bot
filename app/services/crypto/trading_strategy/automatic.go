@@ -67,7 +67,7 @@ func (AutomaticTradingStrategy) isTimeToCheckAltCoinPrice(currentTime time.Time)
 		return false
 	}
 
-	return minute == 0 || minute == 5 || minute == 15 || minute == 20 || minute == 30 || minute == 35 || minute == 45 || minute == 50
+	return minute == 0 || minute == 15 || minute == 30 || minute == 45
 }
 
 func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceChan chan bool) {
@@ -146,8 +146,8 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	var limit int = crypto.GetLimit()
-	if limit > 0 && limit <= 40 {
-		limit += limit * 4
+	if limit < 12 {
+		limit = 0
 	}
 	if limit > 60 {
 		limit = 60
