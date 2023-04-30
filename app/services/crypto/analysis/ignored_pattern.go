@@ -409,6 +409,13 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 			}
 
 			if shortLastBand.Candle.Close < float32(shortLastBand.Upper) {
+				if CalculateShortTrendWithConclusion(short.Bands[:bandLen-1]) == models.TREND_DOWN {
+					if countCrossLowerOnBody(short.Bands[bandLen-3:bandLen-1]) > 0 {
+						ignoredReason = "short cross lower"
+						return false
+					}
+				}
+
 				if short.AllTrend.SecondTrend != models.TREND_UP && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend != models.TREND_UP {
 					matchPattern = "below upper but down from upper"
 					return true
@@ -422,6 +429,24 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 				if CountBadBand(mid.Bands[bandLen-4:], false) > 1 {
 					ignoredReason = "short above upper and mid bad"
 					return false
+				}
+
+				if long.AllTrend.ShortTrend == models.TREND_DOWN {
+					if countCrossLowerOnBody(long.Bands[bandLen-2:]) > 0 {
+						ignoredReason = "short above upper and long cross lower"
+						return false
+					}
+				}
+
+				if midLastBand.Candle.Close > float32(midLastBand.SMA) {
+					if countCrossLowerOnBody(mid.Bands[bandLen-5:]) > 0 {
+						if short.AllTrend.SecondTrend == models.TREND_UP && short.AllTrend.ShortTrend == models.TREND_UP {
+							if short.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(short.Bands[bandLen-10:]) == 1 {
+								ignoredReason = "short above upper and first up after down"
+								return false
+							}
+						}
+					}
 				}
 
 				if countCrossUpUpperOnBody(short.Bands[bandLen-4:]) == 1 && isBandMultipleThanList(shortLastBand, short.Bands[bandLen-5:bandLen-1], 3) {
@@ -446,9 +471,6 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 				matchPattern = "short above upper"
 				return true
 			}
-
-			matchPattern = "default"
-			return true
 		}
 	}
 

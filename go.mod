@@ -5,7 +5,7 @@ go 1.15
 
 require (
 	github.com/Finnhub-Stock-API/finnhub-go v1.2.1
-	github.com/adshao/go-binance/v2 v2.4.1
+	github.com/adshao/go-binance/v2 v2.4.2
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/gorilla/sessions v1.2.1
