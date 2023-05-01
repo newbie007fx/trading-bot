@@ -108,8 +108,9 @@ func (client *BinanceClient) GetExchangeInformation(symbols *[]string) (*[]model
 	service := client.exchangeinfoService
 	if symbols != nil {
 		service = service.Symbols(*symbols...)
+	} else {
+		service = service.Permissions("SPOT")
 	}
-	service = service.Permissions("SPOT")
 
 	res, err := service.Do(context.Background())
 	if err != nil {

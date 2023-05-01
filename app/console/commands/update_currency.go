@@ -21,3 +21,20 @@ func UpdateCurrencyCommand() *cobra.Command {
 
 	return cmd
 }
+
+func UpdateCurrencyVolumeCommand() *cobra.Command {
+	cmd := &cobra.Command{}
+
+	cmd.Use = "currency:update-volume"
+
+	cmd.Short = "Run Telebot Trading App"
+
+	cmd.Long = `Run Telebot Trading App`
+
+	cmd.Run = func(cmd *cobra.Command, args []string) {
+		crypto.CheckCurrency()
+		crypto.UpdateVolume()
+	}
+
+	return cmd
+}

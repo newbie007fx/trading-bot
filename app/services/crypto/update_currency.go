@@ -14,7 +14,7 @@ func StartUpdateCurrencyService(updateCurrencyChan chan bool) {
 	for <-updateCurrencyChan {
 		time.Sleep(10 * time.Second)
 		log.Println("starting update currency worker ")
-		checkCurrency()
+		CheckCurrency()
 		log.Println("update currency worker done")
 		UpdateVolume()
 	}
@@ -67,7 +67,7 @@ func UpdateCurrency() {
 	}
 }
 
-func checkCurrency() {
+func CheckCurrency() {
 	condition := map[string]interface{}{
 		"status": models.STATUS_ACTIVE,
 	}
