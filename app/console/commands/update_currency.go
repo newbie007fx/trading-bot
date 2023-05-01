@@ -32,6 +32,7 @@ func UpdateCurrencyVolumeCommand() *cobra.Command {
 	cmd.Long = `Run Telebot Trading App`
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
+		go crypto.RequestCandleService()
 		crypto.CheckCurrency()
 		crypto.UpdateVolume()
 	}
