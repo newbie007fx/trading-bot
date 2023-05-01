@@ -15,6 +15,7 @@ var altCheckingTime time.Time
 var holdCount int64 = 0
 var modeChecking string = ""
 var isSkiped bool = false
+var checkLimitHistory []int = []int{}
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
@@ -146,11 +147,17 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	var limit int = crypto.GetLimit()
-	if limit < 9 {
+	if limit < 11 {
 		limit = 0
 	}
 	if limit > 60 {
 		limit = 60
+	}
+
+	if len(checkLimitHistory) < 15 {
+		checkLimitHistory = append(checkLimitHistory, limit)
+	} else {
+		checkLimitHistory = append(checkLimitHistory[1:], limit)
 	}
 
 	modeChecking = crypto.GetModeChecking()
@@ -209,7 +216,7 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp() *models.BandResult {
 
 		coin.Long = resultLong
 
-		if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime) {
+		if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime, isNoNeedDoubleCheck()) {
 			return &coin
 		}
 	}
@@ -223,4 +230,21 @@ func sendHoldMsg(result *models.BandResult) string {
 		return ""
 	}
 	return crypto.HoldCoinMessage(*currencyConfig, result)
+}
+
+func isNoNeedDoubleCheck() bool {
+	if len(checkLimitHistory) >= 15 {
+		last := checkLimitHistory[len(checkLimitHistory)-1]
+		if last > 35 {
+			for _, limit := range checkLimitHistory[:len(checkLimitHistory)-1] {
+				if limit >= 15 {
+					return false
+				}
+			}
+
+			return true
+		}
+	}
+
+	return false
 }

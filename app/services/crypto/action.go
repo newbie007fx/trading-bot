@@ -147,7 +147,7 @@ func GetWeightLog(symbol string, datetime time.Time) string {
 			if resultLong != nil {
 				msg += "\n" + GenerateMsg(*resultLong)
 
-				if analysis.ApprovedPattern(*result, *resultMid, *resultLong, datetime) {
+				if analysis.ApprovedPattern(*result, *resultMid, *resultLong, datetime, false) {
 					msg += "\npattern: " + analysis.GetMatchPattern()
 				} else {
 					msg += "\nignored reason: " + analysis.GetIgnoredReason()

@@ -105,6 +105,20 @@ func countOpenCloseBelowSMA(bands []models.Band) int {
 	return count
 }
 
+func isHasBelowSMA(band models.Band) bool {
+	return band.Candle.Low < float32(band.SMA)
+}
+
+func countHasBelowSMA(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		if isHasBelowSMA(band) {
+			count++
+		}
+	}
+	return count
+}
+
 func isOpenOrCloseBelowLower(band models.Band) bool {
 	return band.Candle.Open < float32(band.Lower) || band.Candle.Close < float32(band.Lower)
 }
@@ -384,25 +398,25 @@ func isContainNotTrendup(result models.BandResult) bool {
 	return result.AllTrend.FirstTrend != models.TREND_UP || result.AllTrend.SecondTrend != models.TREND_UP
 }
 
-func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time) bool {
+func ApprovedPattern(short, mid, long models.BandResult, currentTime time.Time, isNoNeedDoubleCheck bool) bool {
 	ignoredReason = ""
 	matchPattern = ""
 
 	if isOnBandCompleteCheck(currentTime) {
-		return approvedPatternOnCompleteCheck(short, mid, long, currentTime)
+		return approvedPatternOnCompleteCheck(short, mid, long, currentTime, isNoNeedDoubleCheck)
 	}
 
 	return false
 }
 
-func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentTime time.Time) bool {
+func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentTime time.Time, isNoNeedDoubleCheck bool) bool {
 	bandLen := len(short.Bands)
 	longLastBand := long.Bands[bandLen-1]
 	midLastBand := mid.Bands[bandLen-1]
 	shortLastBand := short.Bands[bandLen-1]
 
 	if isSolidBand(shortLastBand) && CountBadBand(short.Bands[bandLen-4:bandLen-1], false) < 3 {
-		if isLastBandDoublePreviousHeigest(short.Bands) {
+		if isLastBandDoublePreviousHeigest(short.Bands) || isNoNeedDoubleCheck {
 			if isUpperHeadMoreThanUpperBody(midLastBand) && isUpperHeadMoreThanUpperBody(longLastBand) {
 				ignoredReason = "mid and long upper head more than body"
 				return false
@@ -466,6 +480,13 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 				if isFirstCrossSMA(mid.Bands) && isLastBandDoublePreviousHeigest(mid.Bands) && isFirstCrossSMA(long.Bands) && isLastBandDoublePreviousHeigest(long.Bands) {
 					ignoredReason = "short above upper and mid and long first cross sma"
 					return false
+				}
+
+				if long.Position == models.ABOVE_UPPER && countCrossUpSMAOnBody(long.Bands[bandLen-10:]) == 1 {
+					if countHasBelowSMA(mid.Bands[bandLen-15:]) > 10 && mid.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(mid.Bands[bandLen-15:]) == 1 {
+						ignoredReason = "mid first cross upper after mostly below sma"
+						return false
+					}
 				}
 
 				matchPattern = "short above upper"
