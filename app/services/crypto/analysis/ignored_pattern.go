@@ -246,6 +246,21 @@ func countCrossLowerOnBody(bands []models.Band) int {
 	return count
 }
 
+func isCrossLower(band models.Band) bool {
+	return band.Candle.Low < float32(band.Lower)
+}
+
+func countCrossLower(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		if isCrossLower(band) {
+			count++
+		}
+	}
+
+	return count
+}
+
 func isCrossUpSMAOnBody(band models.Band) bool {
 	return band.Candle.Open < float32(band.SMA) && band.Candle.Close > float32(band.SMA)
 }
@@ -415,17 +430,26 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 	midLastBand := mid.Bands[bandLen-1]
 	shortLastBand := short.Bands[bandLen-1]
 
-	if (isSolidBand(shortLastBand) && CountBadBand(short.Bands[bandLen-4:bandLen-1], false) < 3) || isNoNeedDoubleCheck {
-		if isLastBandDoublePreviousHeigest(short.Bands) || isNoNeedDoubleCheck {
-			if isUpperHeadMoreThanUpperBody(midLastBand) && isUpperHeadMoreThanUpperBody(longLastBand) {
-				ignoredReason = "mid and long upper head more than body"
-				return false
+	if (isSolidBand(shortLastBand) || isLastBandDoublePreviousHeigest(short.Bands) || isNoNeedDoubleCheck) && bandPercent(shortLastBand) >= 2 {
+		if CountBadBand(short.Bands[bandLen-4:bandLen-1], false) < 3 {
+			if isUpperHeadMoreThanUpperBody(midLastBand) && (isUpperHeadMoreThanUpperBody(longLastBand) || isBandMultipleThanList(longLastBand, long.Bands[bandLen-4:bandLen-1], 2)) {
+				if short.Position == models.ABOVE_UPPER && (isLastBandDoublePreviousHeigest(short.Bands) || countOpenCloseAboveUpper(short.Bands[bandLen-4:]) > 0) {
+					ignoredReason = "mid and long upper head more than body"
+					return false
+				}
 			}
 
 			if shortLastBand.Candle.Close < float32(shortLastBand.Upper) {
 				if CalculateShortTrendWithConclusion(short.Bands[:bandLen-1]) == models.TREND_DOWN {
 					if countCrossLowerOnBody(short.Bands[bandLen-3:bandLen-1]) > 0 {
 						ignoredReason = "short cross lower"
+						return false
+					}
+				}
+
+				if short.Position == models.ABOVE_SMA && (countOpenCloseBelowSMA(short.Bands[bandLen-10:]) >= 9 && countCrossLower(mid.Bands[bandLen-4:]) > 0) {
+					if mid.AllTrend.SecondTrend == models.TREND_DOWN && long.AllTrend.ShortTrend == models.TREND_DOWN {
+						ignoredReason = "short first cross sma, mid last 4 cross lower"
 						return false
 					}
 				}
