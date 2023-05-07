@@ -147,7 +147,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	var limit int = crypto.GetLimit()
-	if limit < 7 {
+	if limit < 11 {
 		limit = 0
 	}
 	if limit > 60 {
@@ -237,7 +237,7 @@ func isNoNeedDoubleCheck() bool {
 		last := checkLimitHistory[len(checkLimitHistory)-1]
 		if last > 35 {
 			for _, limit := range checkLimitHistory[:len(checkLimitHistory)-1] {
-				if limit >= 20 {
+				if limit >= 25 {
 					return false
 				}
 			}

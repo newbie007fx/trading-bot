@@ -65,7 +65,7 @@ func updatePrice() {
 		if result.AllTrend.ShortTrend != models.TREND_UP {
 			pricePercent = -pricePercent
 		}
-		if result.AllTrend.Trend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 1.1 {
+		if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 1.1 {
 			trendUpCoins = trendUpCoins + ", " + data.Symbol
 			countTrendUp++
 		}
