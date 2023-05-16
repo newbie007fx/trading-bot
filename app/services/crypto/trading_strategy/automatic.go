@@ -80,8 +80,6 @@ func (ats *AutomaticTradingStrategy) startCheckHoldCoinPriceService(checkPriceCh
 
 			tmpMsg := ""
 			for _, coin := range holdCoin {
-				log.Println("checking holded coin: ", coin.Symbol)
-
 				currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(coin.Symbol)
 				if err != nil {
 					log.Println(err.Error())

@@ -19,8 +19,6 @@ type TradingStrategy interface {
 }
 
 func checkCryptoHoldCoinPrice(requestTime time.Time) []models.BandResult {
-	log.Println("starting crypto check price hold coin worker")
-
 	holdCoin := []models.BandResult{}
 
 	endDate := GetEndDate(requestTime, OPERATION_SELL)
