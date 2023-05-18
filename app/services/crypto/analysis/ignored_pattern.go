@@ -362,6 +362,21 @@ func countCloseAboveSMA(bands []models.Band) int {
 	return count
 }
 
+func isOpenCloseAboveSMA(band models.Band) bool {
+	return band.Candle.Open > float32(band.SMA) && band.Candle.Close > float32(band.SMA)
+}
+
+func countOpenCloseAboveSMA(bands []models.Band) int {
+	count := 0
+	for _, band := range bands {
+		if isOpenCloseAboveSMA(band) {
+			count++
+		}
+	}
+
+	return count
+}
+
 func isDoubleSignificanUp(bands []models.Band) bool {
 	lastBand := bands[len(bands)-1]
 	secondLastBand := bands[len(bands)-2]
@@ -446,6 +461,11 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 				}
 			}
 
+			if isBadBand(shortLastBand, false) && isBadBand(midLastBand, false) && isBadBand(longLastBand, false) {
+				ignoredReason = "all bad band"
+				return false
+			}
+
 			if shortLastBand.Candle.Close < float32(shortLastBand.Upper) {
 				if CalculateShortTrendWithConclusion(short.Bands[:bandLen-1]) == models.TREND_DOWN {
 					if countCrossLowerOnBody(short.Bands[bandLen-3:bandLen-1]) > 0 {
@@ -465,6 +485,15 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 					if short.AllTrend.FirstTrend == models.TREND_DOWN && countHightCrossUpper(short.Bands[bandLen-10:]) == 0 && bandPercentFromUpper(shortLastBand) < 1 {
 						ignoredReason = "first up on down trend"
 						return false
+					}
+				}
+
+				if isUpperHeadMoreThanUpperBody(longLastBand) && CountBadBand(long.Bands[bandLen-2:], false) > 0 {
+					if isLastBandDoublePreviousHeigest(mid.Bands) && CountBadBand(mid.Bands[bandLen-4:], false) > 2 {
+						if isLastBandDoublePreviousHeigest(short.Bands) {
+							ignoredReason = "up down on long upper head more than body"
+							return false
+						}
 					}
 				}
 
@@ -530,6 +559,22 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 				if isLastBandDoublePreviousHeigest(short.Bands) && countUpperHeadMoreThanUpperBody(short.Bands[bandLen-3:]) > 1 {
 					ignoredReason = "mid first cross upper after mostly below sma"
 					return false
+				}
+
+				if long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP && long.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(long.Bands[bandLen-4:]) == 1 {
+					if mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP && isLastBandDoublePreviousHeigest(mid.Bands) && mid.Position == models.ABOVE_UPPER && countCrossUpUpperOnBody(mid.Bands[bandLen-4:]) == 1 {
+						if isLastBandDoublePreviousHeigest(short.Bands) {
+							ignoredReason = "double and first cross upper"
+							return false
+						}
+					}
+				}
+
+				if long.Position == models.ABOVE_SMA && countOpenCloseAboveSMA(long.Bands[bandLen-10:]) <= 1 && long.AllTrend.Trend == models.TREND_DOWN {
+					if isUpperHeadMoreThanUpperBody(shortLastBand) && isUpperHeadMoreThanUpperBody(midLastBand) {
+						ignoredReason = "on down, short and mid upper head more than body"
+						return false
+					}
 				}
 
 				matchPattern = "short above upper"
