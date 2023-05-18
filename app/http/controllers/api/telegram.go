@@ -113,8 +113,8 @@ func ProcessTeleWebhook(c echo.Context) error {
 		}
 	} else if cmd == "/weight-log" {
 		responseMsg = "invalid format lur"
-		if len(msgData) > 2 {
-			msg, err := handlerWeightLog(msgData[1], msgData[2])
+		if len(msgData) > 3 {
+			msg, err := handlerWeightLog(msgData[1], msgData[2], msgData[3])
 			if err != nil {
 				responseMsg = err.Error()
 			} else {
@@ -184,7 +184,7 @@ func handlerMaxHold(maxHold string) error {
 	return nil
 }
 
-func handlerWeightLog(symbol, date string) (string, error) {
+func handlerWeightLog(symbol, date, isNoNeedDoubleCheck string) (string, error) {
 	currencyConfig, err := repositories.GetCurrencyNotifConfigBySymbol(symbol)
 	if err != nil {
 		log.Println(err.Error())
@@ -195,7 +195,7 @@ func handlerWeightLog(symbol, date string) (string, error) {
 		return "", errors.New("invalid log date value")
 	}
 	tm := time.Unix(i, 0)
-	msg := crypto.GetWeightLog(currencyConfig.Symbol, tm)
+	msg := crypto.GetWeightLog(currencyConfig.Symbol, tm, isNoNeedDoubleCheck == "true")
 	return msg, nil
 }
 
