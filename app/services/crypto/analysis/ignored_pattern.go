@@ -507,11 +507,6 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 			}
 
 			if shortLastBand.Candle.Close > float32(shortLastBand.Upper) {
-				if CountBadBand(mid.Bands[bandLen-4:], false) > 1 {
-					ignoredReason = "short above upper and mid bad"
-					return false
-				}
-
 				if long.AllTrend.ShortTrend == models.TREND_DOWN {
 					if countCrossLowerOnBody(long.Bands[bandLen-2:]) > 0 {
 						ignoredReason = "short above upper and long cross lower"
