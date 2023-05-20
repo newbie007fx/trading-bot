@@ -3,6 +3,7 @@ package trading_strategy
 import (
 	"fmt"
 	"log"
+	"sort"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services/crypto"
@@ -193,6 +194,10 @@ func holdAndGenerateMessage(coin *models.BandResult) (bool, string) {
 func (ats *AutomaticTradingStrategy) checkOnTrendUp() *models.BandResult {
 	timeInMilli := GetEndDate(altCheckingTime, OPERATION_BUY)
 	altCoins := checkCoinOnTrendUp(altCheckingTime)
+	sort.SliceStable(altCoins, func(i, j int) bool {
+		return altCoins[i].PriceChanges > altCoins[j].PriceChanges
+	})
+
 	for _, coin := range altCoins {
 		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
 		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)

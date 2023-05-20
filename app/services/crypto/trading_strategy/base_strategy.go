@@ -61,7 +61,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 	}
 
 	limit := checkOnTrendUpLimit
-	var priceThreshold float32 = 1.24
+	var priceThreshold float32 = 1.5
 
 	lastUpdate := baseTime.Unix() - (60 * 5)
 	condition := map[string]interface{}{
