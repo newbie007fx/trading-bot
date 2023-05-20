@@ -572,6 +572,21 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 					}
 				}
 
+				if short.Position == models.ABOVE_UPPER && short.AllTrend.Trend == models.TREND_UP {
+					if mid.Position == models.ABOVE_UPPER && mid.AllTrend.Trend == models.TREND_UP {
+						if long.Position == models.ABOVE_UPPER && long.AllTrend.Trend == models.TREND_UP {
+							if long.AllTrend.FirstTrend == models.TREND_UP && long.AllTrend.SecondTrend == models.TREND_UP {
+								if long.AllTrend.ShortTrend == models.TREND_UP && countHightCrossUpper(long.Bands[bandLen-5:]) > 3 {
+									if isLastBandDoublePreviousHeigest(short.Bands) && isLastBandDoublePreviousHeigest(mid.Bands) {
+										ignoredReason = "up up and long cross upper more than 2"
+										return false
+									}
+								}
+							}
+						}
+					}
+				}
+
 				matchPattern = "short above upper"
 				return true
 			}
