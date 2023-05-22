@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"log"
+	"strings"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
 	"telebot-trading/app/services"
@@ -12,6 +13,7 @@ import (
 var countLimit int = 1
 var limit int = 200
 var modeChecking string = ""
+var listCoinUp = []string{}
 
 func StartUpdatePriceService(updatePriceChan chan bool) {
 	for <-updatePriceChan {
@@ -39,7 +41,7 @@ func updatePrice() {
 
 	countTrendUp := 0
 	countTrendUpSignifican := 0
-	trendUpCoins := ""
+	trendUpCoins := []string{}
 	for i, data := range *currencyConfigs {
 		if i%20 == 0 {
 			time.Sleep(1 * time.Second)
@@ -66,7 +68,7 @@ func updatePrice() {
 			pricePercent = -pricePercent
 		}
 		if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.ShortTrend == models.TREND_UP && pricePercent > 2 {
-			trendUpCoins = trendUpCoins + ", " + data.Symbol
+			trendUpCoins = append(trendUpCoins, data.Symbol)
 			countTrendUp++
 		}
 
@@ -87,7 +89,7 @@ func updatePrice() {
 	}
 
 	log.Printf("count trend up %d, count significan trend up %d\n", countTrendUp, countTrendUpSignifican)
-	log.Println("list trend up coin: ", trendUpCoins)
+	log.Println("list trend up coin: ", strings.Join(trendUpCoins, ", "))
 	log.Println("total checked data: ", len(*currencyConfigs))
 
 	if countTrendUpSignifican > 0 && countTrendUp/countTrendUpSignifican <= 9 && countTrendUp >= 15 {
@@ -97,6 +99,7 @@ func updatePrice() {
 	}
 
 	countLimit = countTrendUp
+	listCoinUp = trendUpCoins
 
 	log.Println("update price worker done")
 }
@@ -111,6 +114,10 @@ func GetLimit() int {
 
 func GetModeChecking() string {
 	return modeChecking
+}
+
+func GetListCoinUp() []string {
+	return listCoinUp
 }
 
 func getEndDate(baseTime time.Time) int64 {

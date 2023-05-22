@@ -55,10 +55,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 	responseChan := make(chan crypto.CandleResponse)
 
-	if checkOnTrendUpLimit == 0 {
-		log.Println("skip process check on trend up limit is zero")
-		return altCoin
-	}
+	currencyConfigs := &[]models.CurrencyNotifConfig{}
 
 	limit := checkOnTrendUpLimit
 	var priceThreshold float32 = 1.5
@@ -71,12 +68,27 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 		"updated_at > ?":    lastUpdate,
 	}
 	orderBy := "price_changes desc"
-	ignoredCoins := services.GetIgnoredCurrencies()
-	currencyConfigs := repositories.GetCurrencyNotifConfigsIgnoredCoins(&condition, &limit, ignoredCoins, &orderBy)
 
-	if ignoredCoins != nil {
-		log.Println("ignored coins: ", *ignoredCoins)
+	if checkOnTrendUpLimit == 0 {
+		coins := crypto.GetListCoinUp()
+		if len(coins) == 0 {
+			log.Println("skip process check on trend up limit is zero")
+			return altCoin
+		}
+
+		limit = len(coins)
+		condition["symbol in ?"] = coins
+		currencyConfigs = repositories.GetCurrencyNotifConfigs(&condition, &limit, nil, &orderBy)
+
+	} else {
+		ignoredCoins := services.GetIgnoredCurrencies()
+		if ignoredCoins != nil {
+			log.Println("ignored coins: ", *ignoredCoins)
+		}
+
+		currencyConfigs = repositories.GetCurrencyNotifConfigsIgnoredCoins(&condition, &limit, ignoredCoins, &orderBy)
 	}
+
 	log.Println("found: ", len(*currencyConfigs))
 	log.Println("mode checking: ", modeChecking)
 
