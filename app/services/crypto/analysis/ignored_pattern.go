@@ -587,6 +587,15 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 					}
 				}
 
+				if midLastBand.Candle.Close > float32(midLastBand.SMA) && countOpenCloseBelowSMA(mid.Bands[bandLen-6:bandLen-1]) == 5 {
+					if mid.AllTrend.FirstTrend == models.TREND_DOWN || mid.AllTrend.SecondTrend == models.TREND_DOWN {
+						if isUpperHeadMoreThanUpperBody(shortLastBand) || isLastBandDoublePreviousHeigest(short.Bands[:bandLen-1]) {
+							ignoredReason = "first up ate down"
+							return false
+						}
+					}
+				}
+
 				matchPattern = "short above upper"
 				return true
 			}
