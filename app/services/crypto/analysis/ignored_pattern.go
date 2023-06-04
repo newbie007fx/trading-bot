@@ -466,6 +466,13 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 				return false
 			}
 
+			if long.Position == models.ABOVE_UPPER && countUpperHeadMoreThanUpperBody(long.Bands[bandLen-4:]) > 1 {
+				if short.Position == models.ABOVE_UPPER && isUpperHeadMoreThanUpperBody(shortLastBand) {
+					ignoredReason = "max upper"
+					return false
+				}
+			}
+
 			if shortLastBand.Candle.Close < float32(shortLastBand.Upper) {
 				if CalculateShortTrendWithConclusion(short.Bands[:bandLen-1]) == models.TREND_DOWN {
 					if countCrossLowerOnBody(short.Bands[bandLen-3:bandLen-1]) > 0 {
@@ -500,6 +507,13 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 				if short.AllTrend.SecondTrend != models.TREND_UP && mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend != models.TREND_UP {
 					matchPattern = "below upper but down from upper"
 					return true
+				}
+
+				if long.Position == models.ABOVE_UPPER && mid.Position == models.ABOVE_UPPER {
+					if countUpperHeadMoreThanUpperBody(long.Bands[bandLen-2:]) > 0 && countUpperHeadMoreThanUpperBody(mid.Bands[bandLen-2:]) > 0 {
+						matchPattern = "below upper but significan up trend"
+						return true
+					}
 				}
 
 				matchPattern = "below upper"
@@ -633,12 +647,30 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 						ignoredReason = "on long trend up klimaks2"
 						return false
 					}
+
+					if long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP && countCrossUpUpperOnBody(long.Bands[bandLen-4:]) > 1 {
+						if mid.AllTrend.SecondTrend == models.TREND_UP && mid.AllTrend.ShortTrend == models.TREND_UP && isLastBandDoublePreviousHeigest(mid.Bands) {
+							if isLastBandDoublePreviousHeigest(short.Bands) && isUpperHeadMoreThanUpperBody(shortLastBand) {
+								ignoredReason = "on long trend up klimaks3"
+								return false
+							}
+						}
+					}
 				}
 
 				if long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend != models.TREND_UP {
 					if isLastBandDoublePreviousHeigest(short.Bands) {
 						ignoredReason = "on long trend up but starting down"
 						return false
+					}
+				}
+
+				if long.AllTrend.SecondTrend == models.TREND_UP && long.AllTrend.ShortTrend == models.TREND_UP && CalculateTrendShort(long.Bands[bandLen-6:bandLen-1], true) == models.TREND_DOWN {
+					if mid.Position == models.ABOVE_UPPER && mid.AllTrend.ShortTrend == models.TREND_UP && countOpenCloseAboveSMA(mid.Bands[bandLen-5:bandLen-1]) == 0 && isLastBandDoublePreviousHeigest(mid.Bands) {
+						if short.AllTrend.ShortTrend == models.TREND_UP && countOpenCloseAboveSMA(short.Bands[bandLen-5:bandLen-1]) == 0 && isLastBandDoublePreviousHeigest(short.Bands) {
+							ignoredReason = "on long trend up, after klimaks, minor up"
+							return false
+						}
 					}
 				}
 
