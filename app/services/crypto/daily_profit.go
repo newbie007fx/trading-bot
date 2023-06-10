@@ -11,7 +11,7 @@ import (
 
 const profitKey string = "dailyProfit"
 const timeKey string = "currentDay"
-const defaultProfitThreshold float32 = 11
+const defaultProfitThreshold float32 = 15
 const defisitThreshold float32 = -2.3
 
 func SetProfit(profit float32) {

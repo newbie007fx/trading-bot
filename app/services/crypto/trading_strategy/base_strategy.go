@@ -69,24 +69,33 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 	}
 	orderBy := "price_changes desc"
 
+	ignoredCoins := services.GetIgnoredCurrencies()
+
 	if checkOnTrendUpLimit == 0 {
 		coins := crypto.GetListCoinUp()
 		if len(coins) == 0 {
 			log.Println("skip process check on trend up limit is zero")
 			return altCoin
 		}
+		if ignoredCoins != nil {
+			coins = diffCoin(*ignoredCoins, coins)
+			if len(coins) == 0 {
+				log.Println("skip process check on trend up limit is zero")
+				return altCoin
+			}
+		}
 
 		limit = len(coins)
 		condition["symbol in ?"] = coins
 		currencyConfigs = repositories.GetCurrencyNotifConfigs(&condition, &limit, nil, &orderBy)
-
+		priceThreshold = 3.5
 	} else {
-		ignoredCoins := services.GetIgnoredCurrencies()
 		if ignoredCoins != nil {
 			log.Println("ignored coins: ", *ignoredCoins)
 		}
 
 		currencyConfigs = repositories.GetCurrencyNotifConfigsIgnoredCoins(&condition, &limit, ignoredCoins, &orderBy)
+		priceThreshold = 2
 	}
 
 	log.Println("found: ", len(*currencyConfigs))
@@ -107,7 +116,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 		result = crypto.MakeCryptoRequest(request)
 
-		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.PriceChanges < 1 {
+		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.PriceChanges < priceThreshold {
 			if result.Direction == analysis.BAND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN {
 				services.SetIgnoredCurrency(result.Symbol, 1)
 			}
@@ -137,4 +146,21 @@ func GetEndDate(baseTime time.Time, operation int64) int64 {
 	}
 
 	return unixTime * 1000
+}
+
+func diffCoin(ignoredCoins, upCoins []string) []string {
+	difference := make([]string, 0)
+	for _, upCoin := range upCoins {
+		found := false
+		for _, ignoreCoin := range ignoredCoins {
+			if upCoin == ignoreCoin {
+				found = true
+				break
+			}
+		}
+		if !found {
+			difference = append(difference, upCoin)
+		}
+	}
+	return difference
 }
