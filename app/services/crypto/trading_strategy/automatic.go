@@ -146,7 +146,7 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	var limit int = crypto.GetLimit()
-	if limit < 11 {
+	if limit < 13 {
 		limit = 0
 	}
 	if limit > 60 {

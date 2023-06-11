@@ -674,6 +674,13 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 					}
 				}
 
+				if long.AllTrend.ShortTrend == models.TREND_UP && long.Position == models.ABOVE_UPPER {
+					if isDownAfterSignificanUp(mid) && isLastBandDoublePreviousHeigest(short.Bands) {
+						ignoredReason = "after significan up"
+						return false
+					}
+				}
+
 				matchPattern = "short above upper"
 				return true
 			}
@@ -681,6 +688,43 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 	}
 
 	return false
+}
+
+func isDownAfterSignificanUp(result models.BandResult) bool {
+	bands := result.Bands
+	if result.AllTrend.SecondTrend == models.TREND_UP && result.AllTrend.SecondTrendPercent < 10 {
+		midLen := len(bands) / 2
+		bandsSecond := bands[len(bands)-midLen:]
+		lowest := getLowesIndexPrice(bandsSecond)
+		higest := getHigestIndexPrice(bandsSecond)
+		if lowest < higest && result.AllTrend.ShortTrend == models.TREND_UP {
+			return higest < len(bandsSecond)-5
+		}
+	}
+
+	return false
+}
+
+func getHigestIndexPrice(bands []models.Band) int {
+	var index int = 0
+	for i, band := range bands {
+		if bands[index].Candle.Close < band.Candle.Close {
+			index = i
+		}
+	}
+
+	return index
+}
+
+func getLowesIndexPrice(bands []models.Band) int {
+	var index int = 0
+	for i, band := range bands {
+		if bands[index].Candle.Close > band.Candle.Close {
+			index = i
+		}
+	}
+
+	return index
 }
 
 func isFirstCrossSMA(bands []models.Band) bool {
