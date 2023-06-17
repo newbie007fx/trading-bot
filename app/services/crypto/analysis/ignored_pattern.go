@@ -681,6 +681,15 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 					}
 				}
 
+				if long.AllTrend.ShortTrend != models.TREND_UP && countHightCrossUpper(long.Bands[bandLen-3:]) > 0 && getHigestIndexPrice(long.Bands[bandLen-4:]) != bandLen-1 {
+					if (mid.AllTrend.SecondTrend != models.TREND_UP || getHigestIndexPrice(mid.Bands[bandLen-11:]) != bandLen-1) && CalculateTrendShort(mid.Bands[bandLen-6:bandLen-1], true) == models.TREND_DOWN {
+						if countCrossLower(short.Bands[bandLen-12:]) > 0 && isLastBandDoublePreviousHeigest(short.Bands) {
+							ignoredReason = "minor up"
+							return false
+						}
+					}
+				}
+
 				matchPattern = "short above upper"
 				return true
 			}

@@ -59,6 +59,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 	limit := checkOnTrendUpLimit
 	var priceThreshold float32 = 1.5
+	strictChecking := false
 
 	lastUpdate := baseTime.Unix() - (60 * 5)
 	condition := map[string]interface{}{
@@ -72,6 +73,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 	ignoredCoins := services.GetIgnoredCurrencies()
 
 	if checkOnTrendUpLimit == 0 {
+		strictChecking = true
 		coins := crypto.GetListCoinUp()
 		if len(coins) == 0 {
 			log.Println("skip process check on trend up limit is zero")
@@ -116,7 +118,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 		result = crypto.MakeCryptoRequest(request)
 
-		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.PriceChanges < priceThreshold {
+		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.PriceChanges < priceThreshold || (strictChecking && (result.AllTrend.ShortTrend == models.TREND_DOWN || result.AllTrend.Trend == models.TREND_DOWN || result.AllTrend.FirstTrend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN)) {
 			if result.Direction == analysis.BAND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN {
 				services.SetIgnoredCurrency(result.Symbol, 1)
 			}
