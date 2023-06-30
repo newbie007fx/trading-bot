@@ -65,7 +65,7 @@ func startService() {
 }
 
 func setStrategy() {
-	mode := "manual"
+	mode := "simulation"
 
 	result := repositories.GetConfigValueByName("mode")
 	if result != nil {
