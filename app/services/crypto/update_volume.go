@@ -4,44 +4,24 @@ import (
 	"log"
 	"telebot-trading/app/models"
 	"telebot-trading/app/repositories"
-	"time"
+	"telebot-trading/app/services/crypto/driver"
 )
 
 func UpdateVolume() {
 	log.Println("starting update volume worker ")
 
-	currentTime := time.Now()
-	endDate := getEndDate(currentTime)
+	symbolsLocal := getListSymbol()
 
-	responseChan := make(chan CandleResponse)
-
-	condition := map[string]interface{}{
-		"status": models.STATUS_ACTIVE,
+	cryptoDriver := driver.GetCrypto()
+	priceChanges, err := cryptoDriver.ListPriceChangeStats(&symbolsLocal)
+	if err != nil {
+		log.Println(err.Error())
+		return
 	}
 
-	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil, nil, nil)
-	for _, data := range *currency_configs {
-		time.Sleep(1 * time.Second)
-
-		request := CandleRequest{
-			Symbol:       data.Symbol,
-			EndDate:      endDate,
-			Limit:        24,
-			Resolution:   "1h",
-			ResponseChan: responseChan,
-		}
-
-		DispatchRequestJob(request)
-
-		response := <-responseChan
-		if response.Err != nil {
-			log.Println("error: ", response.Err.Error())
-			continue
-		}
-		vol := countVolume(response.CandleData)
-
-		err := repositories.UpdateCurrencyNotifConfig(data.ID, map[string]interface{}{
-			"volume":        vol,
+	for _, data := range *priceChanges {
+		err := repositories.UpdateCurrencyNotifConfigBySymbol(data.Symbol, map[string]interface{}{
+			"volume":        data.Volume,
 			"price_changes": 0,
 		})
 
@@ -54,13 +34,16 @@ func UpdateVolume() {
 	log.Println("update volume worker done")
 }
 
-func countVolume(candles []models.CandleData) float32 {
-	var volume float32 = 0
-	var lastPrice float32 = 1
-	for _, candle := range candles {
-		volume += candle.Volume
-		lastPrice = candle.Close
+func getListActiveSymbol() []string {
+	symbols := []string{}
+	condition := map[string]interface{}{
+		"status": models.STATUS_ACTIVE,
 	}
 
-	return volume / float32(len(candles)) * lastPrice
+	currency_configs := repositories.GetCurrencyNotifConfigs(&condition, nil, nil, nil)
+	for _, data := range *currency_configs {
+		symbols = append(symbols, data.Symbol)
+	}
+
+	return symbols
 }

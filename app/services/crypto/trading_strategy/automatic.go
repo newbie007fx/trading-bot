@@ -17,6 +17,7 @@ var holdCount int64 = 0
 var modeChecking string = ""
 var isSkiped bool = false
 var checkLimitHistory []int = []int{}
+var shouldSendNotif bool = false
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
@@ -125,22 +126,17 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 	for <-checkPriceChan {
 		altCheckingTime = baseCheckingTime
 		setLimitCheckOnTrendUp()
-		msg := ""
-
-		maxHold := crypto.GetMaxHold()
-		if coin := ats.checkOnTrendUp(); coin != nil {
-			if holdCount < maxHold {
-				if ok, resMsg := holdAndGenerateMessage(coin); ok {
-					msg += resMsg
-					msg += "pattern: " + analysis.GetMatchPattern() + " \n\n"
-					msg += "modeChecking: " + modeChecking + " \n\n"
-
-					holdCount++
-				}
-			}
+		if !shouldSendNotif {
+			shouldSendNotif = crypto.IsShouldNotify()
 		}
 
-		crypto.SendNotif(msg)
+		coins := ats.checkOnTrendUp()
+		if len(coins) > 0 {
+			msg := generateNeedToCheckMessage(coins)
+
+			crypto.SendNotif(msg)
+			shouldSendNotif = false
+		}
 	}
 }
 
@@ -161,6 +157,10 @@ func setLimitCheckOnTrendUp() {
 
 	modeChecking = crypto.GetModeChecking()
 	checkOnTrendUpLimit = limit
+
+	if isNoNeedDoubleCheck() {
+		crypto.SetNotifyCounter(1)
+	}
 }
 
 func holdAndGenerateMessage(coin *models.BandResult) (bool, string) {
@@ -191,40 +191,57 @@ func holdAndGenerateMessage(coin *models.BandResult) (bool, string) {
 	return hold, msg
 }
 
-func (ats *AutomaticTradingStrategy) checkOnTrendUp() *models.BandResult {
+func generateNeedToCheckMessage(coins []models.BandResult) string {
+	msg := fmt.Sprintf("silahkan cek list koin berikut %d:\n", altCheckingTime.Unix())
+	for i, coin := range coins {
+		msg += fmt.Sprintf("%d. %s", i+1, crypto.GenerateMsg(coin))
+		msg += "\n"
+	}
+
+	return msg
+}
+
+func (ats *AutomaticTradingStrategy) checkOnTrendUp() []models.BandResult {
 	timeInMilli := GetEndDate(altCheckingTime, OPERATION_BUY)
 	altCoins := checkCoinOnTrendUp(altCheckingTime)
 	sort.SliceStable(altCoins, func(i, j int) bool {
 		return altCoins[i].PriceChanges > altCoins[j].PriceChanges
 	})
 
-	for _, coin := range altCoins {
-		higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
-		lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
-		resultMid := crypto.CheckCoin(coin.Symbol, "1h", 0, timeInMilli, coin.CurrentPrice, higest, lowest)
+	var coins []models.BandResult = []models.BandResult{}
+	if shouldSendNotif {
+		for _, coin := range altCoins {
+			higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
+			lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
+			resultMid := crypto.CheckCoin(coin.Symbol, "1h", 0, timeInMilli, coin.CurrentPrice, higest, lowest)
 
-		if resultMid.Direction == analysis.BAND_DOWN {
-			continue
-		}
+			if resultMid.Direction == analysis.BAND_DOWN {
+				continue
+			}
 
-		coin.Mid = resultMid
+			coin.Mid = resultMid
 
-		higest = analysis.GetHighestHightPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
-		lowest = analysis.GetLowestLowPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
-		resultLong := crypto.CheckCoin(coin.Symbol, "4h", 0, timeInMilli, resultMid.CurrentPrice, higest, lowest)
+			higest = analysis.GetHighestHightPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
+			lowest = analysis.GetLowestLowPriceByTime(altCheckingTime, resultMid.Bands, analysis.Time_type_4h, false)
+			resultLong := crypto.CheckCoin(coin.Symbol, "4h", 0, timeInMilli, resultMid.CurrentPrice, higest, lowest)
 
-		if resultLong.Direction == analysis.BAND_DOWN {
-			continue
-		}
+			if resultLong.Direction == analysis.BAND_DOWN {
+				continue
+			}
 
-		coin.Long = resultLong
+			coin.Long = resultLong
 
-		if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime, isNoNeedDoubleCheck()) {
-			return &coin
+			if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime, isNoNeedDoubleCheck()) {
+				coins = append(coins, coin)
+			}
+
+			if len(coins) == 3 {
+				break
+			}
 		}
 	}
 
-	return nil
+	return coins
 }
 
 func sendHoldMsg(result *models.BandResult) string {

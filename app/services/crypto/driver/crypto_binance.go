@@ -16,10 +16,11 @@ import (
 )
 
 type BinanceClient struct {
-	klineService        *binance.KlinesService
-	accountService      *binance.GetAccountService
-	createOrderService  *binance.CreateOrderService
-	exchangeinfoService *binance.ExchangeInfoService
+	klineService           *binance.KlinesService
+	accountService         *binance.GetAccountService
+	createOrderService     *binance.CreateOrderService
+	exchangeinfoService    *binance.ExchangeInfoService
+	listPriceChangeService *binance.ListPriceChangeStatsService
 }
 
 func (client *BinanceClient) init() {
@@ -30,6 +31,7 @@ func (client *BinanceClient) init() {
 	client.accountService = service.NewGetAccountService()
 	client.createOrderService = service.NewCreateOrderService()
 	client.exchangeinfoService = service.NewExchangeInfoService()
+	client.listPriceChangeService = service.NewListPriceChangeStatsService()
 }
 
 func (client *BinanceClient) GetCandlesData(symbol string, limit int, startDate, endDate int64, resolution string) ([]models.CandleData, error) {
@@ -120,6 +122,18 @@ func (client *BinanceClient) GetExchangeInformation(symbols *[]string) (*[]model
 	return convertMarketSymbols(res.Symbols), nil
 }
 
+func (client *BinanceClient) ListPriceChangeStats(symbols *[]string) (*[]models.PriceChangeStats, error) {
+	service := client.listPriceChangeService
+	service = service.Symbols(*symbols)
+
+	res, err := service.Do(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return convertPriceChangeStats(res), nil
+}
+
 func (client *BinanceClient) CreateBuyOrder(symbol string, quantity float32) (*models.CreateOrderResponse, error) {
 	return client.createOrder(binance.SideTypeBuy, symbol, quantity)
 }
@@ -201,6 +215,38 @@ func convertMarketSymbols(symbols []binance.Symbol) *[]models.MarketSymbol {
 	}
 
 	return &marketSymbols
+}
+
+func convertPriceChangeStats(data []*binance.PriceChangeStats) *[]models.PriceChangeStats {
+	priceChangeStats := []models.PriceChangeStats{}
+	for _, priceChange := range data {
+		stats := models.PriceChangeStats{
+			Symbol:             priceChange.Symbol,
+			PriceChange:        priceChange.PriceChange,
+			PriceChangePercent: priceChange.PriceChangePercent,
+			WeightedAvgPrice:   priceChange.WeightedAvgPrice,
+			PrevClosePrice:     priceChange.PrevClosePrice,
+			LastPrice:          priceChange.LastPrice,
+			LastQty:            priceChange.LastQty,
+			BidPrice:           priceChange.BidPrice,
+			BidQty:             priceChange.BidQty,
+			AskPrice:           priceChange.AskPrice,
+			AskQty:             priceChange.AskQty,
+			OpenPrice:          priceChange.OpenPrice,
+			HighPrice:          priceChange.HighPrice,
+			LowPrice:           priceChange.LowPrice,
+			Volume:             priceChange.Volume,
+			QuoteVolume:        priceChange.QuoteVolume,
+			OpenTime:           priceChange.OpenTime,
+			CloseTime:          priceChange.CloseTime,
+			FristID:            priceChange.FristID,
+			LastID:             priceChange.LastID,
+			Count:              priceChange.Count,
+		}
+		priceChangeStats = append(priceChangeStats, stats)
+	}
+
+	return &priceChangeStats
 }
 
 func convertToFloat32(data string) float32 {

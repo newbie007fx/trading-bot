@@ -26,11 +26,13 @@ func ProcessTeleWebhook(c echo.Context) error {
 		return err
 	}
 
-	responseMsg := ""
+	responseMsg := "invalid params value"
 
 	msgData := strings.Split(strings.ToLower(req.Message.Text), " ")
 	cmd := msgData[0]
-	if cmd == "/register" {
+	if cmd == "/start" {
+		responseMsg = "halo, selamat data di aplamat selamt berbelanja"
+	} else if cmd == "/register" {
 		services.SaveConfig("chat_id", strconv.FormatInt(req.Message.Chat.ID, 10))
 		responseMsg = "oke sukses lur"
 	} else if cmd == "/hold" {
@@ -129,6 +131,16 @@ func ProcessTeleWebhook(c echo.Context) error {
 				responseMsg = err.Error()
 			} else {
 				responseMsg = msg
+			}
+		}
+	} else if cmd == "/notify" {
+		if len(msgData) > 2 {
+			i, err := strconv.ParseInt(msgData[1], 10, 64)
+			if err != nil {
+				responseMsg = "invalid notify countere value"
+			} else {
+				crypto.SetNotifyCounter(uint(i))
+				responseMsg = "notify counter telah diset"
 			}
 		}
 	} else {

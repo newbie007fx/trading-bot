@@ -98,3 +98,27 @@ type MarketSymbol struct {
 	Filters                    []map[string]interface{}
 	Permissions                []string
 }
+
+type PriceChangeStats struct {
+	Symbol             string
+	PriceChange        string
+	PriceChangePercent string
+	WeightedAvgPrice   string
+	PrevClosePrice     string
+	LastPrice          string
+	LastQty            string
+	BidPrice           string
+	BidQty             string
+	AskPrice           string
+	AskQty             string
+	OpenPrice          string
+	HighPrice          string
+	LowPrice           string
+	Volume             string
+	QuoteVolume        string
+	OpenTime           int64
+	CloseTime          int64
+	FristID            int64
+	LastID             int64
+	Count              int64
+}
