@@ -134,7 +134,7 @@ func ProcessTeleWebhook(c echo.Context) error {
 			}
 		}
 	} else if cmd == "/notify" {
-		if len(msgData) > 2 {
+		if len(msgData) > 1 {
 			i, err := strconv.ParseInt(msgData[1], 10, 64)
 			if err != nil {
 				responseMsg = "invalid notify countere value"
