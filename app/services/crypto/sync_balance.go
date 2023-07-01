@@ -25,6 +25,7 @@ func SyncBalance() {
 	balances, err := cryptoDriver.GetBlanceInfo()
 	if err != nil {
 		log.Println("error with message: ", err.Error())
+		return
 	}
 
 	for _, balance := range *balances {
