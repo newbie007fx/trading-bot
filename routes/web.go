@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"net/http"
 	"telebot-trading/app/http/controllers/api"
 	"telebot-trading/app/http/controllers/auth"
 	"telebot-trading/app/http/controllers/currency_config"
@@ -13,9 +12,7 @@ import (
 
 func RegisterWebRoute(e *echo.Group) {
 
-	e.Any("", func(c echo.Context) error {
-		return c.Redirect(http.StatusMovedPermanently, "login")
-	})
+	e.Any("*", auth.ShowLoginFrom)
 
 	e.GET("login", auth.ShowLoginFrom)
 	e.POST("login", auth.ProcessLogin)
