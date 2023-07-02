@@ -12,11 +12,18 @@ import (
 func StartUpdateCurrencyService(updateCurrencyChan chan bool) {
 	log.Println("update currency service is up")
 	for <-updateCurrencyChan {
+		currentTime := time.Now()
 		time.Sleep(10 * time.Second)
-		log.Println("starting update currency worker ")
-		CheckCurrency()
+		if currentTime.Day()%5 == 1 {
+			log.Println("starting check update worker")
+			UpdateVolume()
+		} else {
+			log.Println("starting check currency worker ")
+			CheckCurrency()
+		}
 		log.Println("update currency worker done")
 		UpdateVolume()
+
 	}
 }
 
