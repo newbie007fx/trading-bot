@@ -2,7 +2,7 @@ package commands
 
 import (
 	"strconv"
-	"telebot-trading/app/jobs"
+	"telebot-trading/app/services/crypto"
 	"telebot-trading/external/httpserver"
 	"telebot-trading/utils"
 
@@ -25,7 +25,8 @@ func ServeCommand() *cobra.Command {
 	cmd.Flags().IntP("port", "p", deafultPort, "Set the port")
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
-		go jobs.StartCryptoWorker()
+		go crypto.RequestCandleService()
+		go crypto.StartSyncBalanceService()
 		port, _ := cmd.Flags().GetInt("port")
 		server := httpserver.GetRouteService()
 		server.Start(port)
