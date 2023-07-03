@@ -9,14 +9,14 @@ import (
 const notifyCounterKey = "notify_counter"
 
 func SetNotifyCounter(counter uint) {
-	notifyCounter := populateCurrentNotifyCounter()
+	notifyCounter := PopulateCurrentNotifyCounter()
 	if counter > uint(notifyCounter) {
 		storeNotifyCounterToStorage(counter)
 	}
 }
 
 func IsShouldNotify() bool {
-	notifyCounter := populateCurrentNotifyCounter()
+	notifyCounter := PopulateCurrentNotifyCounter()
 	if notifyCounter == 0 {
 		return false
 	}
@@ -27,7 +27,17 @@ func IsShouldNotify() bool {
 	return true
 }
 
-func populateCurrentNotifyCounter() uint {
+func NotifyCounterDecrement() {
+	notifyCounter := PopulateCurrentNotifyCounter()
+	if notifyCounter == 0 {
+		return
+	}
+
+	notifyCounter--
+	storeNotifyCounterToStorage(notifyCounter)
+}
+
+func PopulateCurrentNotifyCounter() uint {
 	notifyCounterString := helper.GetSimpleStore().Get(notifyCounterKey)
 	if notifyCounterString != nil {
 		if notifyCounter, err := strconv.ParseInt(*notifyCounterString, 10, 64); err == nil {

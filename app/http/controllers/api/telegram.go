@@ -143,6 +143,9 @@ func ProcessTeleWebhook(c echo.Context) error {
 				responseMsg = "notify counter telah diset"
 			}
 		}
+	} else if cmd == "/check-notify-counter" {
+		counter := crypto.PopulateCurrentNotifyCounter()
+		responseMsg = fmt.Sprintf("the current notify counter is %d", counter)
 	} else {
 		responseMsg = "command gak valid lur"
 	}

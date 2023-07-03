@@ -17,7 +17,6 @@ var holdCount int64 = 0
 var modeChecking string = ""
 var isSkiped bool = false
 var checkLimitHistory []int = []int{}
-var shouldSendNotif bool = false
 
 type AutomaticTradingStrategy struct {
 	cryptoHoldCoinPriceChan chan bool
@@ -126,16 +125,13 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 	for <-checkPriceChan {
 		altCheckingTime = baseCheckingTime
 		setLimitCheckOnTrendUp()
-		if !shouldSendNotif {
-			shouldSendNotif = crypto.IsShouldNotify()
-		}
 
 		coins := ats.checkOnTrendUp()
 		if len(coins) > 0 {
 			msg := generateNeedToCheckMessage(coins)
 
 			crypto.SendNotif(msg)
-			shouldSendNotif = false
+			crypto.NotifyCounterDecrement()
 		}
 	}
 }
@@ -209,7 +205,8 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp() []models.BandResult {
 	})
 
 	var coins []models.BandResult = []models.BandResult{}
-	if shouldSendNotif {
+	if crypto.IsShouldNotify() {
+		coinsString := ""
 		for _, coin := range altCoins {
 			higest := analysis.GetHighestHightPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
 			lowest := analysis.GetLowestLowPriceByTime(altCheckingTime, coin.Bands, analysis.Time_type_1h, false)
@@ -233,12 +230,16 @@ func (ats *AutomaticTradingStrategy) checkOnTrendUp() []models.BandResult {
 
 			if analysis.ApprovedPattern(coin, *resultMid, *resultLong, altCheckingTime, isNoNeedDoubleCheck()) {
 				coins = append(coins, coin)
+				coinsString += ", " + coin.Symbol
 			}
 
 			if len(coins) == 3 {
 				break
 			}
 		}
+		log.Println("found coins: ", coinsString)
+	} else {
+		log.Println("notify counter is zero, skipping checking detail")
 	}
 
 	return coins
