@@ -2,8 +2,9 @@ package crypto
 
 import (
 	"fmt"
+	"log"
 	"strconv"
-	"telebot-trading/app/helper"
+	"telebot-trading/app/repositories"
 )
 
 const notifyCounterKey = "notify_counter"
@@ -38,7 +39,7 @@ func NotifyCounterDecrement() {
 }
 
 func PopulateCurrentNotifyCounter() uint {
-	notifyCounterString := helper.GetSimpleStore().Get(notifyCounterKey)
+	notifyCounterString := repositories.GetConfigValueByName(notifyCounterKey)
 	if notifyCounterString != nil {
 		if notifyCounter, err := strconv.ParseInt(*notifyCounterString, 10, 64); err == nil {
 			return uint(notifyCounter)
@@ -52,5 +53,8 @@ func PopulateCurrentNotifyCounter() uint {
 func storeNotifyCounterToStorage(counter uint) {
 	s := fmt.Sprintf("%d", counter)
 
-	helper.GetSimpleStore().Set(notifyCounterKey, s)
+	err := repositories.SetConfigByName(notifyCounterKey, s)
+	if err != nil {
+		log.Println(err.Error())
+	}
 }
