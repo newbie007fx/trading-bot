@@ -22,9 +22,6 @@ func IsShouldNotify() bool {
 		return false
 	}
 
-	notifyCounter--
-	storeNotifyCounterToStorage(notifyCounter)
-
 	return true
 }
 
