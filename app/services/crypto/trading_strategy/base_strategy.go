@@ -82,7 +82,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 		if ignoredCoins != nil {
 			coins = diffCoin(*ignoredCoins, coins)
 			if len(coins) == 0 {
-				log.Println("skip process check on trend up limit is zero")
+				log.Println("skip process check on trend up limit is zero2")
 				return altCoin
 			}
 		}
@@ -118,7 +118,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 		result = crypto.MakeCryptoRequest(request)
 
-		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.PriceChanges < priceThreshold || (strictChecking && (result.AllTrend.ShortTrend == models.TREND_DOWN || result.AllTrend.Trend == models.TREND_DOWN || result.AllTrend.FirstTrend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN)) {
+		if result == nil || result.Direction == analysis.BAND_DOWN || result.AllTrend.ShortTrend != models.TREND_UP || result.PriceChanges < priceThreshold || (strictChecking && (result.AllTrend.ShortTrend == models.TREND_DOWN || result.AllTrend.Trend == models.TREND_DOWN || result.AllTrend.SecondTrend == models.TREND_DOWN)) {
 			if result.Direction == analysis.BAND_DOWN && result.AllTrend.SecondTrend == models.TREND_DOWN && result.AllTrend.ShortTrend == models.TREND_DOWN {
 				services.SetIgnoredCurrency(result.Symbol, 1)
 			}

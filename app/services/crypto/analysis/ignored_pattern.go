@@ -447,41 +447,13 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 
 	if (isSolidBand(shortLastBand) || isLastBandDoublePreviousHeigest(short.Bands) || isNoNeedDoubleCheck) && bandPercent(shortLastBand) >= 2 {
 		if CountBadBand(short.Bands[bandLen-4:bandLen-1], false) < 3 {
-			if isUpperHeadMoreThanUpperBody(midLastBand) && (isUpperHeadMoreThanUpperBody(longLastBand) || isBandMultipleThanList(longLastBand, long.Bands[bandLen-4:bandLen-1], 2)) {
-				if short.Position == models.ABOVE_UPPER && (isLastBandDoublePreviousHeigest(short.Bands) || countOpenCloseAboveUpper(short.Bands[bandLen-4:]) > 0) {
-					ignoredReason = "mid and long upper head more than body"
-					return false
-				}
-			}
-
-			if mid.Position == models.ABOVE_SMA && mid.AllTrend.Trend == models.TREND_DOWN && (countCrossUpSMAOnBody(mid.Bands[bandLen-10:]) == 1 || countCrossUpUpperOnBody(mid.Bands[bandLen-10:]) == 1) {
-				if countOpenCloseBelowSMA(mid.Bands[bandLen-10:]) >= 7 && long.AllTrend.SecondTrend == models.TREND_DOWN && countOpenCloseBelowSMA(long.Bands[bandLen-4:]) < 2 {
-					ignoredReason = "mid first up on down"
-					return false
-				}
-			}
-
 			if isBadBand(shortLastBand, false) && isBadBand(midLastBand, false) && isBadBand(longLastBand, false) {
 				ignoredReason = "all bad band"
 				return false
 			}
 
-			if long.Position == models.ABOVE_UPPER && countUpperHeadMoreThanUpperBody(long.Bands[bandLen-4:]) > 1 {
-				if short.Position == models.ABOVE_UPPER && isUpperHeadMoreThanUpperBody(shortLastBand) {
-					ignoredReason = "max upper"
-					return false
-				}
-			}
-
-			if shortLastBand.Candle.Close < float32(shortLastBand.Upper) {
-				matchPattern = "below upper"
-				return true
-			}
-
-			if shortLastBand.Candle.Close > float32(shortLastBand.Upper) {
-				matchPattern = "short above upper"
-				return true
-			}
+			matchPattern = "default match"
+			return true
 		}
 	}
 

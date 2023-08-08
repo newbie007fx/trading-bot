@@ -16,7 +16,7 @@ func StartUpdateCurrencyService(updateCurrencyChan chan bool) {
 		time.Sleep(10 * time.Second)
 		if currentTime.Day()%5 == 1 {
 			log.Println("starting check update worker")
-			UpdateVolume()
+			UpdateCurrency()
 		} else {
 			log.Println("starting check currency worker ")
 			CheckCurrency()
