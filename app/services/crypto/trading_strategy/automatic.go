@@ -256,14 +256,14 @@ func sendHoldMsg(result *models.BandResult) string {
 func isNoNeedDoubleCheck() bool {
 	if len(checkLimitHistory) >= 15 {
 		last := checkLimitHistory[len(checkLimitHistory)-1]
-		if last > 35 {
+		if last > 5 {
+			total := 0
 			for _, limit := range checkLimitHistory[:len(checkLimitHistory)-1] {
-				if limit >= 25 {
-					return false
-				}
+				total += limit
 			}
+			average := total / (len(checkLimitHistory) - 1)
 
-			return true
+			return last > (average*2)+1
 		}
 	}
 
