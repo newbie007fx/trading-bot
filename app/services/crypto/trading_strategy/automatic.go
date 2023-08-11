@@ -138,14 +138,11 @@ func (ats *AutomaticTradingStrategy) startCheckAltCoinPriceService(checkPriceCha
 
 func setLimitCheckOnTrendUp() {
 	var limit int = crypto.GetLimit()
-	if limit < 13 {
-		limit = 0
-	}
 	if limit > 60 {
 		limit = 60
 	}
 
-	if len(checkLimitHistory) < 15 {
+	if len(checkLimitHistory) < 13 {
 		checkLimitHistory = append(checkLimitHistory, limit)
 	} else {
 		checkLimitHistory = append(checkLimitHistory[1:], limit)
@@ -254,7 +251,7 @@ func sendHoldMsg(result *models.BandResult) string {
 }
 
 func isNoNeedDoubleCheck() bool {
-	if len(checkLimitHistory) >= 15 {
+	if len(checkLimitHistory) >= 13 {
 		last := checkLimitHistory[len(checkLimitHistory)-1]
 		if last > 5 {
 			total := 0
@@ -263,7 +260,7 @@ func isNoNeedDoubleCheck() bool {
 			}
 			average := total / (len(checkLimitHistory) - 1)
 
-			return last > (average*2)+1
+			return last > (average * 2)
 		}
 	}
 

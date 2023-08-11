@@ -72,7 +72,7 @@ func checkCoinOnTrendUp(baseTime time.Time) []models.BandResult {
 
 	ignoredCoins := services.GetIgnoredCurrencies()
 
-	if checkOnTrendUpLimit == 0 {
+	if checkOnTrendUpLimit < 13 {
 		strictChecking = true
 		coins := crypto.GetListCoinUp()
 		if len(coins) == 0 {
