@@ -146,6 +146,7 @@ func setLimitCheckOnTrendUp() {
 		checkLimitHistory = append(checkLimitHistory, limit)
 	} else {
 		checkLimitHistory = append(checkLimitHistory[1:], limit)
+		log.Printf("check limit history: %v\n", checkLimitHistory)
 	}
 
 	modeChecking = crypto.GetModeChecking()
