@@ -16,22 +16,13 @@ import (
 )
 
 type BinanceClient struct {
-	klineService           *binance.KlinesService
-	accountService         *binance.GetAccountService
-	createOrderService     *binance.CreateOrderService
-	exchangeinfoService    *binance.ExchangeInfoService
-	listPriceChangeService *binance.ListPriceChangeStatsService
+	binanceService *binance.Client
 }
 
 func (client *BinanceClient) init() {
 	apiKey := utils.Env("BINANCE_API_KEY", "")
 	secretKey := utils.Env("BINANCE_SECRET_KEY", "")
-	service := binance.NewClient(apiKey, secretKey)
-	client.klineService = service.NewKlinesService()
-	client.accountService = service.NewGetAccountService()
-	client.createOrderService = service.NewCreateOrderService()
-	client.exchangeinfoService = service.NewExchangeInfoService()
-	client.listPriceChangeService = service.NewListPriceChangeStatsService()
+	client.binanceService = binance.NewClient(apiKey, secretKey)
 }
 
 func (client *BinanceClient) GetCandlesData(symbol string, limit int, startDate, endDate int64, resolution string) ([]models.CandleData, error) {
@@ -79,7 +70,7 @@ func (client *BinanceClient) GetCandlesData(symbol string, limit int, startDate,
 }
 
 func (client *BinanceClient) callGetCandleService(symbol string, limit int, startDate, endDate int64, resolution string, conteks context.Context) (res []*binance.Kline, err error) {
-	service := client.klineService.Symbol(symbol).Limit(limit).Interval(resolution)
+	service := client.binanceService.NewKlinesService().Symbol(symbol).Limit(limit).Interval(resolution)
 	if startDate > 1 {
 		service = service.StartTime(startDate)
 	}
@@ -91,7 +82,7 @@ func (client *BinanceClient) callGetCandleService(symbol string, limit int, star
 
 func (client *BinanceClient) GetBlanceInfo() (*[]models.AssetBalance, error) {
 	assetBalances := []models.AssetBalance{}
-	account, err := client.accountService.Do(context.Background())
+	account, err := client.binanceService.NewGetAccountService().Do(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +98,7 @@ func (client *BinanceClient) GetBlanceInfo() (*[]models.AssetBalance, error) {
 }
 
 func (client *BinanceClient) GetExchangeInformation(symbols *[]string) (*[]models.MarketSymbol, error) {
-	service := client.exchangeinfoService
+	service := client.binanceService.NewExchangeInfoService()
 	if symbols != nil {
 		service = service.Symbols(*symbols...)
 	} else {
@@ -123,7 +114,7 @@ func (client *BinanceClient) GetExchangeInformation(symbols *[]string) (*[]model
 }
 
 func (client *BinanceClient) ListPriceChangeStats(symbols *[]string) (*[]models.PriceChangeStats, error) {
-	service := client.listPriceChangeService
+	service := client.binanceService.NewListPriceChangeStatsService()
 	service = service.Symbols(*symbols)
 
 	res, err := service.Do(context.Background())
@@ -144,7 +135,7 @@ func (client *BinanceClient) CreateSellOrder(symbol string, quantity float32) (*
 
 func (client *BinanceClient) createOrder(sideType binance.SideType, symbol string, quantity float32) (*models.CreateOrderResponse, error) {
 	quoteQty := fmt.Sprintf("%f", quantity)
-	orderService := client.createOrderService.Symbol(symbol).Side(sideType).Type(binance.OrderTypeMarket).QuoteOrderQty(quoteQty)
+	orderService := client.binanceService.NewCreateOrderService().Symbol(symbol).Side(sideType).Type(binance.OrderTypeMarket).QuoteOrderQty(quoteQty)
 
 	order, err := orderService.Do(context.Background())
 	if err != nil {
