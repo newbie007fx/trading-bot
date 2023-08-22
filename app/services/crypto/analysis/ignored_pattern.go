@@ -445,7 +445,7 @@ func approvedPatternOnCompleteCheck(short, mid, long models.BandResult, currentT
 	midLastBand := mid.Bands[bandLen-1]
 	shortLastBand := short.Bands[bandLen-1]
 
-	if (isSolidBand(shortLastBand) || isLastBandDoublePreviousHeigest(short.Bands) || isNoNeedDoubleCheck) && bandPercent(shortLastBand) >= 2 {
+	if (isSolidBand(shortLastBand) || isLastBandDoublePreviousHeigest(short.Bands) || isNoNeedDoubleCheck || bandPercent(shortLastBand) >= 5) && bandPercent(shortLastBand) >= 2 {
 		if CountBadBand(short.Bands[bandLen-4:bandLen-1], false) < 3 {
 			if isUpperHeadMoreThanUpperBody(midLastBand) && (isUpperHeadMoreThanUpperBody(longLastBand) || isBandMultipleThanList(longLastBand, long.Bands[bandLen-4:bandLen-1], 2)) {
 				if short.Position == models.ABOVE_UPPER && (isLastBandDoublePreviousHeigest(short.Bands) || countOpenCloseAboveUpper(short.Bands[bandLen-4:]) > 0) {
