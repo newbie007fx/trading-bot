@@ -1,4 +1,4 @@
-# Reselku Admin
+# trading bot Admin
 
 # Requirement
 - golang version 1.15.6
