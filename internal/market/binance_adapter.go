@@ -45,7 +45,7 @@ func (b *BinanceAdapter) GetCandles(
 	interval string,
 	limit int,
 ) ([]model.CandleData, error) {
-
+	b.client.Debug = true
 	log.Printf(
 		"[BINANCE] symbol=%s interval=%s limit=%d",
 		symbol, interval, limit,
