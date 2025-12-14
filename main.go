@@ -20,7 +20,7 @@ func ExecuteBot(w http.ResponseWriter, r *http.Request) {
 
 	cfg := config.Load()
 
-	client, err := firestore.NewClient(ctx, cfg.ProjectID)
+	client, err := firestore.NewClientWithDatabase(ctx, cfg.ProjectID, cfg.DatabaseID)
 	if err != nil {
 		http.Error(w, "firestore error", 500)
 		log.Println(err)
