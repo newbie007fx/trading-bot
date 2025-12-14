@@ -34,6 +34,8 @@ func NewBinanceAdapter(ctx context.Context, cfg config.Config) *BinanceAdapter {
 		log.Println(err)
 	}
 
+	log.Println("secret loaded")
+
 	return &BinanceAdapter{
 		client: binance.NewClient(binanceKey, binanceSecret), // public data only
 	}

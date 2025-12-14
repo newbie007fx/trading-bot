@@ -43,6 +43,7 @@ func ExecuteBot(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("masuk")
 	marketClient := market.NewBinanceAdapter(ctx, cfg)
+	log.Println("client created")
 	candles, err := marketClient.GetCandles(ctx,
 		"ETHUSDT",
 		"1d",
