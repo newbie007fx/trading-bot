@@ -11,15 +11,10 @@ import (
 	"telebot-trading/internal/service"
 
 	"cloud.google.com/go/firestore"
-	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 )
 
-func init() {
-	functions.HTTP("HelloHTTP", helloHTTP)
-}
-
 // helloHTTP is an HTTP Cloud Function with a request parameter.
-func helloHTTP(w http.ResponseWriter, r *http.Request) {
+func ExecuteBot(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	cfg := config.Load()
