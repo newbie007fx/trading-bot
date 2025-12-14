@@ -41,7 +41,7 @@ func ExecuteBot(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "bot error", 500)
 		return
 	}
-
+	log.Println("masuk")
 	marketClient := market.NewBinanceAdapter(ctx, cfg)
 	candles, err := marketClient.GetCandles(ctx,
 		"ETHUSDT",
@@ -51,7 +51,7 @@ func ExecuteBot(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error getting data", 500)
 		return
 	}
-
+	log.Println("tidak")
 	closes := indicator.ExtractClosePrices(candles)
 
 	ema50Series, _ := indicator.EMASeries(closes, 50)
