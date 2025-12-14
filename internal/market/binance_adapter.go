@@ -46,12 +46,19 @@ func (b *BinanceAdapter) GetCandles(
 	limit int,
 ) ([]model.CandleData, error) {
 
+	log.Printf(
+		"[BINANCE] symbol=%s interval=%s limit=%d",
+		symbol, interval, limit,
+	)
+
 	klines, err := b.client.NewKlinesService().
 		Symbol(symbol).
 		Interval(interval).
 		Limit(limit).
 		Do(ctx)
+
 	if err != nil {
+		log.Printf("[BINANCE ERROR] %v", err)
 		return nil, err
 	}
 
