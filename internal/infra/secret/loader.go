@@ -27,7 +27,7 @@ func NewLoader(ctx context.Context, projectID string) (*Loader, error) {
 
 func (l *Loader) Get(ctx context.Context, name string) (string, error) {
 	secretName := fmt.Sprintf(
-		"projects/%s/secrets/%s/versions/latest",
+		"projects/%s/locations/asia-southeast2/secrets/%s/versions/latest",
 		l.projectID,
 		name,
 	)
