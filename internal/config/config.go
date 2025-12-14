@@ -7,6 +7,7 @@ type Config struct {
 	Collection string
 	DatabaseID string
 	DocumentID string
+	Location   string
 }
 
 func Load() Config {
@@ -15,6 +16,7 @@ func Load() Config {
 		Collection: getEnv("STATE_COLLECTION", "bot_state"),
 		DocumentID: getEnv("STATE_DOCUMENT", "eth_main"),
 		DatabaseID: getEnv("FIRESTORE_DB", "basicdata"),
+		Location:   getEnv("LOCATION", "asia-southeast2"),
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
+	"google.golang.org/api/option"
 	secretpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
@@ -13,8 +14,13 @@ type Loader struct {
 	client    *secretmanager.Client
 }
 
-func NewLoader(ctx context.Context, projectID string) (*Loader, error) {
-	client, err := secretmanager.NewClient(ctx)
+func NewLoader(ctx context.Context, projectID string, location string) (*Loader, error) {
+	endpoint := fmt.Sprintf("%s-secretmanager.googleapis.com:443", location)
+
+	client, err := secretmanager.NewClient(
+		ctx,
+		option.WithEndpoint(endpoint),
+	)
 	if err != nil {
 		return nil, err
 	}
