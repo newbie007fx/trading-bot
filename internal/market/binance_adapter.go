@@ -20,18 +20,18 @@ type BinanceAdapter struct {
 func NewBinanceAdapter(ctx context.Context, cfg config.Config) *BinanceAdapter {
 	secretLoader, err := secret.NewLoader(ctx, cfg.ProjectID, cfg.Location)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	defer secretLoader.Close()
 
 	binanceKey, err := secretLoader.Get(ctx, "BINANCE_API_KEY")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	binanceSecret, err := secretLoader.Get(ctx, "BINANCE_SECRET_KEY")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	return &BinanceAdapter{

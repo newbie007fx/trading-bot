@@ -15,7 +15,7 @@ type Loader struct {
 }
 
 func NewLoader(ctx context.Context, projectID string, location string) (*Loader, error) {
-	endpoint := fmt.Sprintf("%s-secretmanager.googleapis.com:443", location)
+	endpoint := fmt.Sprintf("secretmanager.%s.rep.googleapis.com", location)
 
 	client, err := secretmanager.NewClient(
 		ctx,
