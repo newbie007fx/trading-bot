@@ -1,0 +1,16 @@
+steps:
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        gcloud functions deploy telebot-trading \
+          --gen2 \
+          --region=asia-southeast2 \
+          --runtime=go125 \
+          --source=. \
+          --entry-point=ExecuteBot \
+          --trigger-http \
+          --allow-unauthenticated
+options:
+  logging: CLOUD_LOGGING_ONLY
