@@ -1,6 +1,6 @@
 package indicator
 
-import "telebot-trading/internal/model"
+import "github.com/newbie007fx/trading-bot/internal/model"
 
 func ExtractClosePrices(candles []model.CandleData) []float64 {
 	closes := make([]float64, 0, len(candles))

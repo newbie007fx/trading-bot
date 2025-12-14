@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"telebot-trading/internal/config"
-	"telebot-trading/internal/infra/secret"
-	"telebot-trading/internal/model"
+
+	"github.com/newbie007fx/trading-bot/internal/config"
+	"github.com/newbie007fx/trading-bot/internal/infra/secret"
+	"github.com/newbie007fx/trading-bot/internal/model"
 
 	binance "github.com/adshao/go-binance/v2"
 )

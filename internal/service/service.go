@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"log"
-	"telebot-trading/internal/repository"
 	"time"
+
+	"github.com/newbie007fx/trading-bot/internal/repository"
 )
 
 type BotService struct {

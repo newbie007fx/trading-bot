@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"telebot-trading/internal/config"
-	"telebot-trading/internal/indicator"
-	"telebot-trading/internal/market"
-	"telebot-trading/internal/repository"
-	"telebot-trading/internal/service"
+
+	"github.com/newbie007fx/trading-bot/internal/config"
+	"github.com/newbie007fx/trading-bot/internal/indicator"
+	"github.com/newbie007fx/trading-bot/internal/market"
+	"github.com/newbie007fx/trading-bot/internal/repository"
+	"github.com/newbie007fx/trading-bot/internal/service"
 
 	"cloud.google.com/go/firestore"
 )

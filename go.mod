@@ -1,4 +1,4 @@
-module telebot-trading
+module github.com/newbie007fx/trading-bot
 
 go 1.25
 

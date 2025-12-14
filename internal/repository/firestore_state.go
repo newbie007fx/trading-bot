@@ -2,7 +2,8 @@ package repository
 
 import (
 	"context"
-	"telebot-trading/internal/domain"
+
+	"github.com/newbie007fx/trading-bot/internal/domain"
 
 	"cloud.google.com/go/firestore"
 )
