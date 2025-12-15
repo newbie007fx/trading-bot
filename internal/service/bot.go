@@ -34,7 +34,7 @@ func (s *BotService) Run(ctx context.Context) error {
 	candles, err := s.binanceAdapter.GetCandles(ctx,
 		"ETHUSDT",
 		"1d",
-		850)
+		1000)
 	if err != nil {
 		return err
 	}
