@@ -34,8 +34,6 @@ func NewBinanceAdapter(ctx context.Context, cfg config.Config) *BinanceAdapter {
 		log.Println(err)
 	}
 
-	log.Println("secret loaded")
-
 	return &BinanceAdapter{
 		client: binance.NewClient(binanceKey, binanceSecret), // public data only
 	}
@@ -47,12 +45,6 @@ func (b *BinanceAdapter) GetCandles(
 	interval string,
 	limit int,
 ) ([]model.CandleData, error) {
-	b.client.Debug = true
-	log.Printf(
-		"[BINANCE] symbol=%s interval=%s limit=%d",
-		symbol, interval, limit,
-	)
-
 	klines, err := b.client.NewKlinesService().
 		Symbol(symbol).
 		Interval(interval).
