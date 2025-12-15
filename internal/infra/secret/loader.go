@@ -9,11 +9,11 @@ import (
 )
 
 type Loader struct {
-	projectID string
-	client    *secretmanager.Client
+	projectNumber string
+	client        *secretmanager.Client
 }
 
-func NewLoader(ctx context.Context, projectID string, location string) (*Loader, error) {
+func NewLoader(ctx context.Context, projectNumber string, location string) (*Loader, error) {
 	client, err := secretmanager.NewClient(
 		ctx,
 	)
@@ -22,15 +22,15 @@ func NewLoader(ctx context.Context, projectID string, location string) (*Loader,
 	}
 
 	return &Loader{
-		projectID: projectID,
-		client:    client,
+		projectNumber: projectNumber,
+		client:        client,
 	}, nil
 }
 
 func (l *Loader) Get(ctx context.Context, name string) (string, error) {
 	secretName := fmt.Sprintf(
 		"projects/%s/secrets/%s/versions/latest",
-		l.projectID,
+		l.projectNumber,
 		name,
 	)
 

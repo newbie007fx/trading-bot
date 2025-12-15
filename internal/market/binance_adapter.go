@@ -18,7 +18,7 @@ type BinanceAdapter struct {
 }
 
 func NewBinanceAdapter(ctx context.Context, cfg config.Config) *BinanceAdapter {
-	secretLoader, err := secret.NewLoader(ctx, cfg.ProjectID, cfg.Location)
+	secretLoader, err := secret.NewLoader(ctx, cfg.ProjectNumber, cfg.Location)
 	if err != nil {
 		log.Println(err)
 	}
