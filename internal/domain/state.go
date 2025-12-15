@@ -10,6 +10,17 @@ type BotState struct {
 	LastRun      time.Time `firestore:"last_run"`
 	CreatedAt    time.Time `firestore:"created_at"`
 	UpdatedAt    time.Time `firestore:"updated_at"`
+
+	CashBalance float64 `firestore:"cash_balance"`
+	Equity      float64 `firestore:"equity"`
+	TotalTrades int     `firestore:"total_trades"`
+	WinTrades   int     `firestore:"win_trades"`
+	LossTrades  int     `firestore:"loss_trades"`
+
+	TargetPrice float64 `firestore:"loss_trades"`
+	IsAdjusted  bool    `firestore:"is_adjusted"`
+
+	Rule string `firestore:"rule"`
 }
 
 func NewInitialState() *BotState {

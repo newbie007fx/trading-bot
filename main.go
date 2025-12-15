@@ -1,12 +1,10 @@
 package function
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/newbie007fx/trading-bot/internal/config"
-	"github.com/newbie007fx/trading-bot/internal/indicator"
 	"github.com/newbie007fx/trading-bot/internal/market"
 	"github.com/newbie007fx/trading-bot/internal/repository"
 	"github.com/newbie007fx/trading-bot/internal/service"
@@ -34,7 +32,8 @@ func ExecuteBot(w http.ResponseWriter, r *http.Request) {
 		cfg.DocumentID,
 	)
 
-	bot := service.NewBotService(repo)
+	marketClient := market.NewBinanceAdapter(ctx, cfg)
+	bot := service.NewBotService(repo, marketClient)
 
 	if err := bot.Run(ctx); err != nil {
 		log.Println("Bot error:", err)
@@ -42,35 +41,6 @@ func ExecuteBot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	marketClient := market.NewBinanceAdapter(ctx, cfg)
-	candles, err := marketClient.GetCandles(ctx,
-		"ETHUSDT",
-		"1d",
-		500)
-	if err != nil {
-		http.Error(w, "error getting data", 500)
-		return
-	}
-
-	closes := indicator.ExtractClosePrices(candles)
-
-	ema50Series, _ := indicator.EMASeries(closes, 50)
-	ema200Series, _ := indicator.EMASeries(closes, 200)
-
-	ema50Last2 := indicator.LastN(ema50Series, 2)
-	ema200Last2 := indicator.LastN(ema200Series, 2)
-
-	if ema50Last2 == nil || ema200Last2 == nil {
-		http.Error(w, "not enough EMA data", 500)
-		return
-	}
-
-	result := fmt.Sprintf(
-		"EMA50 prev=%.2f curr=%.2f | EMA200 prev=%.2f curr=%.2f",
-		ema50Last2[0], ema50Last2[1],
-		ema200Last2[0], ema200Last2[1],
-	)
-
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(result))
+	w.Write([]byte("ok"))
 }
