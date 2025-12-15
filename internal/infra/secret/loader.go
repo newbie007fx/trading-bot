@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
-	"google.golang.org/api/option"
 	secretpb "google.golang.org/genproto/googleapis/cloud/secretmanager/v1"
 )
 
@@ -15,11 +14,8 @@ type Loader struct {
 }
 
 func NewLoader(ctx context.Context, projectID string, location string) (*Loader, error) {
-	endpoint := fmt.Sprintf("secretmanager.%s.rep.googleapis.com", location)
-
 	client, err := secretmanager.NewClient(
 		ctx,
-		option.WithEndpoint(endpoint),
 	)
 	if err != nil {
 		return nil, err
@@ -33,7 +29,7 @@ func NewLoader(ctx context.Context, projectID string, location string) (*Loader,
 
 func (l *Loader) Get(ctx context.Context, name string) (string, error) {
 	secretName := fmt.Sprintf(
-		"projects/%s/locations/asia-southeast2/secrets/%s/versions/latest",
+		"projects/%s/secrets/%s/versions/latest",
 		l.projectID,
 		name,
 	)
