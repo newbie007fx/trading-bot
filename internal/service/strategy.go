@@ -1,6 +1,8 @@
 package service
 
-import "github.com/newbie007fx/trading-bot/internal/domain"
+import (
+	"github.com/newbie007fx/trading-bot/internal/domain"
+)
 
 type StrategyInput struct {
 	Price      float64
@@ -10,20 +12,18 @@ type StrategyInput struct {
 	EMA200Cur  float64
 	EMA7Prev   float64
 	EMA7Cur    float64
+	EMA1Prev   float64
+	EMA1Cur    float64
 }
 
 func EvaluateStrategy(in StrategyInput, state *domain.BotState) domain.Action {
 	if state.Rule != string(domain.Rule1) {
 		if in.EMA50Prev < in.EMA200Prev && in.EMA50Cur > in.EMA200Cur {
-			state.Rule = string(domain.Rule1)
 			if state.Rule == string(domain.Rule2) {
-				target := state.EntryPrice + state.EntryPrice*15/100
-				if target > state.TargetPrice {
-					state.TargetPrice = target
-				}
+				state.Rule = string(domain.Rule1)
 				return domain.ActionAdjustRule
 			}
-			state.TargetPrice = in.Price + 2/100*in.Price
+			state.Rule = string(domain.Rule1)
 			return domain.ActionBuy
 		}
 	}
@@ -32,18 +32,19 @@ func EvaluateStrategy(in StrategyInput, state *domain.BotState) domain.Action {
 		if (in.EMA7Prev < in.EMA200Prev && in.EMA7Cur > in.EMA200Cur) ||
 			(in.EMA7Prev < in.EMA50Prev && in.EMA7Cur > in.EMA50Cur) {
 			state.Rule = string(domain.Rule2)
-			state.TargetPrice = in.Price + 2/100*in.Price
 			return domain.ActionBuy
 		}
 	}
 
 	if state.Position == "LONG" {
-		if in.Price > state.TargetPrice {
-			state.TargetPrice = in.Price + 1/100*in.Price
-			state.IsAdjusted = true
-		} else if state.IsAdjusted && in.Price <= (state.TargetPrice-2/100*state.TargetPrice) {
+		if state.Rule == string(domain.Rule1) && ((in.EMA1Prev > in.EMA200Prev && in.EMA1Cur < in.EMA200Cur) ||
+			(in.EMA1Prev > in.EMA50Prev && in.EMA1Cur < in.EMA50Cur)) {
 			state.Rule = ""
-			state.TargetPrice = 0
+			state.IsAdjusted = false
+			return domain.ActionSell
+		} else if state.Rule == string(domain.Rule2) && ((in.EMA1Prev > in.EMA200Prev && in.EMA1Cur < in.EMA200Cur) ||
+			(in.EMA1Prev > in.EMA50Prev && in.EMA1Cur < in.EMA50Cur) || (in.EMA1Prev > in.EMA7Prev && in.EMA1Cur < in.EMA7Cur)) {
+			state.Rule = ""
 			state.IsAdjusted = false
 			return domain.ActionSell
 		}

@@ -6,8 +6,6 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/newbie007fx/trading-bot/internal/config"
-	"github.com/newbie007fx/trading-bot/internal/infra/secret"
 	"github.com/newbie007fx/trading-bot/internal/model"
 
 	binance "github.com/adshao/go-binance/v2"
@@ -17,23 +15,7 @@ type BinanceAdapter struct {
 	client *binance.Client
 }
 
-func NewBinanceAdapter(ctx context.Context, cfg config.Config) *BinanceAdapter {
-	secretLoader, err := secret.NewLoader(ctx, cfg.ProjectNumber, cfg.Location)
-	if err != nil {
-		log.Println(err)
-	}
-	defer secretLoader.Close()
-
-	binanceKey, err := secretLoader.Get(ctx, "BINANCE_API_KEY")
-	if err != nil {
-		log.Println(err)
-	}
-
-	binanceSecret, err := secretLoader.Get(ctx, "BINANCE_SECRET_KEY")
-	if err != nil {
-		log.Println(err)
-	}
-
+func NewBinanceAdapter(binanceKey, binanceSecret string) *BinanceAdapter {
 	return &BinanceAdapter{
 		client: binance.NewClient(binanceKey, binanceSecret), // public data only
 	}
@@ -44,12 +26,18 @@ func (b *BinanceAdapter) GetCandles(
 	symbol string,
 	interval string,
 	limit int,
+	endTime *int64,
 ) ([]model.CandleData, error) {
-	klines, err := b.client.NewKlinesService().
+	klinesService := b.client.NewKlinesService().
 		Symbol(symbol).
 		Interval(interval).
-		Limit(limit).
-		Do(ctx)
+		Limit(limit)
+
+	if endTime != nil {
+		klinesService.EndTime(*endTime)
+	}
+
+	klines, err := klinesService.Do(ctx)
 
 	if err != nil {
 		log.Printf("[BINANCE ERROR] %v", err)
