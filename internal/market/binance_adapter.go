@@ -193,7 +193,6 @@ func (b *BinanceAdapter) loadSymbolFilter(ctx context.Context) {
 
 	for _, s := range info.Symbols {
 		if s.Symbol == b.symbol {
-			fmt.Printf("%+v", s.Filters)
 			for _, f := range s.Filters {
 				switch f["filterType"] {
 				case "LOT_SIZE":
@@ -203,7 +202,6 @@ func (b *BinanceAdapter) loadSymbolFilter(ctx context.Context) {
 					b.minNotional, _ = strconv.ParseFloat(f["minNotional"].(string), 64)
 				}
 			}
-			fmt.Printf("%+v", *b)
 			break
 		}
 	}

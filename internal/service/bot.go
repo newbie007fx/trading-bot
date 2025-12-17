@@ -47,9 +47,14 @@ func (s *BotService) Run(ctx context.Context) error {
 	ema50Series, _ := indicator.EMASeries(closes, 50)
 	ema200Series, _ := indicator.EMASeries(closes, 200)
 
+	rsi6Series, _ := indicator.RSISeries(closes, 6)
+	rsi14Series, _ := indicator.RSISeries(closes, 14)
+
 	ema7Last2 := indicator.LastN(ema7Series, 2)
 	ema50Last2 := indicator.LastN(ema50Series, 2)
 	ema200Last2 := indicator.LastN(ema200Series, 2)
+	rsi6Last2 := indicator.LastN(rsi6Series, 2)
+	rsi14Last2 := indicator.LastN(rsi14Series, 2)
 
 	ema1Last2 := indicator.LastN(closes, 2)
 	input := StrategyInput{
@@ -62,6 +67,10 @@ func (s *BotService) Run(ctx context.Context) error {
 		EMA7Cur:    ema7Last2[1],
 		EMA50Cur:   ema50Last2[1],
 		EMA200Cur:  ema200Last2[1],
+		RSI6Prev:   rsi6Last2[0],
+		RSI14Prev:  rsi14Last2[0],
+		RSI6Cur:    rsi6Last2[1],
+		RSI14Cur:   rsi14Last2[1],
 	}
 
 	action := EvaluateStrategy(input, state)
@@ -82,7 +91,9 @@ func (s *BotService) Run(ctx context.Context) error {
 	}
 
 	state.LastRun = time.Now().UTC()
-	state.LastAction = string(action)
+	if action != domain.ActionCheck {
+		state.LastAction = string(action)
+	}
 
 	return s.repo.Save(ctx, state)
 }
