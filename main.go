@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/newbie007fx/trading-bot/internal/config"
+	"github.com/newbie007fx/trading-bot/internal/execution"
 	"github.com/newbie007fx/trading-bot/internal/infra/secret"
 	"github.com/newbie007fx/trading-bot/internal/market"
 	"github.com/newbie007fx/trading-bot/internal/repository"
@@ -48,8 +49,17 @@ func ExecuteBot(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	marketClient := market.NewBinanceAdapter(binanceKey, binanceSecret)
-	bot := service.NewBotService(repo, marketClient)
+	marketClient := market.NewBinanceAdapter(ctx, binanceKey, binanceSecret, "ETHUSDT")
+
+	var executor execution.Executor
+
+	if cfg.Mode == "LIVE" {
+		executor = execution.NewLiveExecutor(marketClient)
+	} else {
+		executor = execution.NewSimulatedExecutor()
+	}
+
+	bot := service.NewBotService(repo, marketClient, executor)
 
 	if err := bot.Run(ctx); err != nil {
 		log.Println("Bot error:", err)

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/newbie007fx/trading-bot/internal/domain"
+	"github.com/newbie007fx/trading-bot/internal/execution"
 	"github.com/newbie007fx/trading-bot/internal/indicator"
 	"github.com/newbie007fx/trading-bot/internal/market"
 	"github.com/newbie007fx/trading-bot/internal/repository"
@@ -15,13 +16,15 @@ type BotService struct {
 	repo           repository.StateRepository
 	mode           domain.TradingMode
 	binanceAdapter *market.BinanceAdapter
+	executor       execution.Executor
 }
 
-func NewBotService(repo repository.StateRepository, binanceAdapter *market.BinanceAdapter) *BotService {
+func NewBotService(repo repository.StateRepository, binanceAdapter *market.BinanceAdapter, executor execution.Executor) *BotService {
 	return &BotService{
 		repo:           repo,
 		mode:           domain.ModeSimulated,
 		binanceAdapter: binanceAdapter,
+		executor:       executor,
 	}
 }
 
@@ -32,7 +35,6 @@ func (s *BotService) Run(ctx context.Context) error {
 	}
 
 	candles, err := s.binanceAdapter.GetCandles(ctx,
-		"ETHUSDT",
 		"1d",
 		1000, nil)
 	if err != nil {
@@ -67,11 +69,15 @@ func (s *BotService) Run(ctx context.Context) error {
 	log.Printf("[%s] running action %s: price %.2f rule %s target price %.2f, is adjusted %t\n", s.mode, action, input.Price, state.Rule, state.TargetPrice, state.IsAdjusted)
 	log.Printf("ema1prev: %.2f, ema7prev: %.2f, ema50prev: %.2f, ema200prev: %.2f, ema1cur: %.2f, ema7cur: %.2f, ema50cur: %.2f, ema200cur: %.2f\n", input.EMA1Prev, input.EMA7Prev, input.EMA50Prev, input.EMA200Prev, input.EMA1Cur, input.EMA7Cur, input.EMA50Cur, input.EMA200Cur)
 
-	if action == domain.ActionBuy || action == domain.ActionSell {
-		if s.mode == domain.ModeSimulated {
-			Simulate(state, action, input.Price)
-		} else {
-			// nanti: live trading
+	switch action {
+	case domain.ActionBuy:
+		if state.Position == "NONE" {
+			_ = s.executor.Buy(ctx, state, input.Price)
+		}
+
+	case domain.ActionSell:
+		if state.Position == "LONG" {
+			_ = s.executor.Sell(ctx, state, input.Price)
 		}
 	}
 

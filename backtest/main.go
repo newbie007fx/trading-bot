@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/newbie007fx/trading-bot/internal/domain"
+	"github.com/newbie007fx/trading-bot/internal/execution"
 	"github.com/newbie007fx/trading-bot/internal/indicator"
 	"github.com/newbie007fx/trading-bot/internal/market"
 	"github.com/newbie007fx/trading-bot/internal/model"
@@ -21,14 +22,11 @@ type BacktestResult struct {
 
 func RunBacktest(
 	candles []model.CandleData,
-	initialCash float64,
+	state *domain.BotState,
 ) (*BacktestResult, error) {
 
-	state := &domain.BotState{
-		Position:    "NONE",
-		CashBalance: initialCash,
-		Equity:      initialCash,
-	}
+	simulation := execution.NewSimulatedExecutor()
+	ctx := context.Background()
 
 	for i := 200; i < len(candles); i++ {
 
@@ -59,7 +57,18 @@ func RunBacktest(
 
 		action := service.EvaluateStrategy(input, state)
 
-		service.Simulate(state, action, input.Price)
+		switch action {
+		case domain.ActionBuy:
+			if state.Position == "NONE" {
+				_ = simulation.Buy(ctx, state, input.Price)
+			}
+
+		case domain.ActionSell:
+			if state.Position == "LONG" {
+				_ = simulation.Sell(ctx, state, input.Price)
+			}
+		}
+
 	}
 
 	log.Printf(
@@ -81,18 +90,22 @@ func RunBacktest(
 func main() {
 	ctx := context.Background()
 
-	marketClient := market.NewBinanceAdapter("", "")
+	marketClient := market.NewBinanceAdapter(ctx, "", "", "ETHUSDT")
 	var endTime *int64 = nil
+	state := &domain.BotState{
+		Position:    "NONE",
+		CashBalance: 300,
+		Equity:      300,
+	}
 	for range 3 {
 		candles, err := marketClient.GetCandles(ctx,
-			"ETHUSDT",
 			"1d",
 			1000, endTime)
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(candles[0].OpenTime)
-		RunBacktest(candles, 300)
+		RunBacktest(candles, state)
 		endTime = &candles[0].OpenTime
 	}
 }
