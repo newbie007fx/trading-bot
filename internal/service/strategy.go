@@ -44,7 +44,7 @@ func EvaluateStrategy(in StrategyInput, state *domain.BotState) domain.Action {
 		}
 
 		if in.RSI6Cur >= 80 && in.RSI14Cur >= 70 {
-			state.Rule = string(domain.Rule2)
+			state.Rule = string(domain.Rule3)
 			return domain.ActionBuy
 		}
 	}
@@ -53,7 +53,7 @@ func EvaluateStrategy(in StrategyInput, state *domain.BotState) domain.Action {
 		if state.Rule == string(domain.Rule1) && ((in.EMA1Prev > in.EMA200Prev && in.EMA1Cur < in.EMA200Cur) ||
 			(in.EMA1Prev > in.EMA50Prev && in.EMA1Cur < in.EMA50Cur)) {
 			return domain.ActionSell
-		} else if state.Rule == string(domain.Rule2) && ((in.EMA1Prev > in.EMA200Prev && in.EMA1Cur < in.EMA200Cur) ||
+		} else if (state.Rule == string(domain.Rule2) || state.Rule == string(domain.Rule3)) && ((in.EMA1Prev > in.EMA200Prev && in.EMA1Cur < in.EMA200Cur) ||
 			(in.EMA1Prev > in.EMA50Prev && in.EMA1Cur < in.EMA50Cur) || (in.EMA1Prev > in.EMA7Prev && in.EMA1Cur < in.EMA7Cur)) {
 			return domain.ActionSell
 		}
@@ -67,7 +67,7 @@ func EvaluateStrategy(in StrategyInput, state *domain.BotState) domain.Action {
 			return domain.ActionSell
 		}
 
-		if in.RSI6Cur >= 80 && in.RSI14Cur >= 70 && state.LastAction != string(domain.ActionAdjustRule) {
+		if state.Rule != string(domain.Rule3) && in.RSI6Cur >= 80 && in.RSI14Cur >= 70 && state.LastAction != string(domain.ActionAdjustRule) {
 			state.IsAdjusted = true
 			return domain.ActionAdjustRule
 		}
