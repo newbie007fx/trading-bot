@@ -10,6 +10,7 @@ type Config struct {
 	DocumentID    string
 	Location      string
 	Mode          string
+	Asset         string
 }
 
 func Load() Config {
@@ -17,10 +18,11 @@ func Load() Config {
 		ProjectID:     os.Getenv("GCP_PROJECT"),
 		ProjectNumber: getEnv("GCP_PROJECT_NUMBER", "651545901471"),
 		Collection:    getEnv("STATE_COLLECTION", "bot_state"),
-		DocumentID:    getEnv("STATE_DOCUMENT", "eth_main"),
+		DocumentID:    getEnv("STATE_DOCUMENT", "asset_main"),
 		DatabaseID:    getEnv("FIRESTORE_DB", "basicdata"),
 		Location:      getEnv("LOCATION", "asia-southeast2"),
 		Mode:          getEnv("MODE", "SIMULATION"),
+		Asset:         getEnv("ASSET", "ETH"),
 	}
 }
 

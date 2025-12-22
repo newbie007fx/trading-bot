@@ -49,7 +49,7 @@ func ExecuteBot(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	marketClient := market.NewBinanceAdapter(ctx, binanceKey, binanceSecret, "ETHUSDT")
+	marketClient := market.NewBinanceAdapter(ctx, binanceKey, binanceSecret, cfg.Asset)
 
 	var executor execution.Executor
 

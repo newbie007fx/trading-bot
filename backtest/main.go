@@ -101,7 +101,7 @@ func RunBacktest(
 func main() {
 	ctx := context.Background()
 
-	marketClient := market.NewBinanceAdapter(ctx, "", "", "ETHUSDT")
+	marketClient := market.NewBinanceAdapter(ctx, "", "", "")
 	var endTime *int64 = nil
 	state := &domain.BotState{
 		Position:    "NONE",

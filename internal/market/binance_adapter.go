@@ -16,15 +16,17 @@ import (
 type BinanceAdapter struct {
 	client      *binance.Client
 	symbol      string
+	asset       string
 	minNotional float64
 	stepSize    float64
 	minQty      float64
 }
 
-func NewBinanceAdapter(ctx context.Context, binanceKey, binanceSecret string, symbol string) *BinanceAdapter {
+func NewBinanceAdapter(ctx context.Context, binanceKey, binanceSecret string, asset string) *BinanceAdapter {
 	binanceAdapter := &BinanceAdapter{
 		client: binance.NewClient(binanceKey, binanceSecret), // public data only
-		symbol: symbol,
+		symbol: fmt.Sprintf("%sUSDT", asset),
+		asset:  asset,
 	}
 
 	binanceAdapter.loadSymbolFilter(ctx)
@@ -112,17 +114,17 @@ func (b *BinanceAdapter) Buy(ctx context.Context, price float64) error {
 }
 
 func (b *BinanceAdapter) Sell(ctx context.Context) error {
-	ethBalance, err := b.GetFreeBalance(ctx, "ETH")
+	assetBalance, err := b.GetFreeBalance(ctx, b.asset)
 	if err != nil {
 		return err
 	}
 
-	if ethBalance <= 0 {
-		return errors.New("no ETH to sell")
+	if assetBalance <= 0 {
+		return errors.New("no balance to sell")
 	}
 
 	const feeBuffer = 0.003 // 0.3%
-	sellable := ethBalance * (1 - feeBuffer)
+	sellable := assetBalance * (1 - feeBuffer)
 
 	sellQty := adjustToStepSize(sellable, b.stepSize)
 
@@ -145,7 +147,7 @@ func (b *BinanceAdapter) Sell(ctx context.Context) error {
 
 	log.Printf(
 		"[LIVE] SELL %s qty=%.6f balance=%.6f",
-		b.symbol, sellQty, ethBalance,
+		b.symbol, sellQty, assetBalance,
 	)
 
 	order, err := b.client.NewCreateOrderService().

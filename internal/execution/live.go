@@ -26,8 +26,8 @@ func (e *LiveExecutor) Buy(ctx context.Context, state *domain.BotState, price fl
 	state.PositionSize = state.CashBalance / price
 	state.CashBalance = 0
 
-	ethValue := state.PositionSize * price
-	state.Equity = state.CashBalance + ethValue
+	assetValue := state.PositionSize * price
+	state.Equity = state.CashBalance + assetValue
 
 	return nil
 }
@@ -52,8 +52,8 @@ func (e *LiveExecutor) Sell(ctx context.Context, state *domain.BotState, price f
 	state.PositionSize = 0
 	state.TotalTrades++
 
-	ethValue := state.PositionSize * price
-	state.Equity = state.CashBalance + ethValue
+	assetValue := state.PositionSize * price
+	state.Equity = state.CashBalance + assetValue
 
 	return nil
 }
