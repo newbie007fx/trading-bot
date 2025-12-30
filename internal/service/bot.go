@@ -81,12 +81,18 @@ func (s *BotService) Run(ctx context.Context) error {
 	switch action {
 	case domain.ActionBuy:
 		if state.Position == "NONE" {
-			_ = s.executor.Buy(ctx, state, input.Price)
+			err = s.executor.Buy(ctx, state, input.Price)
+			if err != nil {
+				return err
+			}
 		}
 
 	case domain.ActionSell:
 		if state.Position == "LONG" {
-			_ = s.executor.Sell(ctx, state, input.Price)
+			err = s.executor.Sell(ctx, state, input.Price)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
