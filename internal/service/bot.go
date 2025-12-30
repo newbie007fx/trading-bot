@@ -14,7 +14,6 @@ import (
 
 type BotService struct {
 	repo           repository.StateRepository
-	mode           domain.TradingMode
 	binanceAdapter *market.BinanceAdapter
 	executor       execution.Executor
 }
@@ -22,7 +21,6 @@ type BotService struct {
 func NewBotService(repo repository.StateRepository, binanceAdapter *market.BinanceAdapter, executor execution.Executor) *BotService {
 	return &BotService{
 		repo:           repo,
-		mode:           domain.ModeSimulated,
 		binanceAdapter: binanceAdapter,
 		executor:       executor,
 	}
@@ -75,7 +73,7 @@ func (s *BotService) Run(ctx context.Context) error {
 
 	action := EvaluateStrategy(input, state)
 
-	log.Printf("[%s] running action %s: price %.2f rule %s target price %.2f, is adjusted %t\n", s.mode, action, input.Price, state.Rule, state.TargetPrice, state.IsAdjusted)
+	log.Printf("[%s] running action %s: price %.2f rule %s target price %.2f, is adjusted %t\n", s.executor.Name(), action, input.Price, state.Rule, state.TargetPrice, state.IsAdjusted)
 	log.Printf("ema1prev: %.2f, ema7prev: %.2f, ema50prev: %.2f, ema200prev: %.2f, ema1cur: %.2f, ema7cur: %.2f, ema50cur: %.2f, ema200cur: %.2f\n", input.EMA1Prev, input.EMA7Prev, input.EMA50Prev, input.EMA200Prev, input.EMA1Cur, input.EMA7Cur, input.EMA50Cur, input.EMA200Cur)
 
 	switch action {
