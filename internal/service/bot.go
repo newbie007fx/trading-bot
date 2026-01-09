@@ -33,7 +33,7 @@ func (s *BotService) Run(ctx context.Context) error {
 	}
 
 	candles, err := s.binanceAdapter.GetCandles(ctx,
-		"1d",
+		"12h",
 		1000, nil)
 	if err != nil {
 		return err
