@@ -9,6 +9,7 @@ import (
 	"github.com/newbie007fx/trading-bot/internal/execution"
 	"github.com/newbie007fx/trading-bot/internal/indicator"
 	"github.com/newbie007fx/trading-bot/internal/market"
+	"github.com/newbie007fx/trading-bot/internal/model"
 	"github.com/newbie007fx/trading-bot/internal/repository"
 )
 
@@ -26,18 +27,10 @@ func NewBotService(repo repository.StateRepository, binanceAdapter *market.Binan
 	}
 }
 
-func (s *BotService) Run(ctx context.Context) error {
-	state, err := s.repo.Load(ctx)
-	if err != nil {
-		return err
-	}
-
-	candles, err := s.binanceAdapter.GetCandles(ctx,
-		"12h",
-		1000, nil)
-	if err != nil {
-		return err
-	}
+// ProcessCandles evaluates the strategy based on the provided candles and executes actions
+func (s *BotService) ProcessCandles(ctx context.Context, candles []model.CandleData, state *domain.BotState) error {
+	lastCandle := candles[len(candles)-1]
+	percentDecreaseFromHight := ((lastCandle.Hight - lastCandle.Close) / (lastCandle.Hight - lastCandle.Open)) * 100
 
 	closes := indicator.ExtractClosePrices(candles)
 
@@ -56,19 +49,20 @@ func (s *BotService) Run(ctx context.Context) error {
 
 	ema1Last2 := indicator.LastN(closes, 2)
 	input := StrategyInput{
-		Price:      closes[len(closes)-1],
-		EMA7Prev:   ema7Last2[0],
-		EMA1Prev:   ema1Last2[0],
-		EMA50Prev:  ema50Last2[0],
-		EMA200Prev: ema200Last2[0],
-		EMA1Cur:    ema1Last2[1],
-		EMA7Cur:    ema7Last2[1],
-		EMA50Cur:   ema50Last2[1],
-		EMA200Cur:  ema200Last2[1],
-		RSI6Prev:   rsi6Last2[0],
-		RSI14Prev:  rsi14Last2[0],
-		RSI6Cur:    rsi6Last2[1],
-		RSI14Cur:   rsi14Last2[1],
+		Price:                    closes[len(closes)-1],
+		EMA7Prev:                 ema7Last2[0],
+		EMA1Prev:                 ema1Last2[0],
+		EMA50Prev:                ema50Last2[0],
+		EMA200Prev:               ema200Last2[0],
+		EMA1Cur:                  ema1Last2[1],
+		EMA7Cur:                  ema7Last2[1],
+		EMA50Cur:                 ema50Last2[1],
+		EMA200Cur:                ema200Last2[1],
+		RSI6Prev:                 rsi6Last2[0],
+		RSI14Prev:                rsi14Last2[0],
+		RSI6Cur:                  rsi6Last2[1],
+		RSI14Cur:                 rsi14Last2[1],
+		PercentDecreaseFromHight: percentDecreaseFromHight,
 	}
 
 	action := EvaluateStrategy(input, state)
@@ -79,7 +73,7 @@ func (s *BotService) Run(ctx context.Context) error {
 	switch action {
 	case domain.ActionBuy:
 		if state.Position == "NONE" {
-			err = s.executor.Buy(ctx, state, input.Price)
+			err := s.executor.Buy(ctx, state, input.Price)
 			if err != nil {
 				return err
 			}
@@ -87,17 +81,39 @@ func (s *BotService) Run(ctx context.Context) error {
 
 	case domain.ActionSell:
 		if state.Position == "LONG" {
-			err = s.executor.Sell(ctx, state, input.Price)
+			err := s.executor.Sell(ctx, state, input.Price)
 			if err != nil {
 				return err
 			}
 		}
 	}
 
-	state.LastRun = time.Now().UTC()
 	if action != domain.ActionCheck {
 		state.LastAction = string(action)
 	}
+
+	return nil
+}
+
+func (s *BotService) Run(ctx context.Context) error {
+	state, err := s.repo.Load(ctx)
+	if err != nil {
+		return err
+	}
+
+	candles, err := s.binanceAdapter.GetCandles(ctx,
+		"12h",
+		1000, nil)
+	if err != nil {
+		return err
+	}
+
+	err = s.ProcessCandles(ctx, candles, state)
+	if err != nil {
+		return err
+	}
+
+	state.LastRun = time.Now().UTC()
 
 	return s.repo.Save(ctx, state)
 }

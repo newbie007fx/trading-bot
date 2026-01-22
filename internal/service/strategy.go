@@ -5,19 +5,20 @@ import (
 )
 
 type StrategyInput struct {
-	Price      float64
-	EMA50Prev  float64
-	EMA50Cur   float64
-	EMA200Prev float64
-	EMA200Cur  float64
-	EMA7Prev   float64
-	EMA7Cur    float64
-	EMA1Prev   float64
-	EMA1Cur    float64
-	RSI6Prev   float64
-	RSI6Cur    float64
-	RSI14Prev  float64
-	RSI14Cur   float64
+	Price                    float64
+	EMA50Prev                float64
+	EMA50Cur                 float64
+	EMA200Prev               float64
+	EMA200Cur                float64
+	EMA7Prev                 float64
+	EMA7Cur                  float64
+	EMA1Prev                 float64
+	EMA1Cur                  float64
+	RSI6Prev                 float64
+	RSI6Cur                  float64
+	RSI14Prev                float64
+	RSI14Cur                 float64
+	PercentDecreaseFromHight float64
 }
 
 func EvaluateStrategy(in StrategyInput, state *domain.BotState) domain.Action {
@@ -43,7 +44,7 @@ func EvaluateStrategy(in StrategyInput, state *domain.BotState) domain.Action {
 			}
 		}
 
-		if in.RSI6Cur >= 80 && in.RSI14Cur >= 70 {
+		if in.RSI6Cur >= 80 && in.RSI14Cur >= 70 && in.PercentDecreaseFromHight <= 45 {
 			state.Rule = string(domain.Rule3)
 			return domain.ActionBuy
 		}
@@ -67,7 +68,7 @@ func EvaluateStrategy(in StrategyInput, state *domain.BotState) domain.Action {
 			return domain.ActionSell
 		}
 
-		if state.Rule != string(domain.Rule3) && in.RSI6Cur >= 80 && in.RSI14Cur >= 70 && state.LastAction != string(domain.ActionAdjustRule) {
+		if state.Rule != string(domain.Rule3) && in.RSI6Cur >= 80 && in.RSI14Cur >= 70 && state.LastAction != string(domain.ActionAdjustRule) && in.PercentDecreaseFromHight <= 45 {
 			state.IsAdjusted = true
 			return domain.ActionAdjustRule
 		}
