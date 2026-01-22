@@ -2,7 +2,9 @@ package function
 
 import (
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/newbie007fx/trading-bot/internal/config"
 	"github.com/newbie007fx/trading-bot/internal/execution"
@@ -15,6 +17,12 @@ import (
 )
 
 func ExecuteBot(w http.ResponseWriter, r *http.Request) {
+	// Set slog default level to Info
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	slog.SetDefault(logger)
+
 	ctx := r.Context()
 
 	cfg := config.Load()

@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/newbie007fx/trading-bot/internal/domain"
@@ -67,8 +67,22 @@ func (s *BotService) ProcessCandles(ctx context.Context, candles []model.CandleD
 
 	action := EvaluateStrategy(input, state)
 
-	log.Printf("[%s] running action %s: price %.2f rule %s target price %.2f, is adjusted %t\n", s.executor.Name(), action, input.Price, state.Rule, state.TargetPrice, state.IsAdjusted)
-	log.Printf("ema1prev: %.2f, ema7prev: %.2f, ema50prev: %.2f, ema200prev: %.2f, ema1cur: %.2f, ema7cur: %.2f, ema50cur: %.2f, ema200cur: %.2f\n", input.EMA1Prev, input.EMA7Prev, input.EMA50Prev, input.EMA200Prev, input.EMA1Cur, input.EMA7Cur, input.EMA50Cur, input.EMA200Cur)
+	slog.Info("running action",
+		"executor", s.executor.Name(),
+		"action", action,
+		"price", input.Price,
+		"rule", state.Rule,
+		"target_price", state.TargetPrice,
+		"is_adjusted", state.IsAdjusted)
+	slog.Info("indicator values",
+		"ema1prev", input.EMA1Prev,
+		"ema7prev", input.EMA7Prev,
+		"ema50prev", input.EMA50Prev,
+		"ema200prev", input.EMA200Prev,
+		"ema1cur", input.EMA1Cur,
+		"ema7cur", input.EMA7Cur,
+		"ema50cur", input.EMA50Cur,
+		"ema200cur", input.EMA200Cur)
 
 	switch action {
 	case domain.ActionBuy:

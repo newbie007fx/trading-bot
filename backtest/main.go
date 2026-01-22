@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
+	"os"
 
 	"github.com/newbie007fx/trading-bot/internal/domain"
 	"github.com/newbie007fx/trading-bot/internal/execution"
@@ -36,8 +38,8 @@ func RunBacktest(
 		}
 	}
 
-	log.Printf(
-		"[BACKTEST DONE] Equity=%.2f Trades=%d Win=%d Loss=%d",
+	fmt.Printf(
+		"[BACKTEST DONE] Equity=%.2f Trades=%d Win=%d Loss=%d\n",
 		state.Equity,
 		state.TotalTrades,
 		state.WinTrades,
@@ -53,9 +55,15 @@ func RunBacktest(
 }
 
 func main() {
+	// Set slog default level to Warning to suppress Info logs
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelWarn,
+	}))
+	slog.SetDefault(logger)
+
 	ctx := context.Background()
 
-	marketClient := market.NewBinanceAdapter(ctx, "", "", "SOL")
+	marketClient := market.NewBinanceAdapter(ctx, "", "", "")
 	simulation := execution.NewSimulatedExecutor()
 	repo := repository.NewMemoryStateRepo()
 
@@ -79,7 +87,6 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(candles[0].OpenTime)
 		RunBacktest(candles, state, botService)
 		endTime = &candles[0].OpenTime
 	}
