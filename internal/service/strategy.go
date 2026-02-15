@@ -45,8 +45,10 @@ func EvaluateStrategy(in StrategyInput, state *domain.BotState) domain.Action {
 		}
 
 		if in.RSI6Cur >= 80 && in.RSI14Cur >= 70 && in.PercentDecreaseFromHight <= 45 {
-			state.Rule = string(domain.Rule3)
-			return domain.ActionBuy
+			if in.RSI6Prev > 65 || in.RSI14Prev > 60 {
+				state.Rule = string(domain.Rule3)
+				return domain.ActionBuy
+			}
 		}
 	}
 
